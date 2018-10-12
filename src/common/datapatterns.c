@@ -158,7 +158,26 @@ xdd_datapattern_buffer_init(worker_data_t *wdp) {
 	    	remaining_length -= pattern_length;
 	    	ucp += pattern_length;
 		}
-    } else { // Otherwise set the entire buffer to the character in "dpp->data_pattern"
+    } else if (dpp->data_pattern_options & DP_FILE_PATTERN) {
+		memset(wdp->wd_task.task_datap,'\0',tdp->td_xfer_size);
+		ucp = (unsigned char *)wdp->wd_task.task_datap;
+		if (dpp->data_pattern_options & DP_REPLICATE_PATTERN) { // Replicate the pattern throughout the buffer
+			remaining_length = tdp->td_xfer_size;
+			while (remaining_length) {
+				if (dpp->data_pattern_length < remaining_length)
+					pattern_length = dpp->data_pattern_length;
+				else pattern_length = remaining_length;
+				memcpy(ucp,dpp->data_pattern,pattern_length);
+				remaining_length -= pattern_length;
+				ucp += pattern_length;
+			}
+		} else { // Just put the pattern at the beginning of the buffer once
+			if (dpp->data_pattern_length < (size_t)tdp->td_xfer_size)
+				pattern_length = dpp->data_pattern_length;
+			else pattern_length = tdp->td_xfer_size;
+			memcpy(ucp,dpp->data_pattern,pattern_length);
+		}
+	} else { // Otherwise set the entire buffer to the character in "dpp->data_pattern"
 		memset(wdp->wd_task.task_datap,*(dpp->data_pattern),tdp->td_xfer_size);
    	}
 		

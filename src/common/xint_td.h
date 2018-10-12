@@ -53,7 +53,7 @@ struct xint_target_data {
 	int32_t   			td_thread_id;  		// My system thread ID (like a process ID) 
 	int32_t   			td_pid;   			// My process ID 
 	int32_t   			td_target_number;	// My target number 
-	uint64_t			td_target_options; 			// I/O Options specific to each target 
+	uint64_t			td_target_options; 	// I/O Options specific to each target 
 #ifdef WIN32
 	HANDLE   			td_file_desc; 		// File HANDLE for the target device/file 
 #else
@@ -155,6 +155,7 @@ struct xint_target_data {
 	struct xint_e2e				*td_e2ep;			// Pointer to the e2e struct when needed
 	struct xint_extended_stats	*td_esp;			// Extended Stats Structure Pointer
 	struct xint_triggers		*td_trigp;			// Triggers Structure Pointer
+	int                         dpp_fd;             // File descriptor for file data pattern
 	struct xint_data_pattern	*td_dpp;			// Data Pattern Structure Pointer
 	struct xint_raw				*td_rawp;          	// RAW Data Structure Pointer
 	struct lockstep				*td_lsp;			// Pointer to the lockstep structure used by the lockstep option

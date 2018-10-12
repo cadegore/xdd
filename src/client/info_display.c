@@ -282,13 +282,15 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 	if (tdp->td_dpp) {
 		dpp = tdp->td_dpp;
 		fprintf(out,"\t\tData pattern in buffer");
-                if (dpp->data_pattern_options & (DP_RANDOM_PATTERN | DP_RANDOM_BY_TARGET_PATTERN | DP_SEQUENCED_PATTERN | DP_INVERSE_PATTERN | DP_ASCII_PATTERN | DP_HEX_PATTERN | DP_PATTERN_PREFIX)) {
+                if (dpp->data_pattern_options & (DP_RANDOM_PATTERN | DP_RANDOM_BY_TARGET_PATTERN | DP_SEQUENCED_PATTERN | DP_INVERSE_PATTERN | DP_ASCII_PATTERN | DP_FILE_PATTERN | DP_HEX_PATTERN | DP_PATTERN_PREFIX)) {
 			if (dpp->data_pattern_options & DP_RANDOM_PATTERN) fprintf(out,",random ");
                         if (dpp->data_pattern_options & DP_RANDOM_BY_TARGET_PATTERN) fprintf(out,",random by target number ");
 			if (dpp->data_pattern_options & DP_SEQUENCED_PATTERN) fprintf(out,",sequenced ");
 			if (dpp->data_pattern_options & DP_INVERSE_PATTERN) fprintf(out,",inversed ");
 			if (dpp->data_pattern_options & DP_ASCII_PATTERN) fprintf(out,",ASCII: '%s' <%d bytes> %s ",
 				dpp->data_pattern,(int)dpp->data_pattern_length, (dpp->data_pattern_options & DP_REPLICATE_PATTERN)?"Replicated":"Not Replicated");
+			if (dpp->data_pattern_options & DP_FILE_PATTERN) fprintf(out,",From file: '%s' <%d bytes> %s\n",
+				dpp->data_pattern_filename, (int)dpp->data_pattern_length, (dpp->data_pattern_options & DP_REPLICATE_PATTERN)?"Replicated":"No Replicated");
 			if (dpp->data_pattern_options & DP_HEX_PATTERN) {
 				fprintf(out,",HEX: 0x");
 				for (i=0; i<dpp->data_pattern_length; i++) 

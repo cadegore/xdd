@@ -340,14 +340,19 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 	size_t              i;
 	int           		target_number;
 	target_data_t        		*tdp;
-	char          		*pattern_type; // The pattern type of ascii, hex, random, ...etc
-	unsigned char 		*pattern; // The ACSII representation of the specified data pattern
-	unsigned char 		*pattern_value; // The ACSII representation of the specified data pattern
+	char          		*pattern_type;      // The pattern type of ascii, hex, random, ...etc
+	unsigned char 		*pattern;           // The ACSII representation of the specified data pattern
+	unsigned char 		*pattern_value;     // The ACSII representation of the specified data pattern
 	uint64_t      		pattern_binary = 0; // The 64-bit value shifted all the way to the left
-	size_t        		pattern_length; // The length of the pattern string from the command line
+	size_t        		pattern_length;     // The length of the pattern string from the command line
 	unsigned char 		*tmpp;
 	int           		retval;
-  
+	int32_t             stat_status;        // Return value of stat call
+#if (LINUX || DARWIN)
+	struct stat         stat_buf;           // Stat struct to get size of data file if DP_FILE_PATTERN is set
+#elif (AIX || SOLARIS)
+	struct stat64       stat_buf;
+#endif 
 
     args = xdd_parse_target_number(planp, argc, &argv[0], flags, &target_number);
     if (args < 0) return(-1);
@@ -547,10 +552,30 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 		if (argc <= args+2) {
 			fprintf(xgp->errout,"%s: ERROR: not enough arguments specified for the option '-datapattern'\n",xgp->progname);
 			return(0);
+		} else {
+#if (LINUX || DARWIN)
+			stat_status = stat((char *)argv[args+2], &stat_buf);
+#elif (AIX || SOLARIS)
+			stat_status = stat64((char *)argv[args+2], &stat_buf);
+#endif
+			if (stat_status < 0) {
+				fprintf(xgp->errout, "%s: ERROR: could not open %s to use for the data pattern\n", xgp->progname, (char *)argv[args+2]);
+				return(0);
+			}
+			pattern_length = stat_buf.st_size;
 		}
-		if (tdp) {/* set option for specific target */
+		if (tdp) { /* set option for specific target */
 			tdp->td_dpp->data_pattern_options |= DP_FILE_PATTERN;
 			tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
+			tdp->dpp_fd = open(tdp->td_dpp->data_pattern_filename, O_RDONLY);
+			if (tdp->dpp_fd < 0) {
+				fprintf(xgp->errout, "%s: ERROR: could not open %s\n", xgp->progname, tdp->td_dpp->data_pattern_filename);
+				return(0);
+			}
+			tdp->td_dpp->data_pattern_length = pattern_length;
+			tdp->td_dpp->data_pattern = (unsigned char *)malloc(sizeof(unsigned char) * (tdp->td_dpp->data_pattern_length + 1));
+			memset(tdp->td_dpp->data_pattern, '\0', sizeof(unsigned char) * (tdp->td_dpp->data_pattern_length + 1));
+			pread(tdp->dpp_fd, tdp->td_dpp->data_pattern, tdp->td_dpp->data_pattern_length, 0);
 		} else {// Put this option into all Targets 
 			if (flags & XDD_PARSE_PHASE2) {
 				tdp = planp->target_datap[0];
@@ -558,6 +583,15 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 				while (tdp) {
 					tdp->td_dpp->data_pattern_options |= DP_FILE_PATTERN;
 					tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
+					tdp->dpp_fd = open(tdp->td_dpp->data_pattern_filename, O_RDONLY);
+					if (tdp->dpp_fd < 0) {
+						fprintf(xgp->errout, "%s: ERROR: could not open %s\n", xgp->progname, tdp->td_dpp->data_pattern_filename);
+						return(0);
+					}
+					tdp->td_dpp->data_pattern_length = pattern_length;
+					tdp->td_dpp->data_pattern = (unsigned char *)malloc(sizeof(unsigned char) * (tdp->td_dpp->data_pattern_length + 1));
+					memset(tdp->td_dpp->data_pattern, '\0', sizeof(unsigned char) * (tdp->td_dpp->data_pattern_length + 1));
+					pread(tdp->dpp_fd, tdp->td_dpp->data_pattern, tdp->td_dpp->data_pattern_length, 0);
 					i++;
 					tdp = planp->target_datap[i];
 				}

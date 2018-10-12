@@ -49,6 +49,18 @@ xdd_target_thread_cleanup(target_data_t *tdp) {
             xni_close_connection(&tdp->td_e2ep->xni_td_conn);
         }
 
+    /* If the target data pattern was allocated, it must be free'd */
+    if (tdp->td_dpp) {
+        if (tdp->td_dpp->data_pattern_options & DP_FILE_PATTERN) {
+            /* If the file target opend a file for the data pattern we must close
+            * the files and clean up the data_pattern buffer
+            */
+            close(tdp->dpp_fd);
+            free(tdp->td_dpp->data_pattern);
+        }
+        free(tdp->td_dpp);
+    }
+
 	/* On non e2e, close the descriptor */
 	if (!(TO_ENDTOEND & tdp->td_target_options)) {
 		rc = close(tdp->td_file_desc);
