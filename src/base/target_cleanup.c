@@ -35,13 +35,31 @@ xdd_target_thread_cleanup(target_data_t *tdp) {
 		// get the next Worker in this chain
 		wdp = wdp->wd_next_wdp;
 	}
-	if (tdp->td_target_options & TO_DELETEFILE) {
+	
+    /* We need to close all file descriptors opened by worker threads in islocal e2e connection */
+    if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
+        wdp = tdp->td_next_wdp;
+        while (wdp) {
+            if (wdp->wd_e2ep && wdp->wd_e2ep->e2e_sd != -1) {
+                close(wdp->wd_e2ep->e2e_sd);
+                wdp->wd_e2ep->e2e_sd = -1;
+            }
+            // Get the next worker in the chain
+            wdp = wdp->wd_next_wdp;
+        }
+    }
+
+    if (tdp->td_target_options & TO_DELETEFILE) {
+        if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
+            xdd_targetpass_e2e_remove_islocal(tdp);
+        } else {
 #ifdef WIN32
-		DeleteFile(tdp->td_target_full_pathname);
+		    DeleteFile(tdp->td_target_full_pathname);
 #else
-		unlink(tdp->td_target_full_pathname);
+		    unlink(tdp->td_target_full_pathname);
 #endif
-	}
+	    }
+    }
 
         /* On e2e XNI, part of cleanup includes closing the source side */
         if ((TO_ENDTOEND & tdp->td_target_options) &&

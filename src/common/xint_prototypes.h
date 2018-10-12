@@ -343,6 +343,8 @@ void	xdd_targetpass_e2e_loop_src(xdd_plan_t* planp, target_data_t *tdp);
 void	xdd_targetpass_e2e_task_setup_src(worker_data_t *wdp);
 void	xdd_targetpass_e2e_eof_src(target_data_t *tdp);
 void	xdd_targetpass_e2e_monitor(target_data_t *tdp);
+void    xdd_targetpass_e2e_reopen_islocal(target_data_t *tdp);
+void    xdd_targetpass_e2e_remove_islocal(target_data_t *tdp);
 
 // target_pass_qt_locator.c
 worker_data_t	*xdd_get_specific_worker_thread(target_data_t *tdp, int32_t q);

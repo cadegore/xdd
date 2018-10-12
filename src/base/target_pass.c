@@ -62,7 +62,7 @@ xdd_target_pass(xdd_plan_t* planp, target_data_t *tdp) {
 	// whether this is the Destination Side of an E2E operation or not. 
 	tdp->td_current_state &= ~TARGET_CURRENT_STATE_PASS_COMPLETE;
 	if (tdp->td_target_options & TO_ENDTOEND) { // E2E operations are *different*
-		if (tdp->td_target_options & TO_E2E_SOURCE)
+		if ((tdp->td_target_options & TO_E2E_SOURCE) || (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL))
 		    xdd_targetpass_e2e_loop_src(planp, tdp);
 		else xdd_targetpass_e2e_loop_dst(planp, tdp);
 	} else { // Normal operations (other than E2E)

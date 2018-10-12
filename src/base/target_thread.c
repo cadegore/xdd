@@ -122,7 +122,11 @@ xdd_target_thread(void *pin) {
 		    (tdp->td_target_options & TO_REOPEN) || 
 		    (tdp->td_target_options & TO_RECREATE)) {
 			// Tell all Worker Threads to close and reopen the new file
-			xdd_target_reopen(tdp);
+			if (!(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) {
+				xdd_target_reopen(tdp);
+			} else {
+				xdd_targetpass_e2e_reopen_islocal(tdp);
+			}
 		}
 	} /* end of FOR loop tdp->td_counters.tc_pass_number */
 

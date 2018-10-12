@@ -213,7 +213,7 @@ if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e
 if (xgp->global_options & GO_DEBUG_E2E) xdd_show_task(&wdp->wd_task);
 
 	if ( (wdp->wd_task.task_io_status > 0) && (tdp->td_target_options & TO_ENDTOEND) ) {
-		if (tdp->td_target_options & TO_E2E_SOURCE) {
+		if ((tdp->td_target_options & TO_E2E_SOURCE) || (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) {
 			// For Serial Ordering, wait for the Previous I/O to complete before the associated Worker Thread releases this Worker Thread. 
 			// It is important to note that for Srial Ordering, when we get released by the Previous Worker Thread
 			// we are gauranteed that the previous Worker Thread has completed its sendto() operation. That only means that

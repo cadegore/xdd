@@ -84,20 +84,24 @@ xdd_e2e_worker_init(worker_data_t *wdp) {
 		return(-1);
 	}
 
-	// Get the IP address of the destination host
-	status = xint_lookup_addr(wdp->wd_e2ep->e2e_dest_hostname, 0, &addr);
-	if (status) {
-		fprintf(xgp->errout, "%s: xdd_e2e_worker_init: unable to identify host '%s'\n",
-				xgp->progname, wdp->wd_e2ep->e2e_dest_hostname);
-		return(-1);
+	if (!(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) {
+		// Get the IP address of the destination host
+		status = xint_lookup_addr(wdp->wd_e2ep->e2e_dest_hostname, 0, &addr);
+		if (status) {
+			fprintf(xgp->errout, "%s: xdd_e2e_worker_init: unable to identify host '%s'\n",
+					xgp->progname, wdp->wd_e2ep->e2e_dest_hostname);
+			return(-1);
+		}
+	
+		// Convert to host byte order
+		wdp->wd_e2ep->e2e_dest_addr = ntohl(addr);
 	}
-
-	// Convert to host byte order
-	wdp->wd_e2ep->e2e_dest_addr = ntohl(addr);
 
 	if (tdp->td_target_options & TO_E2E_DESTINATION) { // This is the Destination side of an End-to-End
 		status = xdd_e2e_dest_init(wdp);
 	} else if (tdp->td_target_options & TO_E2E_SOURCE) { // This is the Source side of an End-to-End
+		status = xdd_e2e_src_init(wdp);
+	} else if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) { // This is an islocal operation just init Source side
 		status = xdd_e2e_src_init(wdp);
 	} else { // Should never reach this point
 		status = -1;
@@ -140,10 +144,28 @@ xdd_e2e_src_init(worker_data_t *wdp) {
 	/* Only setup sockets if not using XNI */
 	xdd_plan_t *planp = tdp->td_planp;
 	if (!(PLAN_ENABLE_XNI & planp->plan_options)) {
-		status = xdd_e2e_setup_src_socket(wdp);
-		if (status == -1){
-			xdd_e2e_err(wdp,"xdd_e2e_src_init","could not setup sockets for e2e source\n");
-			return(-1);
+		if (planp->plan_options & PLAN_ENDTOEND_LOCAL) {
+			/* Check to see if DIO is enabled for the I/O operation */
+			if (tdp->td_target_options & TO_DIO) {
+				wdp->wd_e2ep->e2e_sd =
+					open(wdp->wd_e2ep->e2e_dest_hostname, O_DIRECT | O_CREAT | O_WRONLY, 00666);
+			} else {
+				/* If DIO was not enabled, we will just open without O_DIRECT flag */
+				wdp->wd_e2ep->e2e_sd =
+					open(wdp->wd_e2ep->e2e_dest_hostname, O_CREAT | O_WRONLY, 00666);
+			}
+			
+			status = wdp->wd_e2ep->e2e_sd;
+			if (status == -1) {
+				xdd_e2e_err(wdp,"xdd_e2e_src_init","could not open file for e2e islocal\n");
+				return(-1);
+			}
+		} else {
+			status = xdd_e2e_setup_src_socket(wdp);
+			if (status == -1){
+				xdd_e2e_err(wdp,"xdd_e2e_src_init","could not setup sockets for e2e source\n");
+				return(-1);
+			}
 		}
 	}
 	

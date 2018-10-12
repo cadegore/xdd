@@ -307,8 +307,6 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 		} else { // Just display the one-byte hex pattern 
 			fprintf(out,",0x%02x\n",dpp->data_pattern[0]);
 		}
-		if (dpp->data_pattern_options & DP_FILE_PATTERN) 
-			fprintf(out," From file: %s\n",dpp->data_pattern_filename);
 	}
 	fprintf(out,"\t\tData buffer verification is");
 	if ((tdp->td_target_options & (TO_VERIFY_LOCATION | TO_VERIFY_CONTENTS)))
@@ -399,21 +397,31 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 	// Display information about any End-to-End operations for this target 
 	// Only worker thread 0 displays the inforamtion
 	if (tdp->td_target_options & TO_ENDTOEND) { // This target is part of an end-to-end operation
-		// Display info
-		fprintf(out,"\t\tEnd-to-End ACTIVE: this target is the %s side\n",
-			(tdp->td_target_options & TO_E2E_DESTINATION) ? "DESTINATION":"SOURCE");
-		// Display all the hostname:base_port,port_count entries in the e2e_address_table
-		for (i = 0; i < (size_t)tdp->td_e2ep->e2e_address_table_host_count; i++) {
-			fprintf(out,"\t\tEnd-to-End Destination Address %ld of %d '%s' base port %d for %d ports [ports %d - %d]\n",
-				i+1,
-				tdp->td_e2ep->e2e_address_table_host_count,
-				tdp->td_e2ep->e2e_address_table[i].hostname,
-				tdp->td_e2ep->e2e_address_table[i].base_port,
-				tdp->td_e2ep->e2e_address_table[i].port_count,
-				tdp->td_e2ep->e2e_address_table[i].base_port,
-				tdp->td_e2ep->e2e_address_table[i].base_port + tdp->td_e2ep->e2e_address_table[i].port_count -1);
+		if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
+			// Display info
+			fprintf(out, "\t\tEnd-to-End ACTIVE: the file being read from is %s\n",
+				tdp->td_target_basename);
+			// Display all hostname (output file names) in the e2e_address_table
+			for (i = 0; i < (size_t)tdp->td_e2ep->e2e_address_table_host_count; i++) {
+				fprintf(out, "\t\tEnd-to-End Destination File %s\n",
+					tdp->td_e2ep->e2e_address_table[i].hostname);
+			}
+		} else {
+			// Display info
+			fprintf(out,"\t\tEnd-to-End ACTIVE: this target is the %s side\n",
+				(tdp->td_target_options & TO_E2E_DESTINATION) ? "DESTINATION":"SOURCE");
+			// Display all the hostname:base_port,port_count entries in the e2e_address_table
+			for (i = 0; i < (size_t)tdp->td_e2ep->e2e_address_table_host_count; i++) {
+					fprintf(out,"\t\tEnd-to-End Destination Address %ld of %d '%s' base port %d for %d ports [ports %d - %d]\n",
+					i+1,
+					tdp->td_e2ep->e2e_address_table_host_count,
+					tdp->td_e2ep->e2e_address_table[i].hostname,
+					tdp->td_e2ep->e2e_address_table[i].base_port,
+					tdp->td_e2ep->e2e_address_table[i].port_count,
+					tdp->td_e2ep->e2e_address_table[i].base_port,
+					tdp->td_e2ep->e2e_address_table[i].base_port + tdp->td_e2ep->e2e_address_table[i].port_count -1);
+			}
 		}
-
 		// Check for RESTART and setup restart structure if required
 		if (tdp->td_target_options & TO_RESTART_ENABLE) { 
 			// Set up the restart structure in this Data Struct

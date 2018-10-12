@@ -1232,7 +1232,12 @@ xddfunc_endtoend(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	    	}
 		}
 		return(args_index);
-    } else if ((strcmp(argv[args_index], "isdestination") == 0) ||
+    } else if ((strcmp(argv[args_index], "islocal") == 0) ||
+		   (strcmp(argv[args_index], "isloc") == 0)) {
+		args_index++;
+		planp->plan_options |= PLAN_ENDTOEND_LOCAL;
+		return(args_index);
+	} else if ((strcmp(argv[args_index], "isdestination") == 0) ||
 	       (strcmp(argv[args_index], "isdest") == 0)) { 
 		// Set the target option flags that indicates this is the 
 		// "destination" host name for the -e2e option
@@ -3727,8 +3732,8 @@ xddfunc_setup(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	
 	if (flags & XDD_PARSE_PHASE1) {
 		status = xdd_process_paramfile(planp, argv[1]);
-		if (status == 0)
-			return(0);
+		if (status != SUCCESS)
+			return status;
 	}
 	return(2);
 }

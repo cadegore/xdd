@@ -152,8 +152,10 @@ xdd_target_name(target_data_t *tdp) {
 	int			target_name_length;
 	char 		target_full_pathname[MAX_TARGET_NAME_LENGTH]; /* target directory + target name */
 
-	/* Set the extension to correspond with the current pass number */
-	if (tdp->td_target_options & TO_CREATE_NEW_FILES) { // Create a new file name for this target
+	/* Set the extension to correspond with the current pass number only if hte operation is
+	 * not an e2e islocal operation. Else the output files will be updated with extensions */
+	if ((tdp->td_target_options & TO_CREATE_NEW_FILES) &&
+		!(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) { // Create a new file name for this target
 		sprintf(tdp->td_target_extension,"%08d",tdp->td_counters.tc_pass_number);
 	}
 	
@@ -163,7 +165,8 @@ xdd_target_name(target_data_t *tdp) {
 		sprintf(target_full_pathname, "%s%s", tdp->td_target_directory, tdp->td_target_basename);
 	else sprintf(target_full_pathname, "%s",tdp->td_target_basename);
 
-	if (tdp->td_target_options & TO_CREATE_NEW_FILES) { // Add the target extension to the name
+	if ((tdp->td_target_options & TO_CREATE_NEW_FILES) && 
+		!(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) { // Add the target extension to the name
 		strcat(target_full_pathname, ".");
 		strcat(target_full_pathname, tdp->td_target_extension);
 	}

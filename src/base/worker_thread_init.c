@@ -209,6 +209,8 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 	if (tdp->td_target_options & TO_ENDTOEND) {
 		if (tdp->td_target_options & (TO_E2E_DESTINATION|TO_E2E_SOURCE)) {
 			status = xdd_e2e_worker_init(wdp);
+		} else if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
+			status = xdd_e2e_worker_init(wdp);
 		} else { // Not sure which side of the E2E this target is supposed to be....
 			fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: Cannot determine which side of the E2E operation this target is supposed to be.\n",
 				xgp->progname,

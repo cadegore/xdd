@@ -376,6 +376,131 @@ xdd_targetpass_e2e_monitor(target_data_t *tdp) {
 	}
 } // End of xdd_targetpass_e2e_monitor();
 
+/*----------------------------------------------------------------------------*/
+/* xdd_targetpass_e2e_reopen_islocal() - This subroutine will remove the files 
+ * created and reopen the handles when an E2D islocal operation is performed.
+ * 
+ * This subroutine is called by xdd_target_thread_cleanup() and possibly
+ * xdd_target_thread()
+ */
+void
+xdd_targetpass_e2e_reopen_islocal(target_data_t *tdp) {
+	worker_data_t *wdp;
+	static char orig_hostname[1024] = {'\0'}; // HOSTNAMELENGTH is defined in end_to_end.h as 1024
+
+	if(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
+		wdp = tdp->td_next_wdp;
+		while (wdp && wdp->wd_e2ep) {
+			// Closing all files
+			if (wdp->wd_e2ep->e2e_sd != -1) {
+#ifdef WIN32
+				CloseHandle(wdp->wd_e2ep->e2e_sd);
+#else
+				close(wdp->wd_e2ep->e2e_sd);
+#endif
+			}
+			// Get the next worker in the chain
+			wdp = wdp->wd_next_wdp;
+		}
+		wdp = tdp->td_next_wdp;
+		while (wdp) {
+			// Now reopening files
+			xdd_e2e_src_init(wdp);
+			// Get the next worker in the chain
+			wdp = wdp->wd_next_wdp;
+		}
+
+		if (tdp->td_target_options & TO_RECREATE) {
+			xdd_targetpass_e2e_remove_islocal(tdp);
+			wdp = tdp->td_next_wdp;
+			while (wdp) {
+				// Now reopening files
+				xdd_e2e_src_init(wdp);
+				// Get the next worker in the chain
+				wdp = wdp->wd_next_wdp;
+			}
+		}
+
+		if (tdp->td_target_options & TO_CREATE_NEW_FILES) {
+			// If we are suppose to delete the files, we will
+			// also do that now
+			if (tdp->td_target_options & TO_DELETEFILE) {
+				xdd_targetpass_e2e_remove_islocal(tdp);
+			} else {
+				// Else we first need to just close the current files
+				wdp = tdp->td_next_wdp;
+				while (wdp && wdp->wd_e2ep) {
+					// Closing all files
+					if (wdp->wd_e2ep->e2e_sd != -1) {
+#ifdef WIN32
+						CloseHandle(wdp->wd_e2ep->e2e_sd);
+#else
+						close(wdp->wd_e2ep->e2e_sd);
+#endif
+					}
+					// Get the next worker in the chain
+					wdp = wdp->wd_next_wdp;
+				}
+			}
+			wdp = tdp->td_next_wdp;
+			while (wdp) {
+				// Now setting a new name for the next file
+				if (orig_hostname[0] == '\0') {
+					strcpy(orig_hostname, wdp->wd_e2ep->e2e_dest_hostname);
+				}
+				sprintf(wdp->wd_e2ep->e2e_dest_hostname,
+					"%s%08d",
+					orig_hostname,
+					tdp->td_counters.tc_pass_number);
+				// Get the next worker in the chain
+				wdp = wdp->wd_next_wdp;
+			}
+			wdp = tdp->td_next_wdp;
+			while (wdp) {
+				// Now reopening files
+				xdd_e2e_src_init(wdp);
+				// Get the next worker in the chain
+				wdp = wdp->wd_next_wdp;
+			}
+		}
+	}
+} // End of xdd_targetpass_e2e_reopen_islocal
+
+/*----------------------------------------------------------------------------*/
+/* xdd_targetpass_e2e_remove_islocal() - This subroutine will remove the files 
+ * created when the islocal E2E operation is performed.
+ * 
+ * This subroutine is called by xdd_target_thread_cleanup() and possibly
+ * xdd_target_thread()
+ */
+void
+xdd_targetpass_e2e_remove_islocal(target_data_t *tdp) {
+	worker_data_t *wdp;
+
+	if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
+		wdp = tdp->td_next_wdp;
+		while (wdp && wdp->wd_e2ep) {
+			if (wdp->wd_e2ep->e2e_sd != -1) {
+#ifdef WIN32
+				CloseHandle(wdp->wd_e2ep->e2e_sd);
+#else
+				close(wdp->wd_e2ep->e2e_sd);
+#endif
+			}
+			// Get the next worker in the chain
+			wdp = wdp->wd_next_wdp;
+		}
+
+		// Only need to delete the files once
+		wdp = tdp->td_next_wdp;
+#ifdef WIN32
+		DeleteFile(wdp->wd_e2ep->e2e_dest_hostname);
+#else
+		unlink(wdp->wd_e2ep->e2e_dest_hostname);
+#endif
+	}
+} // End of xdd_targetpass_e2e_remove_islocal
+
 /*
  * Local variables:
  *  indent-tabs-mode: t

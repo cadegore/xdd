@@ -192,6 +192,9 @@ xdd_e2e_before_io_op(worker_data_t *wdp) {
 	// We are the Source side - nothing to do - leave now...
 	if (tdp->td_target_options & TO_E2E_SOURCE)
 		return(0);
+    // We are an islocal operation - nothing to do - leave now...
+    if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)
+        return(0);
 
 	/* ------------------------------------------------------ */
 	/* Start of destination's dealing with an End-to-End op   */

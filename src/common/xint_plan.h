@@ -62,6 +62,7 @@
 #define PLAN_INTERACTIVE_EXIT	0x0000000800000000ULL  /* Exit Interactive Mode */
 #define PLAN_INTERACTIVE_STOP	0x0000001000000000ULL  /* Stop at various points in Interactive Mode */
 #define PLAN_ENABLE_XNI 	    0x0000002000000000ULL  /* Init/Finalize XNI */
+#define PLAN_ENDTOEND_LOCAL 	0x0000004000000000ULL  /* Local end to end operation */
 
 struct xint_plan {
 /* Global variables relevant to all threads */

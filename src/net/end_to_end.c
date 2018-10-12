@@ -84,15 +84,21 @@ if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e
 		ttep->tte_net_processor_start = xdd_get_processor();
 	}
 
-	// Note: the e2ep->e2e_xfer_size is the size of the data field plus the size of the header
 	max_xfer = MAXMIT_TCP;
 	bytes_sent = 0;
-	bufp = (unsigned char *)e2ehp;
 	sento_calls = 0;
-	// The transfer size is the size of the header buffer (not the header struct)
-	// plus the amount of data in the data portion of the IO buffer.
-	// For EOF operations the amount of data in the data portion should be zero.
-	e2ep->e2e_xfer_size = sizeof(xdd_e2e_header_t) + e2ehp->e2eh_data_length;
+	if (!(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) {
+		// The transfer size is the size of the header buffer (not the header struct)
+		// plus the amount of data in the data portion of the IO buffer.
+		// For EOF operations the amount of data in the data portion should be zero.
+		// Note: the e2ep->e2e_xfer_size is the size of the data field plus the size of the header
+		e2ep->e2e_xfer_size = sizeof(xdd_e2e_header_t) + e2ehp->e2eh_data_length;
+		bufp = (unsigned char *)e2ehp;
+	} else {
+		// Note: For islocal operations, the e2e_xfer_size is just the size of the data only
+		e2ep->e2e_xfer_size = e2ehp->e2eh_data_length;
+		bufp = (unsigned char *)wdp->wd_e2ep->e2e_datap;
+	}
 
 if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Preparing to send %d bytes: e2ep=%p: e2ehp=%p: e2e_datap=%p: e2e_xfer_size=%d: e2eh_data_length=%lld\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, e2ep->e2e_xfer_size,e2ep,e2ehp,e2ep->e2e_datap,e2ep->e2e_xfer_size,(long long int)e2ehp->e2eh_data_length);
 if (xgp->global_options & GO_DEBUG_E2E) xdd_show_e2e_header((xdd_e2e_header_t *)bufp);
@@ -103,15 +109,23 @@ if (xgp->global_options & GO_DEBUG_E2E) xdd_show_e2e_header((xdd_e2e_header_t *)
 		if (send_size > max_xfer) 
 			send_size = max_xfer;
 if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Actually sending <send_size> %d bytes: e2ep=%p: e2ehp=%p: e2e_datap=%p: bytes_sent=%d: e2ehp+bytes_sent=%p: first 8 bytes=0x%016llx\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, send_size,e2ep,e2ehp,e2ep->e2e_datap,(int)bytes_sent,bufp, *((unsigned long long int *)bufp));
-		e2ep->e2e_send_status = sendto(e2ep->e2e_sd,
-									   bufp,
-									   send_size, 
-									   0, 
-									   (struct sockaddr *)&e2ep->e2e_sname, 
-									   sizeof(struct sockaddr_in));
-		if (e2ep->e2e_send_status <= 0) {
-			xdd_e2e_err(wdp,"xdd_e2e_src_send","ERROR: error sending HEADER+DATA to destination\n");
-			return(-1);
+		if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
+			e2ep->e2e_send_status = pwrite(e2ep->e2e_sd, bufp, send_size, wdp->wd_task.task_byte_offset);
+			if (e2ep->e2e_send_status <= 0) {
+				xdd_e2e_err(wdp,"xdd_e2e_src_send","ERROR: error sending DATA to destination\n");
+				return(-1);
+			}
+		} else {
+			e2ep->e2e_send_status = sendto(e2ep->e2e_sd,
+										   bufp,
+										   send_size, 
+										   0, 
+										   (struct sockaddr *)&e2ep->e2e_sname, 
+										   sizeof(struct sockaddr_in));
+			if (e2ep->e2e_send_status <= 0) {
+				xdd_e2e_err(wdp,"xdd_e2e_src_send","ERROR: error sending HEADER+DATA to destination\n");
+				return(-1);
+			}
 		}
 		bytes_sent += e2ep->e2e_send_status;
 		bufp += e2ep->e2e_send_status;
@@ -618,13 +632,17 @@ if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e
 			send_size = max_xfer;
 
 		bufp += bytes_sent;
-		e2ep->e2e_send_status = sendto(e2ep->e2e_sd,
-									   bufp,
-									   send_size, 
-									   0, 
-									   (struct sockaddr *)&e2ep->e2e_sname, 
-									   sizeof(struct sockaddr_in));
+		if (!(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) {
+			e2ep->e2e_send_status = sendto(e2ep->e2e_sd,
+										   bufp,
+										   send_size, 
+										   0, 
+										   (struct sockaddr *)&e2ep->e2e_sname, 
+										   sizeof(struct sockaddr_in));
 
+		} else {
+			e2ep->e2e_send_status = 1;
+		}
 		if (e2ep->e2e_send_status <= 0) {
 			xdd_e2e_err(wdp,"xdd_e2e_eof_source_side","ERROR: error sending EOF to destination\n");
 			return(-1);
