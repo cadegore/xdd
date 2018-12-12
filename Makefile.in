@@ -101,6 +101,22 @@ PYC = $(PYTHON_EXE) -m compileall -f
 RM = rm -f
 RMDIR = rmdir
 TAR = $(TAR_EXE)
+QUIET_COMPILE = 1
+# configure default is silent. Allow silence to be overriden with
+# make V=1
+ifdef V
+	QUIET_COMPILE = 0
+endif
+
+ifeq ($(QUIET_COMPILE),1)
+	# say a one-line description of the action, do not echo the command
+	Q=@echo
+	E=@
+else
+	# do not say short Q lines, but do echo the entire command
+	Q=@echo >/dev/null
+	E=
+endif
 
 #
 # Include module makefiles
@@ -233,28 +249,28 @@ xdd-truncate: bin/xdd-truncate
 xdd-tserver: bin/xdd-tserver
 
 bin/xdd-tserver: $(COMMON_DIR)/nclk.o $(NET_DIR)/net_utils.o $(TS_EXE_OBJS) 
-	@echo "[LD] $@ ..."
-	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 bin/xdd-gettime: $(COMMON_DIR)/global_time.o $(COMMON_DIR)/nclk.o $(NET_DIR)/net_utils.o $(GETTIME_EXE_OBJS) 
-	@echo "[LD] $@ ..."
-	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 bin/xdd-read-tsdumps: $(READ_TSDUMPS_EXE_OBJS)
-	@echo "[LD] $@ ..."
-	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 bin/xdd-getfilesize: $(GETFILESIZE_EXE_OBJS)
-	@echo "[LD] $@ ..."
-	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 bin/xdd-gethostip: $(GETHOSTIP_EXE_OBJS)
-	@echo "[LD] $@ ..."
-	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 bin/xdd-truncate: $(TRUNCATE_EXE_OBJS)
-	@echo "[LD] $@ ..."
-	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 .PHONY: tools xdd-read-tsdumps xdd-getfilesize xdd-gethostip xdd-truncate
 
@@ -262,16 +278,16 @@ bin/xdd-truncate: $(TRUNCATE_EXE_OBJS)
 # Build rules for executable targets
 #
 bin/xdd: $(XDD_OBJS) $(XDD_EXE_OBJS)
-	@echo "[LD] $@ ..."
-	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 bin/bxt: $(BXT_EXE_OBJS) $(LIB_DIR)/libxdd.a
-	@echo "[LD] $@ ..."
-	$(LD) $(LDFLAGS) -L$(LIB_DIR) -o $@ $(BXT_EXE_OBJS) -lxdd $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -L$(LIB_DIR) -o $@ $(BXT_EXE_OBJS) -lxdd $(LIBS)
 
 bin/xdd-lite: $(XDD_LITE_EXE_OBJS) $(LIB_DIR)/libxdd.a 
-	@echo "[LD] $@ ..."
-	$(LD) $(LDFLAGS) -L$(LIB_DIR) -o $@ $(XDD_LITE_EXE_OBJS) -lxdd $(LIBS)
+	$(Q) "[LD] $@ ..."
+	$(E)$(LD) $(LDFLAGS) -L$(LIB_DIR) -o $@ $(XDD_LITE_EXE_OBJS) -lxdd $(LIBS)
 
 #
 # Build rules for installation
@@ -498,13 +514,13 @@ endif
 # Overload default rules so that compilation is prettier
 #
 %.o: %.c
-	@echo "[CC] $< . . ."
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+	$(Q) "[CC] $< . . ."
+	$(E)$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 #
 # Additional rule for building dependencies
 #
 %.d: %.c
-	@echo "[DEPC] $< . . ."
+	$(Q) "[DEPC] $< . . ."
 	@mkdir -p $(shell dirname $@)
-	@$(DEPGEN) $(shell dirname $<) $(DEPC) -MM $(INCLUDES) $< > $@
+	$(E)$(DEPGEN) $(shell dirname $<) $(DEPC) -MM $(INCLUDES) $< > $@
 
