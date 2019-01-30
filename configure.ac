@@ -26,13 +26,6 @@ AC_PREREQ(2.59)
 AC_INIT([xdd], [7.0.0.rc-ramses3], bug@xdd.org)
 AC_CONFIG_HEADER([src/compat/config.h])
 
-CFLAGS=""
-
-USR_CFLAGS=$CFLAGS
-if test "x$USER_CFLAGS" = "x"; then
-    USR_CFLAGS_SET=no
-fi
-
 dnl
 dnl Include useful macros
 dnl
@@ -99,17 +92,13 @@ elif test "$CC" = "clang"; then
    CFLAGS="-g -pedantic -Wall -Wextra -Wno-unused-parameter"
    LDFLAGS="-g"
 elif test "$CC" = "gcc"; then
-   dnl If we are enabling flamegraphs, we must turn
-   dnl off optimizations so fomit-frame-pointer is not applied
+   dnl If we are enabling flamegraphs, we must store the stack
+   dnl frame pointer
    AC_ARG_ENABLE([flamegraph],
    [Enable compilation to allow for flamegraph tracing (Default: no)],
-   [if test "x$enableval" = "xno" ; then
-        AX_CFLAGS_GCC_OPTION([-O2])
-    fi],
-   [AX_CFLAGS_GCC_OPTION([-O2])])
-   if test "x$USR_CFLAGS_SET" = "xno"; then
-       AX_CFLAGS_GCC_OPTION([$USR_CFLAGS])
-   fi
+   [if test "x$enableval" = "xyes" ; then
+        AX_CFLAGS_GCC_OPTION([-fno-omit-frame-pointer])
+    fi],)
    AX_CFLAGS_GCC_OPTION([-g])
    AX_CFLAGS_GCC_OPTION([-std=c99])
    AX_CFLAGS_GCC_OPTION([-ggdb])
