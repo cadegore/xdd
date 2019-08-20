@@ -42,6 +42,9 @@ xdd_init_new_target_data(target_data_t *tdp, int32_t n) {
 	tdp->td_flushwrite_current_count = 0;
 	tdp->td_flushwrite = DEFAULT_FLUSHWRITE;
 	tdp->td_bytes = 0; // This must init to 0
+#if defined(HAVE_CPU_SET_T)
+	CPU_ZERO(&tdp->cpumask);
+#endif
 	tdp->td_start_offset = DEFAULT_STARTOFFSET;
 	tdp->td_pass_offset = DEFAULT_PASSOFFSET;
 	tdp->td_preallocate = DEFAULT_PREALLOCATE;

@@ -153,6 +153,9 @@ void					xdd_usage(int32_t fullhelp);
 int 					xdd_check_option(char *op);
 int32_t					xdd_process_paramfile(xdd_plan_t* planp, char *fnp);
 int 					xdd_parse_target_number(xdd_plan_t* planp, int32_t argc, char *argv[], uint32_t flags, int *target_number);
+#if defined(HAVE_CPU_SET_T)
+void                    xdd_set_target_cpu_mask(target_data_t *tdp, char *numa_nodes);
+#endif
 target_data_t 		*xdd_get_target_datap(xdd_plan_t* planp, int32_t target_number, char *op);
 xint_restart_t 			*xdd_get_restartp(target_data_t *tdp);
 xint_raw_t				*xdd_get_rawp(target_data_t *tdp);

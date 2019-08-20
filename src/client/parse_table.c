@@ -350,6 +350,15 @@ xdd_func_t  xdd_func[] = {
             {"    Will set not lock process into memory\n", 
             0,0,0,0},
 			0},
+#if defined(HAVE_CPU_SET_T)
+    {"numactl", "numa",
+            xddfunc_numactl, 
+            1,  
+            "  -numactl [target <target#>] <#[,#]*>\n",  
+            {"		Specifies the NUMA domain(s) that all targets worker threads will be pinnned to\n",
+            0,0,0,0},
+			0},
+#endif
     {"numreqs", "nr",
             xddfunc_numreqs, 
             1,  

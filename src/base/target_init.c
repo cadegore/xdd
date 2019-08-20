@@ -263,33 +263,43 @@ xint_target_init_start_worker_threads(target_data_t *tdp) {
 	    wdp->wd_worker_number = q;
 	    if (tdp->td_target_options & TO_ENDTOEND) {
 
-		// Find an e2e entry that has a valid port count
-		while (0 == tdp->td_e2ep->e2e_address_table[e2e_addr_index].port_count) {
-		    e2e_addr_index++;
-		}
-		//assert(e2e_addr_index < p->e2ep->e2e_address_table->number_of_entries);
+			// Find an e2e entry that has a valid port count
+			while (0 == tdp->td_e2ep->e2e_address_table[e2e_addr_index].port_count) {
+				e2e_addr_index++;
+			}
+			//assert(e2e_addr_index < p->e2ep->e2e_address_table->number_of_entries);
 		
-		wdp->wd_e2ep->e2e_dest_hostname = tdp->td_e2ep->e2e_address_table[e2e_addr_index].hostname;
-		wdp->wd_e2ep->e2e_dest_port = tdp->td_e2ep->e2e_address_table[e2e_addr_index].base_port + e2e_addr_port;
+			wdp->wd_e2ep->e2e_dest_hostname = tdp->td_e2ep->e2e_address_table[e2e_addr_index].hostname;
+			wdp->wd_e2ep->e2e_dest_port = tdp->td_e2ep->e2e_address_table[e2e_addr_index].base_port + e2e_addr_port;
 		
-		// Set the WorkerThread Numa node if possible
+			// Set the WorkerThread Numa node if possible
 #if defined(HAVE_CPU_SET_T) && defined(HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
-		status = pthread_attr_setaffinity_np(&worker_thread_attr,
-						     sizeof(tdp->td_e2ep->e2e_address_table[e2e_addr_index].cpu_set),
-						     &tdp->td_e2ep->e2e_address_table[e2e_addr_index].cpu_set);
+			status = pthread_attr_setaffinity_np(&worker_thread_attr,
+							     sizeof(tdp->td_e2ep->e2e_address_table[e2e_addr_index].cpu_set),
+							     &tdp->td_e2ep->e2e_address_table[e2e_addr_index].cpu_set);
 #endif
-		// Roll over to the begining of the list if that is required
-		e2e_addr_port++;
-		if (e2e_addr_port == tdp->td_e2ep->e2e_address_table[e2e_addr_index].port_count) {
-		    e2e_addr_index++;
-		    e2e_addr_port = 0;
-		}
-		if (xgp->global_options & GO_REALLYVERBOSE)
-		    fprintf(stderr,"Target Init: Target %d: assigning hostname %s port %d to worker_thread %d\n",
-			    tdp->td_target_number, wdp->wd_e2ep->e2e_dest_hostname,
-			    wdp->wd_e2ep->e2e_dest_port, wdp->wd_worker_number);
+			// Roll over to the begining of the list if that is required
+			e2e_addr_port++;
+			if (e2e_addr_port == tdp->td_e2ep->e2e_address_table[e2e_addr_index].port_count) {
+			    e2e_addr_index++;
+			    e2e_addr_port = 0;
+			}
+			if (xgp->global_options & GO_REALLYVERBOSE)
+				fprintf(stderr,"Target Init: Target %d: assigning hostname %s port %d to worker_thread %d\n",
+					tdp->td_target_number, wdp->wd_e2ep->e2e_dest_hostname,
+					wdp->wd_e2ep->e2e_dest_port, wdp->wd_worker_number);
 	    }
-
+#if defined(HAVE_CPU_SET_T) && defined(HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
+		else {
+			cpu_set_t zero_mask;
+			CPU_ZERO(&zero_mask);
+			if (!CPU_EQUAL(&zero_mask, &tdp->cpumask)) {
+				status = pthread_attr_setaffinity_np(&worker_thread_attr,
+									sizeof(tdp->cpumask),
+									&tdp->cpumask);
+			} 
+		}
+#endif
 	    
 	    status = pthread_create(&wdp->wd_thread, &worker_thread_attr, xdd_worker_thread, wdp);
 	    if (status) {

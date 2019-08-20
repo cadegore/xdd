@@ -107,6 +107,11 @@ struct xint_target_data {
 	int64_t				td_flushwrite;  			// number of write operations to perform between flushes 
 	int64_t				td_flushwrite_current_count;  // Running number of write operations - used to trigger a flush (sync) operation 
 	int64_t				td_bytes;   				// number of bytes to process overall 
+#if (HAVE_CPU_SET_T)
+#define NUMA_NODE_LIST_LEN 100
+	cpu_set_t			cpumask;                    // NUMA domain CPU mask used for numactl
+	char				numa_node_list[NUMA_NODE_LIST_LEN];  // List of NUMA nodes we are pinned in
+#endif
 	int64_t				td_numreqs;  				// Number of requests to perform per pass per qthread
 	double				td_rwratio;  				// read/write ratios 
 	nclk_t				td_report_threshold;		// reporting threshold for long operations 

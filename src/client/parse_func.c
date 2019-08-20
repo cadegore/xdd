@@ -2278,6 +2278,44 @@ xddfunc_noproclock(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags
 		xgp->global_options |= GO_NOPROCLOCK;
     return(1);
 }
+#if defined(HAVE_CPU_SET_T)
+/*----------------------------------------------------------------------------*/
+// Specify the NUMA domain to pin worker threads of a particular target 
+// Arguments: -numactl [target #] #[,#]*
+// This will set tdp->cpumask to the processors found in the NUMA domain passed
+// 
+int
+xddfunc_numactl(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
+{
+	int 		args, i; 
+	int 		target_number;
+	target_data_t 		*tdp;
+
+	args = xdd_parse_target_number(planp, argc, &argv[0], flags, &target_number);
+	if (args < 0) return(-1);
+
+	if (xdd_parse_arg_count_check(args,argc, argv[0]) == 0)
+		return(0);
+	
+	if (target_number >= 0) { /* Set this option value for a specified target */
+		tdp = xdd_get_target_datap(planp, target_number, argv[0]);
+		if (tdp == NULL) return(-1);
+		xdd_set_target_cpu_mask(tdp, argv[args+1]);
+		return(args+2);
+	} else { // Put this option into all Targets
+		if (flags & XDD_PARSE_PHASE2) {
+			tdp = planp->target_datap[0];
+			i = 0;
+			while (tdp) {
+				xdd_set_target_cpu_mask(tdp, argv[args+1]);
+				i++;
+				tdp = planp->target_datap[i];
+			}
+		}
+		return(2);
+	}
+}
+#endif /* HAVE_CPU_SET_T */
 /*----------------------------------------------------------------------------*/
 // Specify the number of requests to run 
 // Arguments: -numreqs [target #] #

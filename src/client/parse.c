@@ -17,6 +17,15 @@
 
 #include "xint.h"
 #include "parse.h"
+
+#ifdef HAVE_NUMA_H
+#include <numa.h>
+#endif
+
+#ifdef HAVE_SCHED_H
+#include <sched.h>
+#endif
+
 extern xdd_func_t xdd_func[];
 
 /*----------------------------------------------------------------------------*/
@@ -355,6 +364,53 @@ xdd_parse_target_number(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t 
 		}
 	} 
 }/* end of xdd_parse_target_number() */
+
+
+/*----------------------------------------------------------------------------*/
+/* xdd_set_target_cpu_mask() - parses the numa node comma seperated list and set the cpumask in the target
+ */
+#if defined(HAVE_CPU_SET_T)
+void xdd_set_target_cpu_mask(target_data_t *tdp, char *numa_nodes)
+{
+	CPU_ZERO(&tdp->cpumask);
+	int node_list_offset = 0;
+	tdp->numa_node_list[node_list_offset] = '\0';
+
+#if defined(HAVE_NUMA_NODE_TO_CPUS) && defined(HAVE_NUMA_ALLOCATE_CPUMASK)
+	int numa_node_no = -1;
+	struct bitmask* numa_mask = NULL;
+	char *cmdline = strdup(numa_nodes);
+	int i;
+	char *token = strtok(cmdline, ",");
+
+	if (numa_available() != -1) {
+		numa_mask = numa_allocate_cpumask();
+		// Now will run through all NUMA nodes listed and sett the cpu_set_t in the target
+		while (token != NULL) {
+			numa_node_no = atoi(token);
+			if(!numa_node_to_cpus(numa_node_no, numa_mask)) {
+				if (node_list_offset < (NUMA_NODE_LIST_LEN - 1)) {
+					tdp->numa_node_list[node_list_offset] = token[0];
+					node_list_offset += 1;
+				}
+				for (i = 0; i <= CPU_SETSIZE; i++) {
+					if (numa_bitmask_isbitset(numa_mask, i))
+						CPU_SET(i, &tdp->cpumask);
+				}
+			}
+			token = strtok(NULL, ",");
+		}
+		tdp->numa_node_list[node_list_offset] = '\0';
+		free(cmdline);
+		numa_free_cpumask(numa_mask);
+	}
+#else /* HAVE_NUMA_NODE_TO_CPUS && HAVE_NUMA_ALLOCATE_CPUMASK */
+	sched_getaffinity(getpid(),
+					  sizeof(tdp->cpumask),
+					  &tdp->cpumask);
+#endif /* HAVE_NUMA_NODE_TO_CPUS && HAVE_NUMA_ALLOCATE_CPUMASK */
+} /* end of xdd_set_target_cpu_mask() */
+#endif /* HAVE_CPU_SET_T */
 
 /*----------------------------------------------------------------------------*/
 /* xdd_get_target_datap() - return a pointer to the Target Data Struct for the specified target
