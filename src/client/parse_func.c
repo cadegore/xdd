@@ -349,7 +349,8 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 	int           		retval;
 	int32_t             stat_status;        // Return value of stat call
 #if (LINUX || DARWIN)
-	struct stat         stat_buf;           // Stat struct to get size of data file if DP_FILE_PATTERN is set
+	struct stat         stat_buf;           // Stat struct to get size of data file 
+											// if DP_FILE_PATTERN/DP_WHOLEFILE_PATTERN is set
 #elif (AIX || SOLARIS)
 	struct stat64       stat_buf;
 #endif 
@@ -547,10 +548,10 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 				}
 			}
 		}
-	} else if (strcmp(pattern_type, "file") == 0) {
+	} else if (strcmp(pattern_type, "file") == 0 ||  strcmp(pattern_type, "wholefile") == 0) {
 		retval++;
 		if (argc <= args+2) {
-			fprintf(xgp->errout,"%s: ERROR: not enough arguments specified for the option '-datapattern'\n",xgp->progname);
+			fprintf(xgp->errout,"%s: not enough arguments specified for the option '-datapattern'\n",xgp->progname);
 			return(0);
 		} else {
 #if (LINUX || DARWIN)
@@ -559,20 +560,30 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 			stat_status = stat64((char *)argv[args+2], &stat_buf);
 #endif
 			if (stat_status < 0) {
-				fprintf(xgp->errout, "%s: ERROR: could not open %s to use for the data pattern\n", xgp->progname, (char *)argv[args+2]);
+				fprintf(xgp->errout, "%s: could not open %s to use for the data pattern\n", xgp->progname, (char *)argv[args+2]);
 				return(0);
 			}
 			pattern_length = stat_buf.st_size;
 		}
 		if (tdp) { /* set option for specific target */
-			tdp->td_dpp->data_pattern_options |= DP_FILE_PATTERN;
+			if (strcmp(pattern_type, "file") == 0) {
+				tdp->td_dpp->data_pattern_options |= DP_FILE_PATTERN;
+			} else {// wholefile
+				tdp->td_dpp->data_pattern_options |= DP_WHOLEFILE_PATTERN;
+				// If we are using the whole files contents, we will not be replicating
+				tdp->td_dpp->data_pattern_options = tdp->td_dpp->data_pattern_options & ~DP_REPLICATE_PATTERN;
+			}
 			tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
-			tdp->dpp_fd = open(tdp->td_dpp->data_pattern_filename, O_RDONLY);
-			if (tdp->dpp_fd < 0) {
-				fprintf(xgp->errout, "%s: ERROR: could not open %s\n", xgp->progname, tdp->td_dpp->data_pattern_filename);
+			tdp->td_dpp->data_pattern_length = pattern_length;
+			if (!xdd_datapattern_wholefile_enough_ram(tdp)) {
+				fprintf(xgp->errout, "%s: the file %s is larger than 50%% of total RAM\n", xgp->progname, (char *)argv[args+2]);
 				return(0);
 			}
-			tdp->td_dpp->data_pattern_length = pattern_length;
+			tdp->dpp_fd = open(tdp->td_dpp->data_pattern_filename, O_RDONLY);
+			if (tdp->dpp_fd < 0) {
+				fprintf(xgp->errout, "%s: could not open %s\n", xgp->progname, tdp->td_dpp->data_pattern_filename);
+				return(0);
+			}
 			tdp->td_dpp->data_pattern = (unsigned char *)malloc(sizeof(unsigned char) * (tdp->td_dpp->data_pattern_length + 1));
 			memset(tdp->td_dpp->data_pattern, '\0', sizeof(unsigned char) * (tdp->td_dpp->data_pattern_length + 1));
 			pread(tdp->dpp_fd, tdp->td_dpp->data_pattern, tdp->td_dpp->data_pattern_length, 0);
@@ -581,11 +592,22 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 				tdp = planp->target_datap[0];
 				i = 0;
 				while (tdp) {
-					tdp->td_dpp->data_pattern_options |= DP_FILE_PATTERN;
+					if (strcmp(pattern_type, "file") == 0) {
+						tdp->td_dpp->data_pattern_options |= DP_FILE_PATTERN;
+					} else {//wholefile
+						tdp->td_dpp->data_pattern_options |= DP_WHOLEFILE_PATTERN;
+						// If we are using the whole files contents, we will not be replicating
+						tdp->td_dpp->data_pattern_options = tdp->td_dpp->data_pattern_options & ~DP_REPLICATE_PATTERN;
+					}
 					tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
+					tdp->td_dpp->data_pattern_length = pattern_length;
+					if (!xdd_datapattern_wholefile_enough_ram(tdp)) {
+						fprintf(xgp->errout, "%s: the file %s is larger than 50%% of total RAM\n", xgp->progname, (char *)argv[args+2]);
+						return(0);
+					}
 					tdp->dpp_fd = open(tdp->td_dpp->data_pattern_filename, O_RDONLY);
 					if (tdp->dpp_fd < 0) {
-						fprintf(xgp->errout, "%s: ERROR: could not open %s\n", xgp->progname, tdp->td_dpp->data_pattern_filename);
+						fprintf(xgp->errout, "%s: could not open %s\n", xgp->progname, tdp->td_dpp->data_pattern_filename);
 						return(0);
 					}
 					tdp->td_dpp->data_pattern_length = pattern_length;

@@ -32,8 +32,10 @@ void	xdd_destroy_barrier(xdd_plan_t* planp, struct xdd_barrier *bp);
 int32_t	xdd_barrier(struct xdd_barrier *bp, xdd_occupant_t *occupantp, char owner);
 
 // datapatterns.c
-void	xdd_datapattern_buffer_init(worker_data_t *wdp);
+int		xdd_datapattern_buffer_init(worker_data_t *wdp);
 void	xdd_datapattern_fill(worker_data_t *wdp);
+int		xdd_datapattern_wholefile_enough_ram(target_data_t *tdp);
+unsigned char *xdd_datapattern_get_datap_from_offset(worker_data_t *wdp);
 
 // debug.c
 void	xdd_show_plan(xdd_plan_t *planp);

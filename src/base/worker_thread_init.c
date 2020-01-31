@@ -121,13 +121,25 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 	//	                 +-----------------------------------------------------+
 	// For ease of reading this code, bufp == wdp->wd_bufp.
 	//
-	bufp = xdd_init_io_buffers(wdp);
-	if (bufp == NULL) {
-		fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: ERROR: Failed to allocate I/O buffer.\n",
-			xgp->progname,
-			tdp->td_target_number,
-			wdp->wd_worker_number);
-		return(-1);
+	if (tdp->td_dpp->data_pattern_options & DP_WHOLEFILE_PATTERN) {
+		// In the case of using a whole while for the task_datap, we don't need to
+		// allocate anything as well just be pointing into the target's td_dpp->data_pattern.
+		bufp = NULL;
+		if (tdp->td_target_options & TO_ENDTOEND) {
+			// Currently using wholefile with End-to-End operations is not supported
+			fprintf(xgp->errout, "%s: End-to-End operations are not supported when using the datapattern wholefile\n",
+				xgp->progname);
+			return(-1);
+		}
+	} else {	
+		bufp = xdd_init_io_buffers(wdp);
+		if (bufp == NULL) {
+			fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: ERROR: Failed to allocate I/O buffer.\n",
+				xgp->progname,
+				tdp->td_target_number,
+				wdp->wd_worker_number);
+			return(-1);
+		}
 	}
 	// For End-to-End operations, the buffer pointers are as follows:
 	//  |<------------------- wd_buf_size = N+1 Pages ------------------------>|
@@ -166,8 +178,11 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 	}
 
 	// Set proper data pattern in Data buffer
-	xdd_datapattern_buffer_init(wdp);
-
+	status = xdd_datapattern_buffer_init(wdp);
+	if (status) {
+		return(-1);
+	}
+	
 	// Init the WorkerThread-TargetPass WAIT Barrier for this WorkerThread
 	sprintf(tmpname,"T%04d:W%04d>worker_thread_targetpass_wait_barrier",tdp->td_target_number,wdp->wd_worker_number);
 	status = xdd_init_barrier(tdp->td_planp, &wdp->wd_thread_targetpass_wait_for_task_barrier, 2, tmpname);

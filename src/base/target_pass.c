@@ -210,6 +210,13 @@ xdd_target_pass_task_setup(worker_data_t *wdp) {
 	// Set the location to seek to 
 	wdp->wd_task.task_byte_offset = tdp->td_counters.tc_current_byte_offset;
 
+	// If we are using a whole file for the datapattern, then we need to point
+	// our buffer to the correct offset based on the task_byte_offset
+	if (tdp->td_dpp->data_pattern_options & DP_WHOLEFILE_PATTERN) {
+		wdp->wd_task.task_datap = 
+			xdd_datapattern_get_datap_from_offset(wdp);
+	}
+
 	// Remember the operation number for this target
 	wdp->wd_task.task_op_number = tdp->td_counters.tc_current_op_number;
 

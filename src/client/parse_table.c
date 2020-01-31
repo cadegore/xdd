@@ -81,7 +81,7 @@ xdd_func_t  xdd_func[] = {
     {"datapattern", "dp",
             xddfunc_datapattern,    
             1,  
-            "  -datapattern [target <target#>] <c> | random | sequenced | prefix <hexdigits> | inverse | ascii <asciistring> | hex <hexdigits> | file <file_name> | replicate | lfpat | ltpat | cjtpat | crpat | cspat\n",  
+            "  -datapattern [target <target#>] <c> | random | sequenced | prefix <hexdigits> | inverse | ascii <asciistring> | hex <hexdigits> | file <file_name> | wholefile <file_name> | replicate | lfpat | ltpat | cjtpat | crpat | cspat\n",  
             {"    -datapattern 'c' will use the character c as the data pattern to write\n\
        If the word 'random' is specified for the pattern then a random pattern will be generated\n\
        If the word 'sequenced' is specified for the pattern then a sequenced number pattern will be generated\n\
@@ -89,7 +89,8 @@ xdd_func_t  xdd_func[] = {
        If the word 'inverse' is specified for the pattern then the actual pattern will be the 1's compliment of the specified pattern\n\
        If the word 'ascii' is specified then the following string is used as a single pattern\n\
        If the word 'hex' is specified then the following hex characters <0-9,a-f or A-F> are used as the pattern\n\
-	   If the word 'file' is specified then the pattern inside the file file_name will be used as a single pattern\n\
+       If the word 'file' is specified then the pattern inside the file file_name will be used as a single pattern\n\
+       If the word 'wholefile' is specified then the whole contents inside of the file file_name will be used as a datapattern between all threads\n\
        If the word 'replicate' is specified then whatever pattern was specified is replicated throughout the buffer\n",
       "If any of the words 'lfpat, ltpat, cjtpat, crpat, or cspat' is specified then the 8B/10B stress patterns are used.\n\
 	        Default data pattern is all binary 0's\n",

@@ -29,6 +29,7 @@
 #define DP_INVERSE_PATTERN             0x0000000000002000ULL  // Apply a 1's compliment to the data pattern 
 #define DP_NAME_PATTERN                0x0000000000004000ULL  // Use the specified name at the beginning of the data pattern
 #define DP_RANDOM_BY_TARGET_PATTERN    0x0000000000008000ULL  // Use random data pattern for write operations, seed by target number
+#define DP_WHOLEFILE_PATTERN		   0x0000000000010000ULL  // Will use whole contents a input file across all threads
 
 struct xint_data_pattern {
     // Type of data pattern options to use
@@ -46,7 +47,7 @@ struct xint_data_pattern {
     unsigned char *data_pattern_name; 		// Data pattern name which is an ASCII string  
     int32_t data_pattern_name_length;	// Length of the data pattern name string 
     char *data_pattern_filename; 	// Name of a file that contains a data pattern to use 
-    int64_t data_pattern_compare_errors;	// Number of content/sequence compare errors from the verify() subroutines
+	int64_t data_pattern_compare_errors;	// Number of content/sequence compare errors from the verify() subroutines
 }; 
 typedef struct xint_data_pattern xint_data_pattern_t;
 #ifdef XDD_DATA_PATTERN

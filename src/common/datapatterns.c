@@ -17,7 +17,9 @@
 #define XDD_DATA_PATTERN
 #include <assert.h>
 #include "xint.h"
+#include <sys/sysinfo.h>
 
+#define WHOLEFILE_MAX_SIZE_RAM 0.5 // Currntly only allow for 50% of RAM
 
 int xdd_data_pattern_init(xint_data_pattern_t* xdp)
 {
@@ -27,10 +29,14 @@ int xdd_data_pattern_init(xint_data_pattern_t* xdp)
 }
 
 /*----------------------------------------------------------------------------*/
-/* xdd_pattern_buffer() - init the I/O buffer with the appropriate pattern
+/* xdd_pattern_buffer_init() - init the I/O buffer with the appropriate pattern
  * This routine will put the requested pattern in the rw buffer.
+ *
+ * Currently the only source of error that can occur in this functino is if
+ * a wholefile is requested for the data pattern and it is not evenly divisable
+ * by the target's xfer_size.
  */
-void
+int
 xdd_datapattern_buffer_init(worker_data_t *wdp) {
 	target_data_t	*tdp;
     int32_t i;
@@ -43,7 +49,22 @@ xdd_datapattern_buffer_init(worker_data_t *wdp) {
 
 	tdp = wdp->wd_tdp;
     dpp = tdp->td_dpp;
-    if (dpp->data_pattern_options & DP_RANDOM_PATTERN) { // A nice random pattern
+	if (dpp->data_pattern_options & DP_WHOLEFILE_PATTERN) { // Using the whole contents of the file
+		/* 
+	     * We will be assign data using each worker_data_t's task_byte_offset during target passes,
+		 * so we just need to make sure that the transfer size is evenly divisable by the
+		 * the target file size here.
+		 */
+		if (tdp->td_dpp->data_pattern_length % tdp->td_xfer_size) {
+			// Transfer size is not evenly divisable, so we have an error
+			fprintf(xgp->errout, "%s: file %s's size %lu is not evenly divisable by %u\n",
+				xgp->progname, 
+				tdp->td_dpp->data_pattern_filename,
+				tdp->td_dpp->data_pattern_length,
+				tdp->td_xfer_size);
+			return(-1);
+		}
+	} else if (dpp->data_pattern_options & DP_RANDOM_PATTERN) { // A nice random pattern
 		lp = (uint32_t *)wdp->wd_task.task_datap;
 		xgp->random_initialized = 0;
 		xgp->random_init_seed = 72058; // Backward compatibility with older xdd versions
@@ -181,8 +202,9 @@ xdd_datapattern_buffer_init(worker_data_t *wdp) {
 		memset(wdp->wd_task.task_datap,*(dpp->data_pattern),tdp->td_xfer_size);
    	}
 		
-    return;
+    return 0;
 } // end of xdd_datapattern_buffer_init()
+
 /*----------------------------------------------------------------------------*/
 /* xdd_datapattern_fill() - This subroutine will fill the buffer with a 
  * specific pattern. 
@@ -215,6 +237,52 @@ xdd_datapattern_fill(worker_data_t *wdp) {
 	}
 } // End of xdd_datapattern_fill() 
 
+/*----------------------------------------------------------------------------*/
+/* xdd_datapattern_wholefile_enough_ram() - This subroutine will verify that
+ * if a the flag wholefile is used that the size of the file is no more than
+ * WHOLEFILE_MAX_SIZE_RAM.
+ */
+int
+xdd_datapattern_wholefile_enough_ram(target_data_t *tdp) {
+	int ret = 1;
+	struct sysinfo info;
+	size_t file_size = tdp->td_dpp->data_pattern_length;
+
+	// Short circuit emty files
+	if (!file_size)
+		return 0;
+
+	sysinfo(&info);
+	if (file_size > (info.totalram * WHOLEFILE_MAX_SIZE_RAM))
+		ret = 0;
+
+	return ret;
+} // End of xdd_datapattern_wholefile_enough_ram() 
+
+/*----------------------------------------------------------------------------*/
+/* xdd_datapattern_get_datap_from_offset() - This subroutine will return the
+ * beginning of a the buffer from the target's tp_dpp->data_pattern based on
+ * the offset in the buffer.
+ */
+unsigned char *
+xdd_datapattern_get_datap_from_offset(worker_data_t *wdp) {
+	target_data_t *tdp;
+	unsigned char *buff = NULL;
+	off_t offset = 0;
+
+	tdp = wdp->wd_tdp;
+	
+	if (tdp->td_dpp->data_pattern_options & DP_WHOLEFILE_PATTERN) {
+		offset = wdp->wd_task.task_byte_offset % tdp->td_dpp->data_pattern_length;
+		buff = &(tdp->td_dpp->data_pattern[offset]);
+	} else {
+		// We are not using a whole file for the data pattern so just return
+		// the worker thread's buffer.
+		buff = wdp->wd_task.task_datap;
+	}
+
+	return buff;
+} // End of xdd_datapattern_get_datap_from_offset() 
  
 /*
  * Local variables:
