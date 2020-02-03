@@ -125,6 +125,7 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 		// In the case of using a whole while for the task_datap, we don't need to
 		// allocate anything as well just be pointing into the target's td_dpp->data_pattern.
 		bufp = NULL;
+		wdp->wd_bufp_allocated = FALSE;
 		if (tdp->td_target_options & TO_ENDTOEND) {
 			// Currently using wholefile with End-to-End operations is not supported
 			fprintf(xgp->errout, "%s: End-to-End operations are not supported when using the datapattern wholefile\n",
@@ -178,10 +179,7 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 	}
 
 	// Set proper data pattern in Data buffer
-	status = xdd_datapattern_buffer_init(wdp);
-	if (status) {
-		return(-1);
-	}
+	xdd_datapattern_buffer_init(wdp);
 	
 	// Init the WorkerThread-TargetPass WAIT Barrier for this WorkerThread
 	sprintf(tmpname,"T%04d:W%04d>worker_thread_targetpass_wait_barrier",tdp->td_target_number,wdp->wd_worker_number);

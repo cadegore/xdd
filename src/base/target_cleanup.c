@@ -61,15 +61,15 @@ xdd_target_thread_cleanup(target_data_t *tdp) {
 	    }
     }
 
-        /* On e2e XNI, part of cleanup includes closing the source side */
-        if ((TO_ENDTOEND & tdp->td_target_options) &&
-            (PLAN_ENABLE_XNI & tdp->td_planp->plan_options)) {
-            xni_close_connection(&tdp->td_e2ep->xni_td_conn);
-        }
+   /* On e2e XNI, part of cleanup includes closing the source side */
+   if ((TO_ENDTOEND & tdp->td_target_options) &&
+       (PLAN_ENABLE_XNI & tdp->td_planp->plan_options)) {
+       xni_close_connection(&tdp->td_e2ep->xni_td_conn);
+   }
 
     /* If the target data pattern was allocated, it must be free'd */
     if (tdp->td_dpp) {
-        if (tdp->td_dpp->data_pattern_options & DP_FILE_PATTERN) {
+        if (tdp->td_dpp->data_pattern_options & (DP_FILE_PATTERN | DP_WHOLEFILE_PATTERN)) {
             /* If the file target opend a file for the data pattern we must close
             * the files and clean up the data_pattern buffer
             */

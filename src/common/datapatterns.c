@@ -29,14 +29,10 @@ int xdd_data_pattern_init(xint_data_pattern_t* xdp)
 }
 
 /*----------------------------------------------------------------------------*/
-/* xdd_pattern_buffer_init() - init the I/O buffer with the appropriate pattern
+/* xdd_datapattern_buffer_init() - init the I/O buffer with the appropriate pattern
  * This routine will put the requested pattern in the rw buffer.
- *
- * Currently the only source of error that can occur in this functino is if
- * a wholefile is requested for the data pattern and it is not evenly divisable
- * by the target's xfer_size.
  */
-int
+void
 xdd_datapattern_buffer_init(worker_data_t *wdp) {
 	target_data_t	*tdp;
     int32_t i;
@@ -56,13 +52,13 @@ xdd_datapattern_buffer_init(worker_data_t *wdp) {
 		 * the target file size here.
 		 */
 		if (tdp->td_dpp->data_pattern_length % tdp->td_xfer_size) {
-			// Transfer size is not evenly divisable, so we have an error
-			fprintf(xgp->errout, "%s: file %s's size %lu is not evenly divisable by %u\n",
+			// Transfer size is not evenly divisable, so we will warn users as this
+			// will require memcpy's to occur and effect measurements.r
+			fprintf(xgp->errout, "%s: WARNING file %s's size %lu is not evenly divisable by target transfer size %u this will effect performance measurements\n",
 				xgp->progname, 
 				tdp->td_dpp->data_pattern_filename,
 				tdp->td_dpp->data_pattern_length,
 				tdp->td_xfer_size);
-			return(-1);
 		}
 	} else if (dpp->data_pattern_options & DP_RANDOM_PATTERN) { // A nice random pattern
 		lp = (uint32_t *)wdp->wd_task.task_datap;
@@ -202,7 +198,6 @@ xdd_datapattern_buffer_init(worker_data_t *wdp) {
 		memset(wdp->wd_task.task_datap,*(dpp->data_pattern),tdp->td_xfer_size);
    	}
 		
-    return 0;
 } // end of xdd_datapattern_buffer_init()
 
 /*----------------------------------------------------------------------------*/
@@ -244,17 +239,17 @@ xdd_datapattern_fill(worker_data_t *wdp) {
  */
 int
 xdd_datapattern_wholefile_enough_ram(target_data_t *tdp) {
-	int ret = 1;
+	int ret = TRUE;
 	struct sysinfo info;
 	size_t file_size = tdp->td_dpp->data_pattern_length;
 
-	// Short circuit emty files
+	// Short circuit empty files
 	if (!file_size)
-		return 0;
+		return FALSE;
 
 	sysinfo(&info);
-	if (file_size > (info.totalram * WHOLEFILE_MAX_SIZE_RAM))
-		ret = 0;
+	if (file_size > (info.freeram * WHOLEFILE_MAX_SIZE_RAM))
+		ret = FALSE;
 
 	return ret;
 } // End of xdd_datapattern_wholefile_enough_ram() 
@@ -269,12 +264,59 @@ xdd_datapattern_get_datap_from_offset(worker_data_t *wdp) {
 	target_data_t *tdp;
 	unsigned char *buff = NULL;
 	off_t offset = 0;
+	size_t memcpy_size = 0;
 
 	tdp = wdp->wd_tdp;
 	
 	if (tdp->td_dpp->data_pattern_options & DP_WHOLEFILE_PATTERN) {
+		/*
+		 * In the event of a whole file data pattern we can wind up with offsets that
+		 * are not correctly aligned with the target data buffer size. See Below:
+		 * 
+		 * tdp->td_dpp->data_pattern - TDP
+		 * wdp->wd_task.task_datap - WDP
+		 * 
+		 * Aligned:
+		 *                              TDP
+		 * |-----------------------------------------------------------|
+		 * | ------------ | ------------ | ------------ | ------------ | 
+		 *	     WDP1           WDP2           WDP3           WDP4
+		 *
+		 * Unaligned:
+		 *                              TDP
+		 * |-----------------------------------------------------------|
+		 * | ---------- | ---------- | ---------- | ---------- | ---------- | 
+		 *	    WDP1		 WDP2         WDP3		   WDP4			WDP5
+		 *
+		 * In the aligned case, we can just simply modulo the work_data_t's byte offset
+		 * by the size of TDP. However, in the unaligned case we have to grab the trailing
+		 * data and the add the beginning data from the TDP into WP5. See Below:
+		 *
+		 *                              TDP
+		 * |-----------------------------------------------------------|
+		 * | ---- |										       |-------|
+		 *	 WDP5												  WDP5
+		 *
+		 * In the unaligned case we will allocate the IO buffer for the worker and copy
+		 * the correct data to it.
+		 */  
 		offset = wdp->wd_task.task_byte_offset % tdp->td_dpp->data_pattern_length;
-		buff = &(tdp->td_dpp->data_pattern[offset]);
+		if ((tdp->td_dpp->data_pattern_length - offset) < (size_t)tdp->td_xfer_size) { 
+			// The target's xfer_size does not evenly divide into the whole file's
+			// size, so we have to allocate a buffer (if not already allocated) to
+			// hold the data an copy it over.
+			if (!wdp->wd_bufp_allocated) {
+				buff = xdd_init_io_buffers(wdp);
+				wdp->wd_task.task_datap = buff;
+			} else {
+				buff = wdp->wd_task.task_datap;
+			}
+			memcpy_size = tdp->td_dpp->data_pattern_length - offset; 
+			memcpy(buff, &(tdp->td_dpp->data_pattern[offset]), memcpy_size);
+			memcpy(&buff[memcpy_size], tdp->td_dpp->data_pattern, (tdp->td_xfer_size - memcpy_size));
+		} else {
+			buff = &(tdp->td_dpp->data_pattern[offset]);
+		}
 	} else {
 		// We are not using a whole file for the data pattern so just return
 		// the worker thread's buffer.

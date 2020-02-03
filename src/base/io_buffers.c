@@ -170,7 +170,8 @@ xdd_init_io_buffers(worker_data_t *wdp) {
 
 	/* Lock all pages in memory */
 	xdd_lock_memory(bufp, buffer_size, "RW BUFFER");
-
+	
+	wdp->wd_bufp_allocated = TRUE;
 	wdp->wd_bufp = bufp;
 	wdp->wd_buf_size = buffer_size;
 

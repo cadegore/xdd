@@ -26,6 +26,7 @@ struct xint_worker_data {
 	int64_t						wd_ts_entry;		// The TimeStamp entry to use when time-stamping an operation
 	struct xint_task			wd_task;			// Task Structure
 	struct xint_target_counters	wd_counters;		// Counters specific to this worker for this target
+	int							wd_bufp_allocated;  // If wd_bufp is allocated using xdd_init_io_buffers()
 
 	// Worker Thread-specific locks and associated pointers
 	pthread_mutex_t				wd_worker_thread_target_sync_mutex;	// Used to serialize access to the Worker_Thread-Target Synchronization flags

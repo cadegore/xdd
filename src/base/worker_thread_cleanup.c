@@ -17,6 +17,9 @@
  */
 void
 xdd_worker_thread_cleanup(worker_data_t *wdp) {
+	if (wdp->wd_bufp_allocated) {
+		free(wdp->wd_bufp);	
+	}
     return;
 } // End of xdd_worker_thread_cleanup()
 

@@ -576,7 +576,7 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 			tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
 			tdp->td_dpp->data_pattern_length = pattern_length;
 			if (!xdd_datapattern_wholefile_enough_ram(tdp)) {
-				fprintf(xgp->errout, "%s: the file %s is larger than 50%% of total RAM\n", xgp->progname, (char *)argv[args+2]);
+				fprintf(xgp->errout, "%s: file %s can not be loaded into memory because 50%% of RAM is currently unavailable\n", xgp->progname, (char *)argv[args+2]);
 				return(0);
 			}
 			tdp->dpp_fd = open(tdp->td_dpp->data_pattern_filename, O_RDONLY);
