@@ -570,8 +570,6 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 				tdp->td_dpp->data_pattern_options |= DP_FILE_PATTERN;
 			} else {// wholefile
 				tdp->td_dpp->data_pattern_options |= DP_WHOLEFILE_PATTERN;
-				// If we are using the whole files contents, we will not be replicating
-				tdp->td_dpp->data_pattern_options = tdp->td_dpp->data_pattern_options & ~DP_REPLICATE_PATTERN;
 			}
 			tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
 			tdp->td_dpp->data_pattern_length = pattern_length;
@@ -596,8 +594,6 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 						tdp->td_dpp->data_pattern_options |= DP_FILE_PATTERN;
 					} else {//wholefile
 						tdp->td_dpp->data_pattern_options |= DP_WHOLEFILE_PATTERN;
-						// If we are using the whole files contents, we will not be replicating
-						tdp->td_dpp->data_pattern_options = tdp->td_dpp->data_pattern_options & ~DP_REPLICATE_PATTERN;
 					}
 					tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
 					tdp->td_dpp->data_pattern_length = pattern_length;

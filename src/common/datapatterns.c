@@ -46,19 +46,38 @@ xdd_datapattern_buffer_init(worker_data_t *wdp) {
 	tdp = wdp->wd_tdp;
     dpp = tdp->td_dpp;
 	if (dpp->data_pattern_options & DP_WHOLEFILE_PATTERN) { // Using the whole contents of the file
-		/* 
-	     * We will be assign data using each worker_data_t's task_byte_offset during target passes,
-		 * so we just need to make sure that the transfer size is evenly divisable by the
-		 * the target file size here.
-		 */
-		if (tdp->td_dpp->data_pattern_length % tdp->td_xfer_size) {
-			// Transfer size is not evenly divisable, so we will warn users as this
-			// will require memcpy's to occur and effect measurements.r
+		if (tdp->td_dpp->data_pattern_length < ((size_t)tdp->td_xfer_size)) {
+			memset(wdp->wd_task.task_datap,'\0',tdp->td_xfer_size);
+			ucp = (unsigned char *)wdp->wd_task.task_datap;
+			if (dpp->data_pattern_options & DP_REPLICATE_PATTERN) { // Replicate the pattern throughout the buffer
+				remaining_length = tdp->td_xfer_size;
+				while (remaining_length) {
+					if (dpp->data_pattern_length < remaining_length)
+						pattern_length = dpp->data_pattern_length;
+					else pattern_length = remaining_length;
+					memcpy(ucp,dpp->data_pattern,pattern_length);
+					remaining_length -= pattern_length;
+					ucp += pattern_length;
+				}
+			}
+		} else if (tdp->td_dpp->data_pattern_length % tdp->td_xfer_size) {
+			/* 
+			 * We will be assign data using each worker_data_t's task_byte_offset during target passes,
+			 * so we just need to check if transfer size is evenly divisable by the
+			 * the target file size here.
+			 *
+			 * If the Transfer size is not evenly divisable, we will warn users as this will
+			 * require periodic memcpy's to occur during target passes and effect measurements.
+			 */
 			fprintf(xgp->errout, "%s: WARNING file %s's size %lu is not evenly divisable by target transfer size %u this will effect performance measurements\n",
 				xgp->progname, 
 				tdp->td_dpp->data_pattern_filename,
 				tdp->td_dpp->data_pattern_length,
 				tdp->td_xfer_size);
+			// Since the whole file size is greater than the td_xfer_size we will remove
+			// the replicate flag.
+			tdp->td_dpp->data_pattern_options = 
+				tdp->td_dpp->data_pattern_options & ~DP_REPLICATE_PATTERN;
 		}
 	} else if (dpp->data_pattern_options & DP_RANDOM_PATTERN) { // A nice random pattern
 		lp = (uint32_t *)wdp->wd_task.task_datap;
