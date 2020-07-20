@@ -48,22 +48,23 @@ xdd_get_specific_worker_thread(target_data_t *tdp, int32_t q) {
 	// Wait for this specific Worker Thread to become available
 	pthread_mutex_lock(&wdp->wd_worker_thread_target_sync_mutex);
 	if (wdp->wd_worker_thread_target_sync & WTSYNC_BUSY) { 
-            // Set the "target waiting" bit, unlock the mutex,
-            // and lets wait for this Worker Thread to become available - i.e. not busy
-            tdp->td_current_state |= TARGET_CURRENT_STATE_WAITING_THIS_WORKER_THREAD_AVAILABLE;
-            wdp->wd_worker_thread_target_sync |= WTSYNC_TARGET_WAITING;
-            nclk_now(&checktime);
 
-            while (wdp->wd_worker_thread_target_sync & WTSYNC_BUSY) {
-                pthread_cond_wait(&wdp->wd_this_worker_thread_is_available_condition,
-                                  &wdp->wd_worker_thread_target_sync_mutex);            
-            }
-            tdp->td_current_state &= ~TARGET_CURRENT_STATE_WAITING_THIS_WORKER_THREAD_AVAILABLE;
+        // Set the "target waiting" bit, unlock the mutex,
+        // and lets wait for this Worker Thread to become available - i.e. not busy
+        tdp->td_current_state |= TARGET_CURRENT_STATE_WAITING_THIS_WORKER_THREAD_AVAILABLE;
+        wdp->wd_worker_thread_target_sync |= WTSYNC_TARGET_WAITING;
+        nclk_now(&checktime);
+
+        while (wdp->wd_worker_thread_target_sync & WTSYNC_BUSY) {
+            pthread_cond_wait(&wdp->wd_this_worker_thread_is_available_condition,
+                              &wdp->wd_worker_thread_target_sync_mutex);            
         }
+        tdp->td_current_state &= ~TARGET_CURRENT_STATE_WAITING_THIS_WORKER_THREAD_AVAILABLE;
+    }
         
-        // Indicate that this Worker Thread is now busy, and unlock
-        wdp->wd_worker_thread_target_sync |= WTSYNC_BUSY; 
-        pthread_mutex_unlock(&wdp->wd_worker_thread_target_sync_mutex);
+    // Indicate that this Worker Thread is now busy, and unlock
+    wdp->wd_worker_thread_target_sync |= WTSYNC_BUSY; 
+    pthread_mutex_unlock(&wdp->wd_worker_thread_target_sync_mutex);
 
 	// At this point we have a pointer to the specified Worker Thread
 	return(wdp);

@@ -114,7 +114,7 @@ struct tot_entry {
 typedef struct tot_entry tot_entry_t;
 
 /**
- * The array of Target Offset Table entries - one arrat per target
+ * The array of Target Offset Table entries - one array per target
  */
 struct tot {
 	int tot_entries;  			// Number of tot entries

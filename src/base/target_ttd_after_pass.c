@@ -62,5 +62,3 @@ xdd_target_ttd_after_pass(target_data_t *tdp) {
 
 	return(status);
 } // End of xdd_target_ttd_after_pass()
-
- 

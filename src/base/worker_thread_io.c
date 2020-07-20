@@ -16,6 +16,33 @@
 #include <inttypes.h>
 #include "xint.h"
 
+#define MAX_WAIT_TIME 3 // Three seconds
+#define WAIT_INTERVAL 1 // One second
+
+static inline void 
+timeval_to_timespec(struct timespec *now_ts, struct timeval *now_tv)
+{
+	now_ts->tv_sec = now_tv->tv_sec;
+	now_ts->tv_nsec = now_tv->tv_usec * 1000;
+}
+
+static inline struct timespec time_plus_interval(void) {
+#if defined(HAVE_CLOCK_GETTIME)
+	struct timespec now = {0, 0};
+	struct timespec now_ts;
+	clock_gettime(CLOCK_REALTIME, &now);
+	now_ts = now;
+#else
+	struct timeval now = {0, 0};
+	struct timespec now_ts;
+	struct timezone tz;
+	gettimeofday(&now, &tz);
+	timeval_to_timespec(&now_ts, &now);
+#endif
+	now_ts.tv_sec += WAIT_INTERVAL;
+	return(now_ts);
+}
+
 
 //******************************************************************************
 // I/O Operation
@@ -135,7 +162,8 @@ xdd_worker_thread_wait_for_previous_io(worker_data_t *wdp) {
 	int32_t		tot_offset;		// Offset into the TOT
 	tot_entry_t	*tep;			// Pointer to the TOT entry to use
 	tot_wait_t	*totwp,*tmpwp;	// A TOT Wait struct pointer
-
+	int max_wait_val = 0;       // Maximum time to wait on condition in Loose Ordering
+	struct timespec now_plus_interval;
 
 	tdp = wdp->wd_tdp;
 	// Wait for the I/O operation ahead of this one to complete (if necessary)
@@ -176,7 +204,28 @@ if (xgp->global_options & GO_DEBUG_TOT) xdd_show_tot_entry(tdp->td_totp,tot_offs
 		}
 		// Wait for this tot_entry to become available
 		while (1 != totwp->totw_is_released) {
-	    	pthread_cond_wait(&totwp->totw_condition, &tep->tot_mutex);
+	    	if (tdp->td_target_options & TO_ORDERING_STORAGE_LOOSE) {
+				// If using Looseordering there is possibility we will miss our previous IO's
+				// signal to wake up. This was observed when using tmpfs. In order to avoid a
+				// deadlock we will only allow a Looseordering IO to sleep for a maximum of
+				// MAX_WAIT_TIME.
+				now_plus_interval  = time_plus_interval();
+				pthread_cond_timedwait(&totwp->totw_condition, &tep->tot_mutex, &now_plus_interval);
+				if (max_wait_val < MAX_WAIT_TIME) {
+					max_wait_val += 1;
+					continue;
+				} else {
+					if (xgp->global_options & GO_DEBUG_IO) {
+						fprintf(stderr, "DEBUG_IO: xdd_worker_thread_wait_for_previous_io: "
+								"Target: %d Worker: %d, tot_offset: %d, With -looseordering "
+								"previous IO never released this IO\n",
+								tdp->td_target_number, wdp->wd_worker_number, tot_offset);
+					}
+					break;
+				}
+			} else {
+				pthread_cond_wait(&totwp->totw_condition, &tep->tot_mutex);
+			}
 		}
 		totwp->totw_is_released = 0; 
 	}
@@ -211,7 +260,7 @@ if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worke
 	// Wait for the I/O operation ahead of this one to complete (if necessary)
 
 	tep = &tdp->td_totp->tot_entry[tot_offset];
-	totwp = &wdp->wd_tot_wait;
+	//totwp = &wdp->wd_tot_wait;
 	wdp->wd_current_state |= WORKER_CURRENT_STATE_WT_WAITING_FOR_TOT_LOCK_RELEASE;
 	pthread_mutex_lock(&tep->tot_mutex);
 	wdp->wd_current_state &= ~WORKER_CURRENT_STATE_WT_WAITING_FOR_TOT_LOCK_RELEASE;
@@ -226,12 +275,15 @@ if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worke
 	tep->tot_byte_offset = wdp->wd_task.task_byte_offset;
 	tep->tot_io_size = wdp->wd_task.task_xfer_size;
 	tep->tot_status = TOT_ENTRY_AVAILABLE;
-	pthread_mutex_unlock(&tep->tot_mutex); //TMR
-	if (tep->tot_waitp) { // Check to see if another Worker is waiting for this tot entry
-		totwp = tep->tot_waitp;
+	totwp = tep->tot_waitp;
+	if (totwp != 0) { // Check to see if another Worker is waiting for this tot entry
 		tep->tot_waitp = totwp->totw_nextp;
+	}
+	pthread_mutex_unlock(&tep->tot_mutex); //TMR
+	if (totwp) { 
 		totwp->totw_is_released = 1;
 		totwp->totw_nextp = 0;
+		// If another Worker is waiting for the tot entry we will signal them the tot is available
 		status = pthread_cond_signal(&totwp->totw_condition);
 		if (status) {
 			fprintf(xgp->errout,"%s: xdd_worker_thread_release_next_io: Target %d Worker Thread %d: ERROR: Bad status from pthread_cond_signal: status=%d, errno=%d, task_op_number=%lld, tot_offset=%d\n",

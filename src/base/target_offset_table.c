@@ -162,6 +162,7 @@ int tot_update(tot_t* table,
     pthread_mutex_unlock(&tep->tot_mutex);
     return rc;
 }
+
 /*
  * Local variables:
  *  indent-tabs-mode: t

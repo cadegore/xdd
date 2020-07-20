@@ -75,10 +75,6 @@ extern void nclk_now(nclk_t *nclkp);
  * Test the nanosecond clock functionality.
  */
 extern void nclk_test(void);
+
 #endif /* NCLK_TEST */
 #endif /* ! NCLK_H */
- 
- 
- 
- 
- 

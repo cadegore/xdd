@@ -159,11 +159,12 @@ xdd_target_pass_loop(xdd_plan_t* planp, target_data_t *tdp) {
 			tdp->td_target_number);
 		return;
 	}
+	
 	// Wait for all Worker Threads to complete their most recent task
 	// The easiest way to do this is to get the Worker Thread pointer for each
 	// Worker Thread specifically and then reset it's "busy" bit to 0.
 	for (q = 0; q < tdp->td_queue_depth; q++) {
-		wdp = xdd_get_specific_worker_thread(tdp,q);
+		wdp = xdd_get_specific_worker_thread(tdp, q);
 		pthread_mutex_lock(&wdp->wd_worker_thread_target_sync_mutex);
 		wdp->wd_worker_thread_target_sync &= ~WTSYNC_BUSY; // Mark this Worker Thread NOT Busy
 		tdp->td_any_worker_thread_available++;
