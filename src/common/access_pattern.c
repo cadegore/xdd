@@ -350,14 +350,26 @@ xdd_save_seek_list(target_data_t *tdp) {
 				opc = "w";
 			else if (sp->seeks[i].operation == SO_OP_NOOP)
 				opc = "n";
-			else opc = "u";
-			fprintf(tmp,"%010d %012llu %d %s %016llu %016llu\n",
-				i,
-				(unsigned long long)sp->seeks[i].block_location, 
-				sp->seeks[i].reqsize, 
-				opc, 
-				(unsigned long long)(sp->seeks[i].time1),
-				(unsigned long long)(sp->seeks[i].time2));
+			else 
+				opc = "u";
+			
+			if (tdp->td_seekhdr.seek_options & SO_SEEK_NONE) {
+				fprintf(tmp,"%010d %012llu %d %s %016llu %016llu\n",
+					i,
+					(unsigned long long)sp->seeks[0].block_location, 
+					sp->seeks[0].reqsize, 
+					opc, 
+					(unsigned long long)(sp->seeks[i].time1),
+					(unsigned long long)(sp->seeks[i].time2));
+			} else {
+				fprintf(tmp,"%010d %012llu %d %s %016llu %016llu\n",
+					i,
+					(unsigned long long)sp->seeks[i].block_location, 
+					sp->seeks[i].reqsize, 
+					opc, 
+					(unsigned long long)(sp->seeks[i].time1),
+					(unsigned long long)(sp->seeks[i].time2));
+			}
 		}
 	} /* end of section that saves the seek locations */
 	/* Collect and print any requested histogram information */
