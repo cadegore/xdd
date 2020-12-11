@@ -26,7 +26,9 @@ int32_t
 xdd_target_ttd_after_pass(target_data_t *tdp) {
 	int32_t  status;
 	worker_data_t	*wdp;
+	xdd_plan_t      *planp;
 
+        planp = tdp->td_planp;
 
 	status = 0;
 	// Issue an fdatasync() to flush all the write buffers to disk for this file if the -syncwrite option was specified
@@ -59,6 +61,11 @@ xdd_target_ttd_after_pass(target_data_t *tdp) {
 		// Average the Send/Receive Time 
 		tdp->td_e2ep->e2e_sr_time /= tdp->td_queue_depth;
 	}
+
+	if (planp->passes > 1 && (tdp->td_target_options & TO_PASS_RANDOMIZE)) {
+                /* If we are randomizing seeks between passes we will update the seek list now */
+                xdd_init_seek_list(tdp);
+        }
 
 	return(status);
 } // End of xdd_target_ttd_after_pass()

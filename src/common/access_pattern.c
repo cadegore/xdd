@@ -303,12 +303,21 @@ xdd_save_seek_list(target_data_t *tdp) {
 	char errormessage[1024]; /* error message buffer */
 	char tmpname[512]; /* enumerated name of the file to save the seeks into */
 	seekhdr_t *sp; 
+        xdd_plan_t *planp;
+
+        planp = tdp->td_planp;
 	sp = &tdp->td_seekhdr;
-	sprintf(tmpname,"%s.T%d.txt",sp->seek_savefile,tdp->td_target_number);
-	if (sp->seek_savefile)
+        if (planp->passes > 1 && (tdp->td_target_options & TO_PASS_RANDOMIZE))
+	        sprintf(tmpname,"%s.T%d.P%d.txt",sp->seek_savefile,tdp->td_target_number,tdp->td_counters.tc_pass_number);
+	else
+	        sprintf(tmpname,"%s.T%d.txt",sp->seek_savefile,tdp->td_target_number);
+
+        if (sp->seek_savefile)
 		tmp = fopen(tmpname,"w");
-	else tmp = xgp->errout;
-	if (tmp == NULL) {
+	else
+                tmp = xgp->errout;
+	
+        if (tmp == NULL) {
 		fprintf(xgp->errout,"%s: Cannot open file %s for saving seek information\n",xgp->progname,tmpname);
 		perror("reason");
 		return;
