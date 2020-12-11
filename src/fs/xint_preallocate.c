@@ -55,7 +55,7 @@ xint_target_preallocate_for_os(target_data_t *tdp) {
 				
 			/* Allocate the entire file */
 			xfs_flock.l_start = 0; 
-			xfs_flock.l_len = tdp->td_preallocate;
+			xfs_flock.l_len = tdp->td_preallocate * tdp->td_block_size;
 			status = xfsctl(tdp->td_target_full_pathname,
 							tdp->td_file_desc,
 							XFS_IOC_RESVSP64, &xfs_flock);
@@ -64,7 +64,7 @@ xint_target_preallocate_for_os(target_data_t *tdp) {
 			/* Perform allocation in 4GB chunks to support 16KB alignment */
 			const int64_t max_bytes = 1L<<32;
 			int64_t pos = 0;
-			int64_t rem = tdp->td_preallocate;
+			int64_t rem = tdp->td_preallocate * tdp->td_block_size;
 			while (rem > 0) {
 				/* Always set whence to 0, for now */
 				xfs_flock.l_whence = 0;
