@@ -87,6 +87,7 @@ xdd_init_new_target_data(target_data_t *tdp, int32_t n) {
 	tdp->td_seekhdr.seek_savefile = NULL; /* file to save seek locations into */
 	tdp->td_seekhdr.seek_loadfile = NULL; /* file from which to load seek locations from */
 	tdp->td_seekhdr.seek_pattern = "sequential";
+	tdp->td_seekhdr.seek_initialized = 0;
 	/* Init the read-after-write fields */
 	if (tdp->td_rawp) {
 		tdp->td_rawp->raw_sd = 0; /* raw socket descriptor */

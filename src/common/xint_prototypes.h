@@ -20,6 +20,7 @@
 /* XDD function prototypes */
 // access_pattern.c
 void	xdd_init_seek_list(target_data_t *p);
+uint64_t xdd_get_random_block_location(target_data_t *p);
 void	xdd_save_seek_list(target_data_t *p);
 int32_t	xdd_load_seek_list(target_data_t *p);
 

@@ -15,6 +15,64 @@
  * which has the implied access pattern.
  */
 #include "xint.h"
+#include <stdlib.h>
+
+/*----------------------------------------------------------------------------*/
+ /* xdd_init_seekhdr_init_get_random_float() - Initialize the seekhdr_t for the
+  * target using the seek seed and return a random double. If the seekhdr is
+  * already initalized, then just returns and random double.
+  */
+static double
+xdd_init_seekhdr_init_get_random_float(seekhdr_t *sp) {
+	double rm;
+        double recip;
+        double rval;;
+
+#ifdef HAVE_INITSTATE 
+        if (sp->seek_initialized == 0) {
+	        sp->oldstate = initstate(sp->seek_seed, sp->state, sizeof(sp->state));
+                sp->seek_initialized = 1;
+        }
+#endif
+
+#ifdef HAVE_RANDOM
+        rm = RAND_MAX;
+        recip = 1.0 / rm;
+        rval = random();
+        rval = recip * rval;
+        if (rval > 1.0)
+                rval = 1.0/rval;
+#elif
+        rval = ((double)(1.0 / RAND_MAX) * rand());
+#endif
+        return (rval);
+
+} /* end of xdd_init_seekhdr_init_get_random_float() */
+
+/*----------------------------------------------------------------------------*/
+ /* xdd_get_random_block_location() - Get random block location based on the
+  * targets seekhdr.
+  */
+uint64_t
+xdd_get_random_block_location(target_data_t *tdp) { 
+	seekhdr_t *sp;   /* pointer to the seek header */
+        double rand_val;
+        uint32_t rand_index;
+        uint64_t rand_seek_block = 0;
+        uint64_t range_limit;
+
+        sp = &tdp->td_seekhdr;
+        range_limit = (sp->seek_range * tdp->td_reqsize) + (tdp->td_start_offset * tdp->td_reqsize);
+
+        do {
+                rand_val = xdd_init_seekhdr_init_get_random_float(sp);
+                rand_index = (uint32_t)(rand_val * (sp->seek_total_ops - 1));
+                rand_seek_block = sp->seeks[rand_index].block_location;
+        } while (rand_seek_block > (uint64_t)(range_limit));
+
+        return rand_seek_block;
+} /* end of xdd_get_random_block_location() */
+
 /*----------------------------------------------------------------------------*/
 /* xdd_init_seek_list() - Generate the list of seek operations to perform
  * This routine will generate a list of locations to access within the
@@ -39,16 +97,12 @@
  */
 void
 xdd_init_seek_list(target_data_t *tdp) {
-	int32_t  j;
 	int32_t  rw_op_index;  /* relative rw index from 0 to the number of rw ops minus 1  */
 	int32_t  rw_index;   /* absolute index into seek list for the current rw op*/
 	int32_t  rw_index_incr;  /* read/write index increment value (1 or 2) */
 	int32_t  op_index;   /* Current operation number  (from 0 to sp->seek_total_ops-1 ) */
 	int64_t  gap;    /* The gap in blocks between staggered locations */
 	int64_t  interleave_threadoffset;
-	int64_t  range_in_bytes;
-	int64_t  range_in_1kblocks;
-	int64_t  range_in_blocksize_blocks;
 	double  bytes_per_sec;  /* The tranfer rate requested by the -throttle option */
 	double  seconds_per_op; /* a floating point representation of the time per operation */
 	double  variance_seconds_per_op; /* a floating point representation of the time variance per operation */
@@ -99,8 +153,6 @@ if (xgp->global_options & GO_DEBUG_THROTTLE) fprintf(stderr,"DEBUG_THROTTLE: %ll
 		}
 	} else nano_seconds_per_op = 0;
 	sp = &tdp->td_seekhdr;
-        /* Initialize the random number generator */
-	sp->oldstate = initstate(sp->seek_seed, sp->state, sizeof(sp->state));
 
 	/* Check to see if we need to load the seeks from a specified file */
 	if (sp->seek_options & SO_SEEK_LOAD) { /* Load pre-defined seek list */
@@ -114,36 +166,29 @@ if (xgp->global_options & GO_DEBUG_THROTTLE) fprintf(stderr,"DEBUG_THROTTLE: %ll
 		sp->seek_num_rw_ops = sp->seek_total_ops;
 		if (tdp->td_rwratio >= 0.5) /* This has to be set correctly or the first op may not be correct */
 			previous_percent_op = -1.0;
-		else previous_percent_op = 0.0;
+		else
+                        previous_percent_op = 0.0;
+		/* We start out by first filling in the sequential seek location */
 		for (op_index = 0; op_index < sp->seek_total_ops; op_index++) {   
-			/* Fill in the seek location */
-			if (sp->seek_options & SO_SEEK_RANDOM) { /* generate a random seek location */
-				range_in_1kblocks = sp->seek_range;
-				range_in_bytes = range_in_1kblocks * 1024;
-				range_in_blocksize_blocks = range_in_bytes / tdp->td_block_size;
-				if (rw_op_index == 0) { /* This is the first location for this thread */
-// FIXME ????					for (j = 0; j < tdp->td_my_qthread_number; j++) /* skip over the first N locations */
-// FIXME ????						sp->seeks[rw_index].block_location = (uint64_t)(range_in_blocksize_blocks * xdd_random_float());
-					/* Assign this location as the first seek */
-					sp->seeks[rw_index].block_location = (uint64_t)(range_in_blocksize_blocks * xdd_random_float());
-				} else { /* This section if for seek locations 2 thru N */
-					/* This is done to support interleaved I/O operations and/or command queuing */
-					for (j = 0; j < sp->seek_interleave; j++)
-						sp->seeks[rw_index].block_location = (uint64_t)(range_in_blocksize_blocks * xdd_random_float());
-				}
-			} else {/* generate a sequential seek */
-				if (sp->seek_options & SO_SEEK_STAGGER) {
-					gap = ((sp->seek_range-tdp->td_reqsize) - (sp->seek_num_rw_ops*tdp->td_reqsize)) / (sp->seek_num_rw_ops-1);
-				        if (sp->seek_stride > tdp->td_reqsize) gap = sp->seek_stride - tdp->td_reqsize;
-                                }
-				else gap = 0; 
-				if (sp->seek_interleave > 1)
-// FIXME ????		interleave_threadoffset = (tdp->td_my_qthread_number%sp->seek_interleave)*tdp->td_reqsize;
-					interleave_threadoffset = sp->seek_interleave*tdp->td_reqsize;
-				else interleave_threadoffset = 0;
-				sp->seeks[rw_index].block_location = tdp->td_start_offset + interleave_threadoffset + 
-						(rw_op_index * ((tdp->td_reqsize*sp->seek_interleave)+gap));
-			} /* end of generating a sequential seek */
+			/* generating a sequential seek */
+                        if (sp->seek_options & SO_SEEK_STAGGER) {
+				gap = ((sp->seek_range-tdp->td_reqsize) - (sp->seek_num_rw_ops*tdp->td_reqsize)) /
+                                      (sp->seek_num_rw_ops-1);
+				if (sp->seek_stride > tdp->td_reqsize)
+                                        gap = sp->seek_stride - tdp->td_reqsize;
+                        } else {
+                                        gap = 0; 
+                        }
+                        
+                        if (sp->seek_interleave > 1)
+                                interleave_threadoffset = sp->seek_interleave*tdp->td_reqsize;
+                        else
+                                interleave_threadoffset = 0;
+				
+                        sp->seeks[rw_index].block_location = tdp->td_start_offset + interleave_threadoffset + 
+                                (rw_op_index * ((tdp->td_reqsize*sp->seek_interleave) + gap));
+			/* end of generating a sequential seek */
+			
 			/* Now lets fill in the request sizes to transfer */
 			sp->seeks[rw_index].reqsize = tdp->td_reqsize;
 			/* Now lets fill in the appropriate operation */
@@ -165,7 +210,7 @@ if (xgp->global_options & GO_DEBUG_THROTTLE) fprintf(stderr,"DEBUG_THROTTLE: %ll
 					current_op = SO_OP_READ;
 				else current_op = SO_OP_WRITE;
 				previous_percent_op = percent_op;
-            	/* Fill in the operation */
+                                /* Fill in the operation */
 				if (current_op == SO_OP_WRITE) { /* This is a WRITE operation */
 					sp->seeks[rw_index].operation = SO_OP_WRITE;
 				} else { /* This is a READ operation */
@@ -174,32 +219,73 @@ if (xgp->global_options & GO_DEBUG_THROTTLE) fprintf(stderr,"DEBUG_THROTTLE: %ll
 			}
 
 			/* fill in the time that this operation is supposed to take place */
-            //  -----------------L=========^=========H------------>
-            //   Time--->        |         |         |Relative time plus the variance
-            //                   |         |Relative time Average
-            //                   |Relative time minus the variance
-            // The actual time that an I/O operation should take place is somewhere between
-            // the relative time plus or minus the variance. In Theory. Maybe.
-            if ((tdp->td_throtp) && (tdp->td_throtp->throttle_variance > 0.0)) {
-                variance_seconds_per_op = ((seconds_per_op_high-seconds_per_op_low) * xdd_random_float()) * BILLION;
-                sp->seeks[rw_index].time1 = (relative_time - nano_second_throttle_variance) + variance_seconds_per_op;
+                        //  -----------------L=========^=========H------------>
+                        //   Time--->        |         |         |Relative time plus the variance
+                        //                   |         |Relative time Average
+                        //                   |Relative time minus the variance
+                        // The actual time that an I/O operation should take place is somewhere between
+                        // the relative time plus or minus the variance. In Theory. Maybe.
+                        if ((tdp->td_throtp) && (tdp->td_throtp->throttle_variance > 0.0)) {
+                                variance_seconds_per_op = ((seconds_per_op_high-seconds_per_op_low) * xdd_random_float()) * BILLION;
+                                sp->seeks[rw_index].time1 = (relative_time - nano_second_throttle_variance) + variance_seconds_per_op;
 
-            } else {
-			    sp->seeks[rw_index].time1 = relative_time;
+                        } else {
+                                sp->seeks[rw_index].time1 = relative_time;
 
-            }
-if (xgp->global_options & GO_DEBUG_THROTTLE) fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_init_seek_list: Target: %d: Worker: %d: SET SEEK TIME: nano_seconds_per_op: %lld: relative_time: %lld:\n", (long long int)pclk_now(),tdp->td_target_number,-1,(long long int)nano_seconds_per_op,(long long int)relative_time);
+                        }
+                        if (xgp->global_options & GO_DEBUG_THROTTLE) {
+                                fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_init_seek_list: "
+                                        "Target: %d: Worker: %d: SET SEEK TIME: nano_seconds_per_op: %lld: "
+                                        "relative_time: %lld:\n",
+                                        (long long int)pclk_now(),tdp->td_target_number,-1,
+                                        (long long int)nano_seconds_per_op,(long long int)relative_time);
+                        }
 			relative_time += nano_seconds_per_op;
 
 			/* Increment to the next entry in the seek list */
 			rw_index += rw_index_incr;
 			rw_op_index++;
 		} /* end of FOR loop */
+
+                /* If we are generating random seeks, we will now update the seeks to be random */
+                if (sp->seek_options & SO_SEEK_RANDOM) { /* generate a random seek location */
+                        rw_index = 0;
+                        rw_op_index = 0;
+                        rw_index_incr = 1;
+                        uint64_t rand_seek_block;
+                        if (tdp->td_rwratio >= 0.5)
+                                previous_percent_op = -1.0;
+                        else
+                                previous_percent_op = 0.0;
+		        for (op_index = 0; op_index < sp->seek_total_ops; op_index++) {
+                                rand_seek_block = xdd_get_random_block_location(tdp);
+                                 
+                                /* Not doing mix of operations so just assign block locations randomly */
+                                if (tdp->td_rwratio == -1.0 || /* No-op */
+                                    tdp->td_rwratio == 0.0  || /* write only */
+                                    tdp->td_rwratio == 1.0) {  /* read only */
+                                        sp->seeks[rw_index].block_location = rand_seek_block;
+                                } else {
+                                        /* We are doing a certain percentage of read/write ops */
+                                        percent_op = tdp->td_rwratio * rw_op_index;
+                                        if (percent_op > previous_percent_op)
+                                                current_op = SO_OP_READ;
+                                        else
+                                                current_op = SO_OP_WRITE;
+                                        previous_percent_op = percent_op;
+                                        sp->seeks[rw_index].block_location = rand_seek_block;
+                                        sp->seeks[rw_index].operation = current_op;
+                                }
+                                rw_index += rw_index_incr;
+                                rw_op_index++;
+                        }
+                }
 	} /* done generating a new seek list */
 	/* Save this seek list to a file if requested to do so */
 	if (sp->seek_options & (SO_SEEK_SAVE | SO_SEEK_SEEKHIST | SO_SEEK_DISTHIST)) 
 		xdd_save_seek_list(tdp);
 } /* end of xdd_init_seek_list() */
+
 /*----------------------------------------------------------------------------*/
 /* xdd_save_seek_list() - save the specified seek list in a file    
  */

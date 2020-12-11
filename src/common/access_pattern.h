@@ -54,6 +54,7 @@ struct seekhdr {
 	seek_t  *seeks;  /**< the seek list */
 	char state[256];
 	char *oldstate;
+	int seek_initialized;
 };
 typedef struct seekhdr seekhdr_t;
 

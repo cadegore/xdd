@@ -83,6 +83,7 @@ xdd_random_int(void) {
     return rand();
 #endif
 } /* end of xdd_random_int() */
+
 /*----------------------------------------------------------------------------*/
 /* xdd_random_float() - returns a random floating point number in double.
  */
@@ -93,8 +94,8 @@ double xdd_random_float(void) {
     
 #ifdef HAVE_INITSTATE
     if (xgp->random_initialized == 0) {
-	initstate(xgp->random_init_seed, xgp->random_init_state, 256);
-	xgp->random_initialized = 1;
+		initstate(xgp->random_init_seed, xgp->random_init_state, 256);
+        xgp->random_initialized = 1;
     }
 #endif
 
