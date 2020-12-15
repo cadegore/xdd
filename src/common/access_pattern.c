@@ -42,7 +42,7 @@ xdd_init_seekhdr_init_get_random_float(seekhdr_t *sp) {
         rval = recip * rval;
         if (rval > 1.0)
                 rval = 1.0/rval;
-#elif
+#elif HAVE_RAND
         rval = ((double)(1.0 / RAND_MAX) * rand());
 #endif
         return (rval);
