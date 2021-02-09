@@ -55,6 +55,43 @@ xdd_signal_handler(int signum, siginfo_t *sip, void *ucp) {
 			fprintf(xgp->errout,"Unknown Signal - terminating\n");
 			break;
 	}
+	// If plan exists, print existing results
+	if (xdd_signal_planp) {
+		// Display results header if not already done
+		if (xdd_signal_planp->results_header_displayed == 0) {
+			results_t* tmprp;
+			tmprp = (results_t*)valloc(sizeof(results_t));
+			// If failed to create results placeholder, notify of error; otherwise display the header
+			if (tmprp == NULL) {
+				fprintf(xgp->errout, "%s: xdd_signal_handler/xdd_results_manager: ERROR: Cannot allocate memory for a temporary results structure!\n", xgp->progname);
+			} else {
+				// Display header
+				xdd_results_header_display(tmprp, xdd_signal_planp);
+				xdd_signal_planp->results_header_displayed = 1;
+			}
+			free(tmprp);
+		}
+		// Timestamp for this finish time
+		nclk_t xdd_signal_end_time;
+		nclk_now(&xdd_signal_end_time);
+		// Placeholder for current target being processed
+		int32_t xdd_signal_targ_num;
+		// Placeholder for current target's data
+		target_data_t *xdd_signal_tdp;
+		// For each target,
+		for (xdd_signal_targ_num=0 ; xdd_signal_targ_num < xdd_signal_planp->number_of_targets ; xdd_signal_targ_num++) {
+			// Get current target's data
+			xdd_signal_tdp = xdd_signal_planp->target_datap[xdd_signal_targ_num];
+			// Set the finish timestamp of the current target
+			xdd_signal_tdp->td_counters.tc_pass_end_time = xdd_signal_end_time;
+			xdd_signal_tdp->td_counters.tc_pass_elapsed_time = xdd_signal_tdp->td_counters.tc_pass_start_time - xdd_signal_tdp->td_counters.tc_pass_end_time;
+			// Set ending CPU times
+			times(&xdd_signal_tdp->td_counters.tc_current_cpu_times);
+		}
+		// Process final pass and all run data
+		xdd_process_pass_results(xdd_signal_planp);
+		xdd_process_run_results(xdd_signal_planp);
+	}
 	fflush(xgp->errout);
 
         if (enter_debugger) {
