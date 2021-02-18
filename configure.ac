@@ -224,6 +224,9 @@ dnl
 if test "$CC" = "gcc"; then
    CFLAGS="$CFLAGS -pthread"
    LDFLAGS="$LDFLAGS -pthread"
+elif test "$CC" = "clang"; then
+   CFLAGS="$CFLAGS -pthread"
+   LDFLAGS="$LDFLAGS -pthread"
 elif test "$CC" = "xlc_r"; then
    LIBS="$LIBS -lpthread"
 fi
