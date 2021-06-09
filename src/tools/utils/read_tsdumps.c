@@ -17,7 +17,6 @@
 #include <string.h>
 #include <libgen.h>
 
-#define XDDMAIN
 #include <xint.h>
 
 /* make sure MAX is defined */

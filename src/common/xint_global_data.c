@@ -11,13 +11,19 @@
  *
  */
 #include "xint.h"
+
+#ifdef HAVE_ENABLE_XFS
+int xgp_xfs_enabled;
+#endif
+
+xdd_global_data_t *xgp;
+
 /*----------------------------------------------------------------------------*/
 /* xdd_global_initialization() - Initialize the "global_data" structure
  */
 xdd_global_data_t*
 xint_global_data_initialization(char* progname) {
 	char errmsg[1024];
-
 
 	xgp = (xdd_global_data_t *)malloc(sizeof(struct xdd_global_data));
 	if (xgp == 0) {

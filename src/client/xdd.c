@@ -14,7 +14,6 @@
 /*
    xdd - A sophisticated I/O performance measurement and analysis tool/utility
 */
-#define XDDMAIN
 #include "xint.h"
 
 /*----------------------------------------------------------------------------*/

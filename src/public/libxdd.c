@@ -13,7 +13,6 @@
 #include "libxdd.h"
 #include <assert.h>
 #include <string.h>
-#define XDDMAIN
 #include "xdd_types_internal.h"
 #include "xint.h"
 

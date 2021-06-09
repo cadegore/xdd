@@ -19,7 +19,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define XDDMAIN
 #include "xint.h"
 
 #define DEBUG 0
