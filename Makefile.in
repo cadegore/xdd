@@ -97,7 +97,7 @@ MPICC = mpicc
 MV = mv -f
 PATCH = $(PATCH_EXE)
 PYTHON = PYTHONPATH=$(TOOLS_PYTHON_DIR):$(XDD_DIR)/contrib/site-packages:$(PYTHONPATH) $(PYTHON_EXE)
-PYC = $(PYTHON_EXE) -m compileall -f
+PYC = $(PYTHON_EXE) -m compileall -f -b
 RM = rm -f
 RMDIR = rmdir
 TAR = $(TAR_EXE)
