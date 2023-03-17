@@ -433,7 +433,7 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
 
         /* create analysis directory, unless it's cwd */
         if (strcmp(outfilebase,".") != 0) {
-		sprintf(line,"mkdir -p %s",outfilebase);
+		snprintf(line,OUTFILENAME_LEN,"mkdir -p %s",outfilebase);
         	if ( system(line) == -1 ) {
 		  fprintf(stderr,"shell command failed: %s\n",line);
 		  exit(1);
