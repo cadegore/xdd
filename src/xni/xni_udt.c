@@ -152,8 +152,9 @@ static int udt_register_buffer(xni_context_t ctx_, void* buf, size_t nbytes, siz
 		return XNI_ERR;
 	
     // Make sure enough padding exists
-    if (avail < UDT_DATA_MESSAGE_HEADER_SIZE)
-        return XNI_ERR;
+    if (avail < UDT_DATA_MESSAGE_HEADER_SIZE) {
+		return XNI_ERR;
+	}
 
 	// Add the buffer into the array of registered buffers
 	pthread_mutex_lock(&ctx->buffer_mutex);

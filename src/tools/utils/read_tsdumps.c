@@ -184,9 +184,10 @@ int main(int argc, char **argv) {
         /* note that iotrace_data_dir is independent of $PWD   */
         if (kernel_trace)
         {
-          if ((iotrace_data_dir=getenv("TRACE_LOG_LOC")) == NULL)
+          if ((iotrace_data_dir=getenv("TRACE_LOG_LOC")) == NULL) {
                iotrace_data_dir=getenv("HOME");
-               current_work_dir=getenv("PWD");
+	  }
+	  current_work_dir=getenv("PWD");
      
           if (src != NULL) {
             sprintf(kernfilename,"decode %s/dictionary* %s/iotrace_data.%d.out",
@@ -432,7 +433,7 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
 
         /* create analysis directory, unless it's cwd */
         if (strcmp(outfilebase,".") != 0) {
-		sprintf(line,"mkdir -p %s",outfilebase);
+		snprintf(line,OUTFILENAME_LEN,"mkdir -p %s",outfilebase);
         	if ( system(line) == -1 ) {
 		  fprintf(stderr,"shell command failed: %s\n",line);
 		  exit(1);
@@ -505,8 +506,9 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
 		  /* read disk */
                  if (read_op[i]->tte_disk_end > 0) {
                   cutoff = MAX( nclk2sec(read_op[i]->tte_disk_end)-window_size, 0.0);
-                  for (k = i; (k >= 0) && ( nclk2sec(read_op[k]->tte_disk_end) > cutoff); k--)
+                  for (k = i; (k >= 0) && ( nclk2sec(read_op[k]->tte_disk_end) > cutoff); k--) {
 			op_mbs [0] += (double)read_op[k]->tte_disk_xfer_size;
+		  }
 			op_mbs [0]  = op_mbs[0] / MIN((double)window_size,(double)nclk2sec(read_op[i]->tte_disk_end)) / BPU;
 			op_time[0]  = nclk2sec(read_op[i]->tte_disk_end);
 			max_xfer = MAX(max_xfer,read_op[i]->tte_disk_xfer_size);
@@ -520,8 +522,9 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
 		/* send net */
                  if (send_op[i]->tte_net_end > 0) {
                   cutoff = MAX( nclk2sec(send_op[i]->tte_net_end)-window_size ,0.0);
-                  for (k = i; (k >= 0) && ( nclk2sec(send_op[k]->tte_net_end) > cutoff); k--)
+                  for (k = i; (k >= 0) && ( nclk2sec(send_op[k]->tte_net_end) > cutoff); k--) {
 			op_mbs [1] += (double)send_op[k]->tte_net_xfer_size;
+		  }
 			op_mbs [1]  = op_mbs[1] / MIN((double)window_size,(double)nclk2sec(send_op[i]->tte_net_end)) / BPU;
 			op_time[1]  = nclk2sec(send_op[i]->tte_net_end);
 			max_xfer = MAX(max_xfer,send_op[i]->tte_net_xfer_size);
@@ -535,8 +538,9 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
 		/* recv net */
                  if (recv_op[i]->tte_net_end > 0) {
                   cutoff = MAX( nclk2sec(recv_op[i]->tte_net_end)-window_size, 0.0);
-                  for (k = i; (k >= 0) && ( nclk2sec(recv_op[k]->tte_net_end) > cutoff); k--)
+                  for (k = i; (k >= 0) && ( nclk2sec(recv_op[k]->tte_net_end) > cutoff); k--) {
 			op_mbs [2] += (double)recv_op[k]->tte_net_xfer_size;
+		  }
 			op_mbs [2]  = op_mbs[2] / MIN((double)window_size,(double)nclk2sec(recv_op[i]->tte_net_end)) / BPU;
 			op_time[2]  = nclk2sec(recv_op[i]->tte_net_end);
 			max_xfer    = MAX(max_xfer,recv_op[i]->tte_net_xfer_size);
@@ -550,8 +554,9 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
 		/* write disk */
                  if (write_op[i]->tte_disk_end > 0) {
                   cutoff = MAX( nclk2sec(write_op[i]->tte_disk_end)-window_size, 0.0);
-                  for (k = i; (k >= 0) && (nclk2sec(write_op[k]->tte_disk_end) > cutoff); k--)
+                  for (k = i; (k >= 0) && (nclk2sec(write_op[k]->tte_disk_end) > cutoff); k--) {
 			op_mbs [3] += (double)write_op[k]->tte_disk_xfer_size;
+		  }
 			op_mbs [3]  = op_mbs[3] / MIN((double)window_size,(double)nclk2sec(write_op[i]->tte_disk_end)) / BPU;
 			op_time[3]  = nclk2sec(write_op[i]->tte_disk_end);
 			max_xfer    = MAX(max_xfer,write_op[i]->tte_disk_xfer_size);

@@ -240,9 +240,10 @@ matchadd_kernel_events(int issource, int nthreads, int thread_id[], char *filesp
               if (issource)
               {
               /* find next op. Deal with xdd eofi, i.e., don't look for trace events that did not happen */
-                if (DEBUG)
+                if (DEBUG) {
                 fprintf(stderr,"%2zd xdd  pread64  thread_pid %d size %8d  start %lld end %lld opt %d\n",
                    i,xdd_data->tsh_tte[i].tte_thread_id, xdd_data->tsh_tte[i].tte_disk_xfer_size, xdd_data->tsh_tte[i].tte_disk_start, xdd_data->tsh_tte[i].tte_disk_end,xdd_data->tsh_tte[i].tte_op_type );
+		}
                 if (READ_OP(xdd_data->tsh_tte[i].tte_op_type) && xdd_data->tsh_tte[i].tte_disk_xfer_size)
                 {
                   ts_beg_op = ts_end_op = size_op = nops_op = 0;
@@ -255,9 +256,10 @@ matchadd_kernel_events(int issource, int nthreads, int thread_id[], char *filesp
                 if ( xdd_data->tsh_tte[i].tte_net_xfer_size > 0 )
                 {
                   ts_beg_op = ts_end_op = size_op   = nops_op = 0;
-                if (DEBUG)
+                if (DEBUG) {
                   fprintf(stderr,"%2zd xdd  sendto   thread_pid %d size %7d  start %lld end %lld opt %d\n",
                      i,xdd_data->tsh_tte[i].tte_thread_id, xdd_data->tsh_tte[i].tte_net_xfer_size, xdd_data->tsh_tte[i].tte_net_start, xdd_data->tsh_tte[i].tte_net_end,xdd_data->tsh_tte[i].tte_op_type );
+		}
                   parse_file_next_op(thread_id[k],fp,"sendto",&ts_beg_op,&ts_end_op,&size_op,&nops_op);
                   xdd_data->tsh_tte[i].tte_net_start_k      = ts_beg_op;
                   xdd_data->tsh_tte[i].tte_net_end_k        = ts_end_op;
@@ -272,9 +274,10 @@ matchadd_kernel_events(int issource, int nthreads, int thread_id[], char *filesp
                 /* parse for net op only if there was an app net op */
                 if ( xdd_data->tsh_tte[i].tte_net_xfer_size > 0 )
                 {
-                if (DEBUG)
+                if (DEBUG) {
                   fprintf(stderr,"%2zd xdd  recvfrom thread_pid %d size %7d  start %lld end %lld opt %d\n",
                      i,xdd_data->tsh_tte[i].tte_thread_id, xdd_data->tsh_tte[i].tte_net_xfer_size, xdd_data->tsh_tte[i].tte_net_start, xdd_data->tsh_tte[i].tte_net_end,xdd_data->tsh_tte[i].tte_op_type );
+		}
                   ts_beg_op = ts_end_op = size_op = nops_op = 0;
                   parse_file_next_op(thread_id[k],fp,"recvfrom",&ts_beg_op,&ts_end_op,&size_op,&nops_op);
                   xdd_data->tsh_tte[i].tte_net_start_k      = ts_beg_op;

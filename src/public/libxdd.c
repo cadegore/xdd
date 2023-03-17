@@ -234,7 +234,7 @@ int local_target_init(target_data_t *tdp,
 	// Allocate space to hold the target name
 	size_t fname_len = strlen(tattr->uri) + 1;
 	char *fname = malloc(fname_len);
-	strncpy(fname, tattr->uri, fname_len);
+	memcpy(fname, tattr->uri, fname_len);
 	
 	// Setup a data pattern and e2e buffer before initialization
 	tdp->td_dpp = malloc(sizeof(*tdp->td_dpp));
