@@ -439,7 +439,7 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
 		  exit(1);
         	}
         }
-        sprintf(datfilename,"%s/analysis.dat",outfilebase);
+        snprintf(datfilename,OUTFILENAME_LEN,"%s/analysis.dat",outfilebase);
 	/* try to open file */
 	if (strlen(datfilename)==0) {
 		outfile = stdout;
@@ -572,7 +572,9 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
 		/* write to file. take care to leave no embedded '0'(nulls) between fields */
 		for (k = 0; k < 4; k++) { 
                    sprintf(&line[k*45],"%12.6f %10.4f %10lld %10lld ",op_time[k],op_mbs[k],op_dks[k],op_dke[k]);
-                   if ( op_time[k] == 0.0 ) strncpy(&line[k*45+3],"?",1);
+                   if ( op_time[k] == 0.0 ) {
+			line[k*45+3] = '?';
+		   }
                 }
                 fprintf(outfile,"%s\n",line);
 	}
