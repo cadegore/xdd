@@ -135,7 +135,7 @@ def createLogFile(base):
     """
     name = base + '-' + str(int(time.time())) + '.log'
     try:
-        fd = os.open(name, os.O_CREAT|os.O_EXCL|os.O_WRONLY, 0644)
+        fd = os.open(name, os.O_CREAT|os.O_EXCL|os.O_WRONLY, 0o644)
         os.write(fd, base)
         for a in sys.argv:
             os.write(fd, ' ' + a)

@@ -59,11 +59,11 @@ class FlowBuilderTransportForwardingHandler(SocketServer.BaseRequestHandler):
                                                 destAddr, 
                                                 srcAddr)
             #print("SSH Channel opened:", srcAddr, ' -> ', destAddr)
-        except paramiko.SSHException, e:
+        except paramiko.SSHException as e:
             print("ERROR: Unable to open channel for the existing transport:",
                   e)
             return
-        except Exception, e:
+        except Exception as e:
             print("ERROR: Unable to create SSH forward channel.")
             import sys
             eInfo = sys.exc_info()[0]
@@ -237,7 +237,7 @@ class FlowBuilderTransport:
                         print(hostname, "stderr", line)
                     raise FlowBuilderTransportError()
                 
-        except paramiko.SSHException, e:
+        except paramiko.SSHException as e:
             print('SSH Exception', hostname, ' [', host, ']', e)
             raise FlowBuilderTransportError()
 

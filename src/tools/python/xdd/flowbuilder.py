@@ -78,7 +78,7 @@ class FlowBuilder(object):
         namer = PosixNamingStrategy()
         return namer.buildDirsFilesLinks(source, target, 
                                          targetExists, targetIsDir)
-    def createDirectory(self, target, mode=0755):
+    def createDirectory(self, target, mode=0o755):
         """
         Create the directory target if it does not exists.  If it exists
         that is ok too
