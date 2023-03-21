@@ -33,6 +33,7 @@ contrib: contrib/site-packages paramiko pyro4 serpent
 
 install_contrib: install_contrib_site-packages
 
+
 clean_contrib: clean_contrib_site-packages
 	$(info Cleaning the $(OS) CONTRIB files )
 
@@ -210,6 +211,7 @@ clean_serpent:
 	@echo "Cleaning the serpent site package"
 	@$(RM) -r contrib/site-packages/serpent.py
 	@$(RM) -r contrib/site-packages/serpent.pyc
+	@$(RM) -r contrib/serpent
 
 .PHONY: serpent clean_serpent install_serpent
 

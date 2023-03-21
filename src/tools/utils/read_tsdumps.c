@@ -428,18 +428,18 @@ void write_outfile(xdd_ts_header_t *src, xdd_ts_header_t *dst, xdd_ts_tte_t **re
         double op_time[4], op_mbs[4];
         nclk_t  op_dks[4], op_dke[4];
         int32_t max_xfer;
-        char line[OUTFILENAME_LEN] = {" "};
-        char datfilename[OUTFILENAME_LEN] = {" "};
+        char line[OUTFILENAME_LEN * 2] = {" "};
+        char datfilename[OUTFILENAME_LEN * 2] = {" "};
 
         /* create analysis directory, unless it's cwd */
         if (strcmp(outfilebase,".") != 0) {
-		snprintf(line,OUTFILENAME_LEN,"mkdir -p %s",outfilebase);
+		sprintf(line,"mkdir -p %s",outfilebase);
         	if ( system(line) == -1 ) {
 		  fprintf(stderr,"shell command failed: %s\n",line);
 		  exit(1);
         	}
         }
-        snprintf(datfilename,OUTFILENAME_LEN,"%s/analysis.dat",outfilebase);
+        sprintf(datfilename,"%s/analysis.dat",outfilebase);
 	/* try to open file */
 	if (strlen(datfilename)==0) {
 		outfile = stdout;
