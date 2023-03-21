@@ -56,7 +56,11 @@
 AC_DEFUN([AX_PYTHON],
 [AC_MSG_CHECKING(for python build information)
 AC_MSG_RESULT([])
+<<<<<<< HEAD
+=======
 for python in python3.6 python3.7 python3.8 python3.9 python3.10 python3.11; do
+>>>>>>> 4eb82db (updated paramiko library to version 3.1.0)
+>>>>>>> 4261dce (updated paramiko library to version 3.1.0)
 AC_CHECK_PROGS(PYTHON_BIN, [$python])
 ax_python_bin=$PYTHON_BIN
 if test x$ax_python_bin != x; then
