@@ -22,7 +22,7 @@
 #
 # Contributed 3rd-party distributions
 #
-PARAMIKO_DIST := $(CONTRIB_DIR)/paramiko-1.13.0.tar.gz
+PARAMIKO_DIST := $(CONTRIB_DIR)/paramiko-3.1.0.tar.gz
 PYRO_DIST := $(CONTRIB_DIR)/Pyro4-4.25.tar.gz
 SERPENT_DIST := $(CONTRIB_DIR)/serpent-1.5.tar.gz
 
@@ -96,7 +96,7 @@ contrib/paramiko: $(PARAMIKO_DIST)
 	tar -C $@ -xvzf $< --strip-components 1
 
 contrib/site-packages/paramiko: contrib/paramiko contrib/paramiko-hostbased-auth.diff
-	cd $< && $(PATCH) -p1 < ../paramiko-hostbased-auth.diff
+	#cd $< && $(PATCH) -p1 < ../paramiko-hostbased-auth.diff
 	cd $< && $(PYTHON) setup.py build
 	cd $< && $(PYTHON) setup.py install --install-lib ../site-packages --old-and-unmanageable
 
@@ -116,7 +116,7 @@ clean_paramiko:
 	@echo "Cleaning the paramiko site package"
 	@$(RM) -r contrib/site-packages/paramiko
 	@$(RM) -r contrib/paramiko
-	@$(RM) -r contrib/site-packages/paramiko-1.13.0-*.egg-info
+	@$(RM) -r contrib/site-packages/paramiko-3.1.0-*.egg-info
 
 .PHONY: paramiko clean_paramiko install_paramiko
 
