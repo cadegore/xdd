@@ -11,7 +11,7 @@ import getpass
 import os
 import threading
 import select
-import SocketServer
+import socketserver
 import socket
 import sys
 
@@ -26,7 +26,7 @@ from xdd.flowbuilder import FlowBuilder
 class FlowBuilderTransportError(XDDError):
     """Exception raised when the flow proxy encounters problems."""
 
-class FlowBuilderTransportForwardingServer(SocketServer.TCPServer):
+class FlowBuilderTransportForwardingServer(socketserver.TCPServer):
     """
     SSH forwarding server to forward traffic over the forwarded ssh channel
     """
@@ -38,7 +38,7 @@ class FlowBuilderTransportForwardingServer(SocketServer.TCPServer):
         self.transport = transport
         self.remoteAddr = remoteAddr
 
-class FlowBuilderTransportForwardingHandler(SocketServer.BaseRequestHandler):
+class FlowBuilderTransportForwardingHandler(socketserver.BaseRequestHandler):
     """
     Request handler that establishes the forwarding SSH tunnel and 
     passes traffic over the tunnel as it is received
