@@ -35,6 +35,7 @@ m4_include(m4/ax_check_gnu_make.m4)
 m4_include(m4/ax_mpi.m4)
 m4_include(m4/ax_python.m4)
 m4_include(m4/ax_python_module.m4)
+m4_include(m4/ax_python_module_install.m4)
 
 dnl
 dnl Check for GNU Make
@@ -452,36 +453,6 @@ AC_ARG_ENABLE([xddmcp],
               AS_HELP_STRING([--enable-xfs], [Enable XFS preallocation support]),
               [enable_xddmcp="$enableval"],
               [enable_xddmcp=yes])
-              
-dnl
-dnl Check for export-controlled packages if xddmcp is enabled
-dnl
-if test "$enable_xddmcp" = "yes" ; then
-    AC_CHECK_FILES([contrib/pycrypto-2.6.1.tar.gz], 
-                   AC_SUBST(PYCRYPTO_DIST, [contrib/pycrypto-2.6.1.tar.gz]),
-                   [AX_PYTHON_MODULE([Crypto], [])])
-    if test "$HAVE_PYMOD_CRYPTO" = "no" ; then
-        AC_MSG_WARN([XDDMCP requires PyCrypto.  Due to U.S. Export Controls, PyCrypto must be installed separately from XDD.  See README.crypto])
-        AC_MSG_ERROR([Use --disable-xddmcp to build without xddmcp support.])
-    fi
-
-    AC_CHECK_FILES([contrib/ecdsa-0.11.tar.gz], 
-                   AC_SUBST(ECDSA_DIST, [contrib/ecdsa-0.11.tar.gz]),
-                   [AX_PYTHON_MODULE([ecdsa], [])]) 
-    if test "$HAVE_PYMOD_ECDSA" = "no" ; then
-        AC_MSG_WARN([XDDMCP requires ECDSA.  Due to U.S. Export Controls, PyCrypto must be installed separately from XDD.  See README.crypto])
-        AC_MSG_ERROR([Use --disable-xddmcp to build without xddmcp support.])
-    fi
-fi
-
-dnl
-dnl If export-controlled packages don't exist, disable xddmcp
-dnl
-if  test "$enable_xddmcp" = "yes" ; then
-   AC_SUBST(XDDMCP_ENABLED, "true")
-else
-   AC_SUBST(XDDMCP_ENABLED, "false")
-fi
 
 dnl
 dnl Check for packages XDD requires directly
@@ -500,6 +471,21 @@ AX_PYTHON_MODULE([sys], [missing Python module: sys])
 AX_PYTHON_MODULE([threading], [missing Python module: threading])
 AX_PYTHON_MODULE([time], [missing Python module: time])
 AX_PYTHON_MODULE([unittest], [missing Python module: unittest])
+
+dnl
+dnl Check for pip tool 
+dnl 
+
+AX_PYTHON_MODULE([pip], [missing Python module: pip])
+
+dnl
+dnl Check for required dependencies
+dnl
+
+AX_PYTHON_MODULE_INSTALL([paramiko], [missing Python module: paramiko])
+AX_PYTHON_MODULE_INSTALL([cryptography], [missing Python module: cryptography])
+AX_PYTHON_MODULE_INSTALL([Pyro4], [missing Python module: pyro4])
+AX_PYTHON_MODULE_INSTALL([serpent], [missing Python module: serpent])
 
 dnl
 dnl Check for packages Crypto requires

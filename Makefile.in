@@ -305,7 +305,7 @@ fastinstall: all
 install_libs:
 	$(INSTALL) -c -m 644 $(LIB_DIR)/libxdd.a $(INSTALL_DIR)/lib/libxdd.a
 
-install_site_packages: install_contrib_site-packages
+install_site_packages: contrib
 	$(INSTALL) -d $(PYTHON_SITE_DIR)
 # This is probably not the righ location for these scripts
 	$(INSTALL) -c -m 755 $(TOOLS_DIR)/python/xdd_file_transfer.py $(PYTHON_SITE_DIR)
@@ -436,7 +436,7 @@ oclean:
 	$(info Cleaning the $(OS) OBJECT files )
 	@$(RM) $(ALL_OBJS) 
 
-tclean: clean_contrib
+tclean: 
 	$(info Cleaning the $(OS) TOOLS OBJECT files )
 	@$(RM) src/tools/*.o
 
