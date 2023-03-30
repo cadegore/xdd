@@ -130,7 +130,7 @@ int32_t xint_e2e_xni_send(worker_data_t *wdp) {
 	e2ep = wdp->wd_e2ep;
 	e2ehp = e2ep->e2e_hdrp;
 	
-	de2eprintf("DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: ENTER: e2ep=%p: e2ehp=%p: e2e_datap=%p\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, e2ep, e2ehp, e2ep->e2e_datap);
+	de2eprintf("DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: ENTER: e2ep=%p: e2ehp=%p: e2e_datap=%p\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number,(void *) e2ep, (void *)e2ehp, (void *)e2ep->e2e_datap);
 
     /* Some timestamp code */
 	if (tdp->td_ts_table.ts_options & (TS_ON | TS_TRIGGERED)) {
@@ -146,8 +146,10 @@ int32_t xint_e2e_xni_send(worker_data_t *wdp) {
 	e2ep->e2e_xfer_size = sizeof(xdd_e2e_header_t) + e2ehp->e2eh_data_length;
 	e2ep->e2e_xfer_size = getpagesize() + e2ehp->e2eh_data_length;
 
-	de2eprintf("DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Preparing to send %d bytes: e2ep=%p: e2ehp=%p: e2e_datap=%p: e2e_xfer_size=%d: e2eh_data_length=%lld\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, e2ep->e2e_xfer_size,e2ep,e2ehp,e2ep->e2e_datap,e2ep->e2e_xfer_size,(long long int)e2ehp->e2eh_data_length);
-	if (xgp->global_options & GO_DEBUG_E2E) xdd_show_e2e_header((xdd_e2e_header_t *)xni_target_buffer_data(wdp->wd_e2ep->xni_wd_buf));
+	de2eprintf("DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Preparing to send %d bytes: e2ep=%p: e2ehp=%p: e2e_datap=%p: e2e_xfer_size=%d: e2eh_data_length=%lld\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, e2ep->e2e_xfer_size,(void *)e2ep,(void *)e2ehp,(void *)e2ep->e2e_datap,e2ep->e2e_xfer_size,(long long int)e2ehp->e2eh_data_length);
+	if (xgp->global_options & GO_DEBUG_E2E) {
+		xdd_show_e2e_header((xdd_e2e_header_t *)xni_target_buffer_data(wdp->wd_e2ep->xni_wd_buf));
+	}
 
 	nclk_now(&wdp->wd_counters.tc_current_net_start_time);
 	/* Don't send magic eof across wire */

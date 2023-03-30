@@ -142,14 +142,15 @@ static int tcp_context_destroy(xni_context_t *ctx_)
 }
 
 static int tcp_register_buffer(xni_context_t ctx_, void* buf, size_t nbytes, size_t reserved, xni_target_buffer_t* tbp) {
-	struct tcp_context* ctx = (struct tcp_context*) ctx_;
+    struct tcp_context* ctx = (struct tcp_context*) ctx_;
     uintptr_t beginp = (uintptr_t)buf;
     uintptr_t datap = (uintptr_t)buf + (uintptr_t)(reserved);
     size_t avail = (size_t)(datap - beginp);
 
 	// Make sure space exists in the registered buffers array
-	if (ctx->control_block.num_sockets <= ctx->num_registered)
+    if (ctx->control_block.num_sockets <= ctx->num_registered) {
 		return XNI_ERR;
+	}
 	
     // Make sure enough padding exists
     if (avail < TCP_DATA_MESSAGE_HEADER_SIZE) {
@@ -158,13 +159,13 @@ static int tcp_register_buffer(xni_context_t ctx_, void* buf, size_t nbytes, siz
 
 	// Add the buffer into the array of registered buffers
 	pthread_mutex_lock(&ctx->buffer_mutex);
-	struct tcp_target_buffer *tb = ctx->registered_buffers + ctx->num_registered;
+	struct tcp_target_buffer* tb = ctx->registered_buffers + ctx->num_registered;
 	tb->context = ctx;
-	tb->data = (void*)datap;
+	tb->data = (void *)datap;
 	tb->target_offset = 0;
 	tb->data_length = -1;
 	tb->busy = 0;
-	tb->header = (void*)(datap - TCP_DATA_MESSAGE_HEADER_SIZE);
+	tb->header = (void *)(datap - TCP_DATA_MESSAGE_HEADER_SIZE);
 	ctx->registered_buffers[ctx->num_registered] = *tb;
 	ctx->num_registered++;
 	pthread_mutex_unlock(&ctx->buffer_mutex);

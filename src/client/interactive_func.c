@@ -529,7 +529,7 @@ xdd_interactive_show_tot_display_fields(target_data_t *tdp, FILE *fp) {
 		else  tot_block = -1;
 		fprintf(fp,"%5d,%p,%lld,%lld,%lld,%lld,%lld,%lld,%d,%d,%d,%d,%d,%s\n",
 			tot_offset,
-			tep->tot_waitp,
+			(void *)tep->tot_waitp,
 			(long long int)tep->tot_wait_ts,
 			(long long int)tep->tot_post_ts,
 			(long long int)(tep->tot_post_ts - (long long int)tep->tot_wait_ts),
@@ -547,7 +547,7 @@ xdd_interactive_show_tot_display_fields(target_data_t *tdp, FILE *fp) {
 				i=0;
  				fprintf(fp,"TOT Offset,TOTW,TOTW#,tot_wait ptr,next tot_wait ptr,Worker Data ptr,condition,Is Released\n");
 				while (totwp) {
-   					fprintf(fp,"%5d,TOTW,%d,%p,%p,%p,-,%d\n",tot_offset,i,totwp,totwp->totw_nextp,totwp->totw_wdp,totwp->totw_is_released);
+   					fprintf(fp,"%5d,TOTW,%d,%p,%p,%p,-,%d\n",tot_offset,i,(void *)totwp,(void *)totwp->totw_nextp,(void *)totwp->totw_wdp,totwp->totw_is_released);
 					totwp = totwp->totw_nextp;
 					i++;
 				sleep(1);
@@ -570,8 +570,8 @@ xdd_interactive_show_barrier(int32_t tokens, char *cmdline, uint32_t flags, xdd_
 
 	fprintf(xgp->output, "\n--------------- Begin Barrier Information --------------\n");
 	fprintf(xgp->output, "Barrier count is %d\n",planp->barrier_count);
-	fprintf(xgp->output, "Barrier_chain_first is %p\n",planp->barrier_chain_first);
-	fprintf(xgp->output, "Barrier_chain_last is %p\n",planp->barrier_chain_last);
+	fprintf(xgp->output, "Barrier_chain_first is %p\n",(void *)planp->barrier_chain_first);
+	fprintf(xgp->output, "Barrier_chain_last is %p\n",(void *)planp->barrier_chain_last);
 	bp = planp->barrier_chain_first;
 	
 	fprintf(xgp->output, "Barrier Pointer, Previous, Next, Name, Counter, Threads, First Occupant, Last Occupant\n");
@@ -581,14 +581,14 @@ xdd_interactive_show_barrier(int32_t tokens, char *cmdline, uint32_t flags, xdd_
 			break;
 		} else { // Must be a real barrier pointer - I hope...
 			fprintf(xgp->output, "%16p, %16p, %16p, %64s, %04d, %04d, %16p, %16p\n",
-				bp, 
-				bp->prev_barrier, 
-				bp->next_barrier, 
+				(void *)bp, 
+				(void *)bp->prev_barrier, 
+				(void *)bp->next_barrier, 
 				bp->name, 
 				bp->counter, 
 				bp->threads, 
-				bp->first_occupant, 
-				bp->last_occupant);
+				(void *)bp->first_occupant, 
+				(void *)bp->last_occupant);
 			if (bp->counter) { // This means this barrier must be occupied....
 				// Display the occupants
 				occupantp = bp->first_occupant;
@@ -596,13 +596,13 @@ xdd_interactive_show_barrier(int32_t tokens, char *cmdline, uint32_t flags, xdd_
 					if (occupantp) {
 						fprintf(xgp->output,"\tOccupant %d <%p> is %s, type %lld, target/worker data pointer %p, entry %lld, prev=%p, next=%p\n", 
 							j+1, 
-							occupantp, 
+							(void *)occupantp, 
 							occupantp->occupant_name,
 							(long long int)occupantp->occupant_type,
 							(void *)occupantp->occupant_data,
 							(long long int)occupantp->entry_time,
-							occupantp->prev_occupant,
-							occupantp->next_occupant);
+							(void *)occupantp->prev_occupant,
+							(void *)occupantp->next_occupant);
 						// Move along to the next occupant in the chain
 						occupantp = occupantp->next_occupant; 
 					} else { // Hmmmm.... no occupant pointer even though the occupant count is non-zero....

@@ -80,7 +80,11 @@ xdd_ts_setup(target_data_t *tdp) {
 	tt_bytes = (int)((sizeof(struct xdd_ts_header)) + (tt_entries * sizeof(struct xdd_ts_tte)));
 #if (LINUX || SOLARIS || AIX || DARWIN)
 	tdp->td_ts_table.ts_hdrp = (struct xdd_ts_header *)valloc(tt_bytes);
-if (xgp->global_options & GO_DEBUG_TS) fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_setup: Target: %d: Worker: -: TS INITIALIZATION td_ts_table.ts_hdrp: %p: %d: entries\n ", (long long int)pclk_now(),tdp->td_target_number,tdp->td_ts_table.ts_hdrp,(int)tt_entries);
+	if (xgp->global_options & GO_DEBUG_TS) {
+		fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_setup: Target: %d: Worker: -: TS INITIALIZATION td_ts_table.ts_hdrp: %p: %d: entries\n ", (long long int)pclk_now(),tdp->td_target_number,(void *)tdp->td_ts_table.ts_hdrp,(int)tt_entries);
+
+	}
+		
 #else
 	tdp->td_ts_table.ts_hdrp = (struct xdd_ts_header *)malloc(tt_bytes);
 #endif
@@ -162,8 +166,13 @@ if (xgp->global_options & GO_DEBUG_TS) fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_se
 	  }
 	  snprintf(tsp->ts_output_filename,ts_filename_size,"%s.target.%04d.csv",tdp->td_planp->ts_output_filename_prefix,tdp->td_target_number);
     }
-if (xgp->global_options & GO_DEBUG_TS) fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_setup: Target: %d: Worker: -: TS INITIALIZATION COMPLETE for td_ts_table.ts_hdrp: %p: %d: entries\n ", (long long int)pclk_now(),tdp->td_target_number,tdp->td_ts_table.ts_hdrp,(int)tt_entries);
-if (xgp->global_options & GO_DEBUG_TS) xdd_show_ts_table(&tdp->td_ts_table, tdp->td_target_number);
+	if (xgp->global_options & GO_DEBUG_TS) {
+		fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_setup: Target: %d: Worker: -: TS INITIALIZATION COMPLETE for td_ts_table.ts_hdrp: %p: %d: entries\n ", (long long int)pclk_now(),tdp->td_target_number,(void *)tdp->td_ts_table.ts_hdrp,(int)tt_entries);
+	}
+		
+	if (xgp->global_options & GO_DEBUG_TS) {
+	   	xdd_show_ts_table(&tdp->td_ts_table, tdp->td_target_number);
+	}
 	return;
 } /* end of xdd_ts_setup() */
 /*----------------------------------------------------------------------------*/

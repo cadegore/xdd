@@ -259,7 +259,9 @@ xdd_throttle_before_io_op(worker_data_t *wdp) {
 
 
 	tdp = wdp->wd_tdp;
-if (xgp->global_options & GO_DEBUG_THROTTLE) fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_throttle_before_io_op: Target: %d: Worker: %d: ENTER: td_throtp: %p: throttle: %f:\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,tdp->td_throtp,(tdp->td_throtp != NULL)?tdp->td_throtp->throttle:-69.69);
+	if (xgp->global_options & GO_DEBUG_THROTTLE) {
+		fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_throttle_before_io_op: Target: %d: Worker: %d: ENTER: td_throtp: %p: throttle: %f:\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,(void *)tdp->td_throtp,(tdp->td_throtp != NULL)?tdp->td_throtp->throttle:-69.69);
+	}
 	if ((tdp->td_throtp == NULL) || (tdp->td_throtp->throttle <= 0.0)) 
 		return;
 

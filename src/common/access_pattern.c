@@ -119,7 +119,9 @@ xdd_init_seek_list(target_data_t *tdp) {
 	seekhdr_t *sp;   /* pointer to the seek header */
         
 	/* If a throttle value has been specified, calculate the time that each operation should take */
-if (xgp->global_options & GO_DEBUG_THROTTLE) fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_init_seek_list: Target: %d: Worker: %d: ENTER: td_throtp: %p: throttle: %f:\n", (long long int)pclk_now(),tdp->td_target_number,-1,tdp->td_throtp,(tdp->td_throtp != NULL)?tdp->td_throtp->throttle:-69.69);
+	if (xgp->global_options & GO_DEBUG_THROTTLE) {
+	       	fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_init_seek_list: Target: %d: Worker: %d: ENTER: td_throtp: %p: throttle: %f:\n", (long long int)pclk_now(),tdp->td_target_number,-1,(void *)tdp->td_throtp,(tdp->td_throtp != NULL)?tdp->td_throtp->throttle:-69.69);
+	}
 	if ((tdp->td_throtp) && (tdp->td_throtp->throttle > 0.0)) {
 		if (tdp->td_throtp->throttle_type & XINT_THROTTLE_BW){
 			bytes_per_sec = tdp->td_throtp->throttle * MILLION;
