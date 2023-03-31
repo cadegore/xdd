@@ -171,7 +171,8 @@ static int tcp_register_buffer(xni_context_t ctx_, void* buf, size_t nbytes, siz
 	pthread_mutex_unlock(&ctx->buffer_mutex);
 
 	// Set the user's target buffer
-	*tbp = (xni_target_buffer_t)&(tb);
+	//*tbp = (xni_target_buffer_t)&(tb);
+	*tbp = (xni_target_buffer_t) &(ctx->registered_buffers[ctx->num_registered - 1]);
     return XNI_OK;
 }
 

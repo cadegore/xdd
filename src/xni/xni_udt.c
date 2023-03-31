@@ -148,8 +148,9 @@ static int udt_register_buffer(xni_context_t ctx_, void* buf, size_t nbytes, siz
     size_t avail = (size_t)(datap - beginp);
 
 	// Make sure space exists in the registered buffers array
-	if (ctx->control_block.num_sockets <= ctx->num_registered)
+	if (ctx->control_block.num_sockets <= ctx->num_registered) {
 		return XNI_ERR;
+	}
 	
     // Make sure enough padding exists
     if (avail < UDT_DATA_MESSAGE_HEADER_SIZE) {
@@ -170,7 +171,8 @@ static int udt_register_buffer(xni_context_t ctx_, void* buf, size_t nbytes, siz
 	pthread_mutex_unlock(&ctx->buffer_mutex);
 
 	// Set the user's target buffer
-	*tbp = (xni_target_buffer_t)&(tb);
+	//*tbp = (xni_target_buffer_t)&(tb);
+	*tbp = (xni_target_buffer_t) &(ctx->registered_buffers[ctx->num_registered - 1]);
     return XNI_OK;
 }
 
