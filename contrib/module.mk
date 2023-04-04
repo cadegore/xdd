@@ -22,18 +22,12 @@
 #
 # Contributed 3rd-party distributions
 #
-<<<<<<< HEAD
-=======
->>>>>>> 4261dce (updated paramiko library to version 3.1.0)
 # Build rules for contrib
 #
 contrib: 
 
-<<<<<<< HEAD
 .PHONY: contrib
 	
-=======
->>>>>>> 4261dce (updated paramiko library to version 3.1.0)
 #
 # Build test support infrastructure
 #

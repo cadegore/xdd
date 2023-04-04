@@ -482,6 +482,7 @@ dnl
 dnl Check for required dependencies
 dnl
 
+AX_PYTHON_MODULE_INSTALL([setuptools_rust], [missing Python module: setuptools_rust])
 AX_PYTHON_MODULE_INSTALL([paramiko], [missing Python module: paramiko])
 AX_PYTHON_MODULE_INSTALL([cryptography], [missing Python module: cryptography])
 AX_PYTHON_MODULE_INSTALL([Pyro4], [missing Python module: pyro4])
