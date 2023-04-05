@@ -54,8 +54,19 @@ xdd_io_for_os(worker_data_t *wdp) {
 			 	wdp->wd_task.task_io_status = xdd_sg_io(wdp,'w'); // Issue the SGIO operation 
 			else if (!(tdp->td_target_options & TO_NULL_TARGET)) {
 
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_io_for_os: Target: %d: Worker: %d: WRITE: file_desc: %d: datap: %p: xfer_size: %d: byte_offset: %lld\n ", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,wdp->wd_task.task_file_desc,wdp->wd_task.task_datap,(int)wdp->wd_task.task_xfer_size,(long long int)wdp->wd_task.task_byte_offset);
-if (xgp->global_options & GO_DEBUG_IO) xdd_show_task(&wdp->wd_task);
+				if (xgp->global_options & GO_DEBUG_IO) {
+					fprintf(stderr, "DEBUG_IO: %lld: xdd_io_for_os: Target: %d: Worker: %d: WRITE: "
+						"file_desc: %d: datap: %p: xfer_size: %d: byte_offset: %lld\n ",
+						(long long int)pclk_now(),
+						tdp->td_target_number,
+						wdp->wd_worker_number,
+						wdp->wd_task.task_file_desc,
+						(void *)wdp->wd_task.task_datap,
+						(int)wdp->wd_task.task_xfer_size,
+						(long long int)wdp->wd_task.task_byte_offset);
+
+					xdd_show_task(&wdp->wd_task);
+				}
 
                 wdp->wd_task.task_io_status = pwrite(wdp->wd_task.task_file_desc,
                                                         wdp->wd_task.task_datap,
@@ -75,11 +86,22 @@ if (xgp->global_options & GO_DEBUG_IO) xdd_show_task(&wdp->wd_task);
 			if ((tdp->td_target_options & TO_SGIO)) 
 			 	wdp->wd_task.task_io_status = xdd_sg_io(wdp,'r'); // Issue the SGIO operation 
 			else if (!(tdp->td_target_options & TO_NULL_TARGET)) {
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_io_for_os: Target: %d: Worker: %d: READ: file_desc: %d: datap: %p: xfer_size: %d: byte_offset: %lld\n ", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,wdp->wd_task.task_file_desc,wdp->wd_task.task_datap,(int)wdp->wd_task.task_xfer_size,(long long int)wdp->wd_task.task_byte_offset);
-                            wdp->wd_task.task_io_status = pread(wdp->wd_task.task_file_desc,
-                                                               wdp->wd_task.task_datap,
-                                                               wdp->wd_task.task_xfer_size,
-                                                               (off_t)wdp->wd_task.task_byte_offset);// Issue a positioned read operation
+				if (xgp->global_options & GO_DEBUG_IO) {
+					fprintf(stderr, "DEBUG_IO: %lld: xdd_io_for_os: Target: %d: Worker: %d: READ: "
+						"file_desc: %d: datap: %p: xfer_size: %d: byte_offset: %lld\n ",
+						(long long int)pclk_now(),
+						tdp->td_target_number,
+						wdp->wd_worker_number,
+						wdp->wd_task.task_file_desc,
+						(void *)wdp->wd_task.task_datap,
+						(int)wdp->wd_task.task_xfer_size,
+						(long long int)wdp->wd_task.task_byte_offset);
+					}
+
+					wdp->wd_task.task_io_status = pread(wdp->wd_task.task_file_desc,
+														wdp->wd_task.task_datap,
+														wdp->wd_task.task_xfer_size,
+														(off_t)wdp->wd_task.task_byte_offset);// Issue a positioned read operation
 			} else wdp->wd_task.task_io_status = read(wdp->wd_task.task_file_desc,
                                                               wdp->wd_task.task_datap,
                                                               wdp->wd_task.task_xfer_size);// Issue a normal read() operation
@@ -272,9 +294,11 @@ xdd_io_for_os(ptds_t *p) {
 				(LPTSTR) &lpMsgBuf,
 				0,
 				NULL);
-			fprintf(xgp->errout,"%s: I/O error: could not %s target %s\n",
-				xgp->progname,(p->seekhdr.seeks[p->tgtstp->wd_current_op].operation == SO_OP_WRITE)?"write":"read",p->target);
-			fprintf(xgp->errout,"reason:%s",lpMsgBuf);
+			fprintf(xgp->errout, "%s: I/O error: could not %s target %s\n",
+				xgp->progname,
+				(p->seekhdr.seeks[p->tgtstp->wd_current_op].operation == SO_OP_WRITE) ? "write" : "read",
+				p->target);
+			fprintf(xgp->errout, "reason:%s", lpMsgBuf);
 			fflush(xgp->errout);
 			p->tgtstp->wd_current_error_count++;
 		}

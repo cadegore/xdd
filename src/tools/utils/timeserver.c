@@ -41,8 +41,9 @@
 #if (AIX)
 #include <sys/select.h>
 #endif
-#include "nclk.h"
-#include "misc.h" /* bool */
+#include "xint_nclk.h"
+//#include "xint_misc.h" /* bool */
+#include <stdbool.h>
 #include "net_utils.h"
 
 /* ------- */
@@ -309,8 +310,6 @@ nd = FD_SETSIZE;
 private void
 parseargs(int argc, char **argv) {
 	unsigned int port;
-    argc = argc;
-    progname = argv[0];
     while (*++argv)
 	if (**argv == '-') /* Got an option */
 	    switch (*++*argv) {

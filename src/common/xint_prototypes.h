@@ -77,8 +77,7 @@ void	xdd_e2e_err(worker_data_t *wdp, char const *whence, char const *fmt, ...);
 int32_t	xdd_sockets_init(void);
 
 // global_clock.c
-in_addr_t xdd_init_global_clock_network(char *hostname);
-void	xdd_init_global_clock(nclk_t *nclkp);
+void	xdd_init_global_clock(nclk_t *nclkp, xdd_plan_t *planp);
 
 // xint_global_data.c
 xdd_global_data_t* xint_global_data_initialization(char *progname);

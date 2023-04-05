@@ -117,7 +117,7 @@ xdd_targetpass_e2e_loop_dst(xdd_plan_t* planp, target_data_t *tdp) {
         
 	// Check to see if we've been canceled - if so, we need to leave 
 	if (xgp->canceled) {
-		fprintf(xgp->errout,"\n%s: xdd_targetpass_e2e_loop_src: Target %d: ERROR: Canceled!\n",
+		fprintf(xgp->errout, "\n%s: xdd_targetpass_e2e_loop_src: Target %d: ERROR: Canceled!\n",
 			xgp->progname,
 			tdp->td_target_number);
 		return;
@@ -132,7 +132,7 @@ xdd_targetpass_e2e_loop_dst(xdd_plan_t* planp, target_data_t *tdp) {
 		pthread_mutex_unlock(&wdp->wd_worker_thread_target_sync_mutex);
 		// Check to see if we've been canceled - if so, we need to leave 
 		if (xgp->canceled) {
-			fprintf(xgp->errout,"\n%s: xdd_targetpass_e2e_loop_src: Target %d: ERROR: Canceled!\n",
+			fprintf(xgp->errout, "\n%s: xdd_targetpass_e2e_loop_src: Target %d: ERROR: Canceled!\n",
 				xgp->progname,
 				tdp->td_target_number);
 			break;
@@ -182,7 +182,7 @@ xdd_targetpass_e2e_loop_src(xdd_plan_t* planp, target_data_t *tdp) {
 
 	// Check to see if we've been canceled - if so, we need to leave 
 	if (xgp->canceled) {
-		fprintf(xgp->errout,"\n%s: xdd_targetpass_e2e_loop_src: Target %d: ERROR: Canceled!\n",
+		fprintf(xgp->errout, "\n%s: xdd_targetpass_e2e_loop_src: Target %d: ERROR: Canceled!\n",
 			xgp->progname,
 			tdp->td_target_number);
 		return;
@@ -272,7 +272,26 @@ xdd_targetpass_e2e_task_setup_src(worker_data_t *wdp) {
 		ttep->tte_op_number = wdp->wd_task.task_op_number;
 		ttep->tte_byte_offset = wdp->wd_task.task_byte_offset;
 	}
-if (xgp->global_options & GO_DEBUG_TASK) fprintf(stderr,"DEBUG_TASK: %lld: xdd_targetpass_e2e_task_setup_src: Target: %d: Worker: %d: task_request: 0x%x: file_desc: %d: datap: %p: op_type: %d, op_string: %s: op_number: %lld: xfer_size: %d, byte_offset: %lld: e2e_sequence_number: %lld\n ", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,wdp->wd_task.task_request,wdp->wd_task.task_file_desc,wdp->wd_task.task_datap,wdp->wd_task.task_op_type,wdp->wd_task.task_op_string,(unsigned long long int)wdp->wd_task.task_op_number,(int)wdp->wd_task.task_xfer_size,(long long int)wdp->wd_task.task_byte_offset,(unsigned long long int)wdp->wd_task.task_e2e_sequence_number);
+
+	if (xgp->global_options & GO_DEBUG_TASK) {
+		fprintf(stderr,"DEBUG_TASK: %lld: xdd_targetpass_e2e_task_setup_src: Target: %d: "
+			"Worker: %d: task_request: 0x%x: file_desc: %d: datap: %p: op_type: %d, "
+			"op_string: %s: op_number: %lld: xfer_size: %d, byte_offset: %lld: "
+			"e2e_sequence_number: %lld\n ",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			wdp->wd_task.task_request,
+			wdp->wd_task.task_file_desc,
+			(void *)wdp->wd_task.task_datap,
+			wdp->wd_task.task_op_type,
+			wdp->wd_task.task_op_string,
+			(unsigned long long int)wdp->wd_task.task_op_number,
+			(int)wdp->wd_task.task_xfer_size,
+			(long long int)wdp->wd_task.task_byte_offset,
+			(unsigned long long int)wdp->wd_task.task_e2e_sequence_number);
+	}
+
 	// Update the pointers/counters in the Target Data Struct to get ready for the next I/O operation
 	tdp->td_counters.tc_current_byte_offset += wdp->wd_task.task_xfer_size;
 	tdp->td_counters.tc_current_op_number++;
@@ -371,8 +390,15 @@ xdd_targetpass_e2e_monitor(target_data_t *tdp) {
 			}
 			tmpwdp = tmpwdp->wd_next_wdp;
 		}
-		fprintf(stderr,"\n\nopmin %4lld, qmin %4d, opmax %4lld, qmax %4d, separation is %4lld, %4d worker threads busy, %lld percent complete\n\n",
-			(long long int)opmin, qmin, (long long int)opmax, qmax, (long long int)(opmax-opmin+1), tdp->td_queue_depth-qavail, (long long int)((opmax*100)/tdp->td_target_ops));
+
+		fprintf(stderr,"\n\nopmin %4lld, qmin %4d, opmax %4lld, qmax %4d, separation is %4lld, "
+			"%4d worker threads busy, %lld percent complete\n\n",
+			(long long int)opmin,
+			qmin,
+			(long long int)opmax,
+			qmax, (long long int)(opmax-opmin+1),
+			tdp->td_queue_depth-qavail,
+			(long long int)((opmax*100)/tdp->td_target_ops));
 	}
 } // End of xdd_targetpass_e2e_monitor();
 

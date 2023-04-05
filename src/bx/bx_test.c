@@ -32,7 +32,7 @@ int qb_init();
 // Start the program
 int main(int argc, char *argv[]) {
 	int i;
-    int status;
+	int status;
 
 
 	Buffer_Size = 0;
@@ -50,7 +50,11 @@ int main(int argc, char *argv[]) {
 	status = ui(argc, argv);
 	if (status < 0) 
 		return(-1);
-fprintf(stderr,"main: Buffer_Size=%d, number of targets=%d\n",Buffer_Size,Number_Of_Targets);
+
+	fprintf(stderr, "main: Buffer_Size=%d, number of targets=%d\n",
+		Buffer_Size,
+		Number_Of_Targets);
+
 	// Initialize the main barrier where all targets meet before starting
 	status = pthread_barrier_init(&Main_Barrier,0,Number_Of_Targets+1);
 	if (status) {
@@ -74,7 +78,7 @@ fprintf(stderr,"main: Buffer_Size=%d, number of targets=%d\n",Buffer_Size,Number
 	// Create the target_threads
 	for (i = 0; i < MAX_TARGETS; i++) {
 		if (bx_td[i].bx_td_flags & BX_TD_TARGET_DEFINED) {
-			fprintf(stderr,"main: Creating target thread %d \n",i);
+			fprintf(stderr, "main: Creating target thread %d \n", i);
 			status = pthread_create(&Targets[i], NULL, target_main, &bx_td[i]);
 			if (status) {
 				perror("Cannot create target thread");
@@ -82,14 +86,14 @@ fprintf(stderr,"main: Buffer_Size=%d, number of targets=%d\n",Buffer_Size,Number
 			}
 		}
 	}
-	fprintf(stderr,"main: %d targets started\n",Number_Of_Targets);
+	fprintf(stderr, "main: %d targets started\n", Number_Of_Targets);
 
 	// Wait here for both target threads to complete then exit, stage left
-	fprintf(stderr,"main: WATING FOR %d targets to complete\n",Number_Of_Targets);
+	fprintf(stderr, "main: WATING FOR %d targets to complete\n", Number_Of_Targets);
 	pthread_barrier_wait(&Main_Barrier);
-	fprintf(stderr,"main: %d targets have completed! \n",Number_Of_Targets);
+	fprintf(stderr, "main: %d targets have completed! \n", Number_Of_Targets);
 
 	// That's all folks
 
-    return 0;
+	return 0;
 } // End of main()

@@ -209,7 +209,7 @@ LIBS = @CONFIG_LIBS@
 #
 # Build rules
 #
-all: contrib xdd libs tools
+all: bxt contrib libs tools xdd xdd-lite
 
 bxt: bin/bxt
 
@@ -233,14 +233,14 @@ $(LIB_DIR)/libxdd.a: $(XDD_OBJS)
 #
 # Build rules for tools
 #
-tools: xdd-read-tsdumps xdd-getfilesize xdd-gethostip xdd-truncate 
+tools: xdd-getfilesize xdd-gethostip xdd-gettime xdd-read-tsdumps xdd-truncate xdd-tserver
 
-
-xdd-gettime: bin/xdd-gettime
 
 xdd-getfilesize: bin/xdd-getfilesize
 
 xdd-gethostip: bin/xdd-gethostip
+
+xdd-gettime: bin/xdd-gettime
 
 xdd-read-tsdumps: bin/xdd-read-tsdumps
 
@@ -248,11 +248,11 @@ xdd-truncate: bin/xdd-truncate
 
 xdd-tserver: bin/xdd-tserver
 
-bin/xdd-tserver: $(COMMON_DIR)/nclk.o $(NET_DIR)/net_utils.o $(TS_EXE_OBJS) 
+bin/xdd-tserver: $(XDD_OBJS) $(TS_EXE_OBJS) 
 	$(Q) "[LD] $@ ..."
 	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-bin/xdd-gettime: $(COMMON_DIR)/global_time.o $(COMMON_DIR)/nclk.o $(NET_DIR)/net_utils.o $(GETTIME_EXE_OBJS) 
+bin/xdd-gettime: $(XDD_OBJS) $(GETTIME_EXE_OBJS) 
 	$(Q) "[LD] $@ ..."
 	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
@@ -272,7 +272,7 @@ bin/xdd-truncate: $(TRUNCATE_EXE_OBJS)
 	$(Q) "[LD] $@ ..."
 	$(E)$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-.PHONY: tools xdd-read-tsdumps xdd-getfilesize xdd-gethostip xdd-truncate
+.PHONY: tools xdd-getfilesize xdd-gethostip xdd-gettime xdd-read-tsdumps dd-truncate xdd-tserver
 
 #
 # Build rules for executable targets

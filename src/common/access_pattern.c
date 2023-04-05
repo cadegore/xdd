@@ -120,8 +120,15 @@ xdd_init_seek_list(target_data_t *tdp) {
         
 	/* If a throttle value has been specified, calculate the time that each operation should take */
 	if (xgp->global_options & GO_DEBUG_THROTTLE) {
-	       	fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_init_seek_list: Target: %d: Worker: %d: ENTER: td_throtp: %p: throttle: %f:\n", (long long int)pclk_now(),tdp->td_target_number,-1,(void *)tdp->td_throtp,(tdp->td_throtp != NULL)?tdp->td_throtp->throttle:-69.69);
+	       	fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_init_seek_list: Target: %d: Worker: %d: ENTER: "
+                "td_throtp: %p: throttle: %f:\n",
+                (long long int)pclk_now(),
+                tdp->td_target_number,
+                -1,
+                (void *)tdp->td_throtp,
+                (tdp->td_throtp != NULL) ? tdp->td_throtp->throttle : -69.69);
 	}
+
 	if ((tdp->td_throtp) && (tdp->td_throtp->throttle > 0.0)) {
 		if (tdp->td_throtp->throttle_type & XINT_THROTTLE_BW){
 			bytes_per_sec = tdp->td_throtp->throttle * MILLION;
@@ -221,27 +228,30 @@ xdd_init_seek_list(target_data_t *tdp) {
 			}
 
 			/* fill in the time that this operation is supposed to take place */
-                        //  -----------------L=========^=========H------------>
-                        //   Time--->        |         |         |Relative time plus the variance
-                        //                   |         |Relative time Average
-                        //                   |Relative time minus the variance
-                        // The actual time that an I/O operation should take place is somewhere between
-                        // the relative time plus or minus the variance. In Theory. Maybe.
-                        if ((tdp->td_throtp) && (tdp->td_throtp->throttle_variance > 0.0)) {
-                                variance_seconds_per_op = ((seconds_per_op_high-seconds_per_op_low) * xdd_random_float()) * BILLION;
-                                sp->seeks[rw_index].time1 = (relative_time - nano_second_throttle_variance) + variance_seconds_per_op;
+            //  -----------------L=========^=========H------------>
+            //   Time--->        |         |         |Relative time plus the variance
+            //                   |         |Relative time Average
+            //                   |Relative time minus the variance
+            // The actual time that an I/O operation should take place is somewhere between
+            // the relative time plus or minus the variance. In Theory. Maybe.
+            if ((tdp->td_throtp) && (tdp->td_throtp->throttle_variance > 0.0)) {
+                variance_seconds_per_op = ((seconds_per_op_high-seconds_per_op_low) * xdd_random_float()) * BILLION;
+                sp->seeks[rw_index].time1 = (relative_time - nano_second_throttle_variance) + variance_seconds_per_op;
+            } else {
+                sp->seeks[rw_index].time1 = relative_time;
+            }
 
-                        } else {
-                                sp->seeks[rw_index].time1 = relative_time;
+            if (xgp->global_options & GO_DEBUG_THROTTLE) {
+                fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_init_seek_list: "
+                    "Target: %d: Worker: %d: SET SEEK TIME: nano_seconds_per_op: %lld: "
+                    "relative_time: %lld:\n",
+                    (long long int)pclk_now(),
+                    tdp->td_target_number,
+                    -1,
+                    (long long int)nano_seconds_per_op,
+                    (long long int)relative_time);
+            }
 
-                        }
-                        if (xgp->global_options & GO_DEBUG_THROTTLE) {
-                                fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_init_seek_list: "
-                                        "Target: %d: Worker: %d: SET SEEK TIME: nano_seconds_per_op: %lld: "
-                                        "relative_time: %lld:\n",
-                                        (long long int)pclk_now(),tdp->td_target_number,-1,
-                                        (long long int)nano_seconds_per_op,(long long int)relative_time);
-                        }
 			relative_time += nano_seconds_per_op;
 
 			/* Increment to the next entry in the seek list */
@@ -320,7 +330,7 @@ xdd_save_seek_list(target_data_t *tdp) {
                 tmp = xgp->errout;
 	
         if (tmp == NULL) {
-		fprintf(xgp->errout,"%s: Cannot open file %s for saving seek information\n",xgp->progname,tmpname);
+		fprintf(xgp->errout,"%s: Cannot open file %s for saving seek information\n", xgp->progname, tmpname);
 		perror("reason");
 		return;
 	}
@@ -400,7 +410,7 @@ xdd_save_seek_list(target_data_t *tdp) {
 			}
 			/* print the histgram information for each bucket */
 			for (i = 0; i < sp->seek_NumSeekHistBuckets; i++) {
-				fprintf(tmp,"#SeekHist %04d %10llu\n", i,(unsigned long long)buckets[i]);
+				fprintf(tmp, "#SeekHist %04d %10llu\n", i, (unsigned long long)buckets[i]);
 			}
 			free(buckets);
 		}

@@ -51,6 +51,7 @@
 #else /* GENERIC_UNIX */
 #include <netdb.h>
 #include <sys/socket.h>
+#include "net_utils.h"
 #if (FREEBSD)
 #include <sys/types.h>
 #include <sys/unistd.h>
@@ -62,7 +63,8 @@
 #if (AIX || FREEBSD || SOLARIS)
 #include <stdarg.h>
 #endif
-#include "xdd.h"
+#include "xint.h"
+
 /*
  * err(fmt, ...)
  *

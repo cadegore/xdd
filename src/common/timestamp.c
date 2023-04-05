@@ -32,7 +32,7 @@ xdd_ts_overhead(struct xdd_ts_header *ts_hdrp) {
 	ts_hdrp->tsh_timer_oh /= 100;
 	if (xgp->global_options & GO_TIMER_INFO) { /* only display this information if requested */
 		fprintf(xgp->errout,"Timer overhead is %lld nanoseconds\n",
-		(long long)(ts_hdrp->tsh_timer_oh/1000));
+			(long long)(ts_hdrp->tsh_timer_oh/1000));
 		fflush(xgp->errout);
 	}
 } /* End of xdd_ts_overhead() */
@@ -71,7 +71,10 @@ xdd_ts_setup(target_data_t *tdp) {
 	if (tt_entries < ((tdp->td_planp->passes * tdp->td_target_ops) + tdp->td_queue_depth)) { /* Display a NOTICE message if ts_wrap or ts_oneshot have not been specified to compensate for a short time stamp buffer */
 		if (((tsp->ts_options & TS_WRAP) == 0) &&
 			((tsp->ts_options & TS_ONESHOT) == 0)) {
-			fprintf(xgp->errout,"%s: ***NOTICE*** The size specified for timestamp table for target %d is too small - enabling time stamp wrapping to compensate\n",xgp->progname,tdp->td_target_number);
+			fprintf(xgp->errout,"%s: ***NOTICE*** The size specified for timestamp table for target %d is "
+				"too small - enabling time stamp wrapping to compensate\n",
+				xgp->progname,
+				tdp->td_target_number);
 			fflush(xgp->errout);
 			tsp->ts_options |= TS_WRAP;
 		}
@@ -81,7 +84,12 @@ xdd_ts_setup(target_data_t *tdp) {
 #if (LINUX || SOLARIS || AIX || DARWIN)
 	tdp->td_ts_table.ts_hdrp = (struct xdd_ts_header *)valloc(tt_bytes);
 	if (xgp->global_options & GO_DEBUG_TS) {
-		fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_setup: Target: %d: Worker: -: TS INITIALIZATION td_ts_table.ts_hdrp: %p: %d: entries\n ", (long long int)pclk_now(),tdp->td_target_number,(void *)tdp->td_ts_table.ts_hdrp,(int)tt_entries);
+		fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_setup: Target: %d: Worker: -: TS INITIALIZATION "
+			"td_ts_table.ts_hdrp: %p: %d: entries\n ",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			(void *)tdp->td_ts_table.ts_hdrp,
+			(int)tt_entries);
 
 	}
 		
@@ -90,7 +98,9 @@ xdd_ts_setup(target_data_t *tdp) {
 #endif
 	if (tdp->td_ts_table.ts_hdrp == 0) {
 		fprintf(xgp->errout,"%s: xdd_ts_setup: Target %d: ERROR: Cannot allocate %d bytes of memory for timestamp table\n",
-			xgp->progname,tdp->td_target_number, tt_bytes);
+			xgp->progname,
+			tdp->td_target_number,
+			tt_bytes);
 		fflush(xgp->errout);
 		perror("Reason");
 		tsp->ts_options &= ~TS_ON;
@@ -142,8 +152,11 @@ xdd_ts_setup(target_data_t *tdp) {
 	ts_filename_size = strlen(tdp->td_planp->ts_binary_filename_prefix) + 32;
     tsp->ts_binary_filename = malloc(ts_filename_size);
 	if (tsp->ts_binary_filename == NULL) {
-		fprintf(xgp->errout,"%s: xdd_ts_setup: Target %d: ERROR: Cannot allocate %d bytes of memory for timestamp binary output filename\n",
-			xgp->progname,tdp->td_target_number, ts_filename_size);
+		fprintf(xgp->errout,"%s: xdd_ts_setup: Target %d: ERROR: Cannot allocate %d bytes of memory for "
+			"timestamp binary output filename\n",
+			xgp->progname,
+			tdp->td_target_number,
+			ts_filename_size);
 		fflush(xgp->errout);
 		perror("Reason");
 		tsp->ts_options &= ~TS_ON;
@@ -158,7 +171,9 @@ xdd_ts_setup(target_data_t *tdp) {
       tsp->ts_output_filename = malloc(ts_filename_size);
   	  if (tsp->ts_output_filename == NULL) {
 		fprintf(xgp->errout,"%s: xdd_ts_setup: Target %d: ERROR: Cannot allocate %d bytes of memory for timestamp output filename\n",
-			xgp->progname,tdp->td_target_number, ts_filename_size);
+			xgp->progname,
+			tdp->td_target_number,
+			ts_filename_size);
 		fflush(xgp->errout);
 		perror("Reason");
 		tsp->ts_options &= ~TS_ON;
@@ -167,7 +182,12 @@ xdd_ts_setup(target_data_t *tdp) {
 	  snprintf(tsp->ts_output_filename,ts_filename_size,"%s.target.%04d.csv",tdp->td_planp->ts_output_filename_prefix,tdp->td_target_number);
     }
 	if (xgp->global_options & GO_DEBUG_TS) {
-		fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_setup: Target: %d: Worker: -: TS INITIALIZATION COMPLETE for td_ts_table.ts_hdrp: %p: %d: entries\n ", (long long int)pclk_now(),tdp->td_target_number,(void *)tdp->td_ts_table.ts_hdrp,(int)tt_entries);
+		fprintf(stderr,"DEBUG_TS: %lld: xdd_ts_setup: Target: %d: Worker: -: TS INITIALIZATION COMPLETE "
+			"for td_ts_table.ts_hdrp: %p: %d: entries\n ",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			(void *)tdp->td_ts_table.ts_hdrp,
+			(int)tt_entries);
 	}
 		
 	if (xgp->global_options & GO_DEBUG_TS) {
@@ -193,7 +213,9 @@ xdd_ts_write(target_data_t *tdp) {
 		return;
 	ttfd = open(tsp->ts_binary_filename,O_WRONLY|O_CREAT,0666);
 	if (ttfd < 0) {
-		fprintf(xgp->errout,"%s: cannot open timestamp table binary output file %s\n", xgp->progname,tsp->ts_binary_filename);
+		fprintf(xgp->errout,"%s: cannot open timestamp table binary output file %s\n",
+			xgp->progname,
+			tsp->ts_binary_filename);
 		fflush(xgp->errout);
 		perror("reason");
 		return;
@@ -201,7 +223,10 @@ xdd_ts_write(target_data_t *tdp) {
 	newsize = sizeof(struct xdd_ts_header) + (sizeof(struct xdd_ts_tte) * ts_hdrp->tsh_numents);
 	i = write(ttfd,ts_hdrp,newsize);
 	if (i != newsize) {
-		fprintf(xgp->errout,"(%d) %s: cannot write timestamp table binary output file %s\n", tdp->td_target_number, xgp->progname,tsp->ts_binary_filename);
+		fprintf(xgp->errout,"(%d) %s: cannot write timestamp table binary output file %s\n",
+			tdp->td_target_number,
+			xgp->progname,
+			tsp->ts_binary_filename);
 		fflush(xgp->errout);
 		perror("reason");
 	}
@@ -274,7 +299,8 @@ xdd_ts_reports(target_data_t *tdp) {
 	return;
     if (!(tdp->td_current_state & TARGET_CURRENT_STATE_PASS_COMPLETE)) {
 	fprintf(xgp->errout,"%s: ALERT! ts_reports: target %d has not yet completed! Results beyond this point are unpredictable!\n",
-		xgp->progname, tdp->td_target_number);
+		xgp->progname,
+		tdp->td_target_number);
 	fflush(xgp->errout);
     }
     /* Open the correct output file */

@@ -74,12 +74,25 @@ worker_thread_main(void *pin) {
 
 	bx_wdp = (struct bx_wd *)pin;
 	bx_tdp = bx_wdp->bx_wd_my_bx_tdp;
-nclk_now(&nclk);
-if (DEBUG) fprintf(stderr,"%llu: worker_thread_main: ENTER: bx_wdp=%p, bx_tdp=%p\n", (unsigned long long int)nclk,bx_wdp, bx_tdp);
+	nclk_now(&nclk);
+
+	if (DEBUG) {
+		fprintf(stderr, "%llu: worker_thread_main: ENTER: bx_wdp=%p, bx_tdp=%p\n",
+	    		(unsigned long long int)nclk,
+			(void *)bx_wdp,
+			(void *)bx_tdp);
+	}
+
 	status = 0;
 	
-nclk_now(&nclk);
-if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s - ENTER %d\n", (unsigned long long int)nclk,(bx_tdp->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", bx_wdp->bx_wd_my_worker_thread_number);
+	nclk_now(&nclk);
+
+	if (DEBUG) {
+		fprintf(stderr, "%llu worker_thread_main: my_worker_thread_number=%s - ENTER %d\n",
+			(unsigned long long int)nclk,
+			(bx_tdp->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT",
+			bx_wdp->bx_wd_my_worker_thread_number);
+	}
 
 	while (1) {
 		// Set flag to indicate that this worker_thread is WAITING
@@ -88,8 +101,16 @@ if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s -
 		bx_wd_enqueue(bx_wdp, bx_wdp->bx_wd_my_queue);
 		// Wait for the target thread to release me
 		pthread_mutex_lock(&bx_wdp->bx_wd_mutex);
-nclk_now(&nclk);
-if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s - got the bx_wd_mutex lock - waiting for something to do - time %d\n", (unsigned long long int)nclk,(bx_tdp->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", bx_wdp->bx_wd_my_worker_thread_number);
+		nclk_now(&nclk);
+
+		if (DEBUG) {
+			fprintf(stderr, "%llu worker_thread_main: my_worker_thread_number=%s - "
+				"got the bx_wd_mutex lock - waiting for something to do - time %d\n",
+				(unsigned long long int)nclk,
+				(bx_tdp->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT",
+				bx_wdp->bx_wd_my_worker_thread_number);
+		}
+
 		bx_wdp->bx_wd_flags |= BX_WD_WAITING;
 		while (1 != bx_wdp->bx_wd_released) {
          	pthread_cond_wait(&bx_wdp->bx_wd_conditional, &bx_wdp->bx_wd_mutex);
@@ -99,10 +120,18 @@ if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s -
 		if (bx_wdp->bx_wd_flags & BX_WD_TERMINATE)
 			break;
 
-nclk_now(&nclk);
-if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s - got the bx_wd_mutex lock - GOT something to do - time %d\n", (unsigned long long int)nclk,(bx_tdp->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", bx_wdp->bx_wd_my_worker_thread_number);
+		nclk_now(&nclk);
 
-bx_wd_show(bx_wdp);
+		if (DEBUG) {
+			fprintf(stderr, "%llu worker_thread_main: my_worker_thread_number=%s - "
+				"got the bx_wd_mutex lock - GOT something to do - time %d\n",
+				(unsigned long long int)nclk,
+				(bx_tdp->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT",
+				bx_wdp->bx_wd_my_worker_thread_number);
+
+			bx_wd_show(bx_wdp);
+		}
+
 		bufhdrp = bx_wdp->bx_wd_bufhdrp;
 		if (bx_tdp->bx_td_flags & BX_TD_INPUT) { // Read the input file
 			status = pread(bx_wdp->bx_wd_fd, bufhdrp->bh_startp, bufhdrp->bh_transfer_size, bufhdrp->bh_file_offset);
@@ -112,8 +141,19 @@ bx_wd_show(bx_wdp);
 			} else {
 				bufhdrp->bh_valid_size = status;
 			}
-nclk_now(&nclk);
-if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s - read %d of %d bytes starting at offset %d - time %zd\n", (unsigned long long int)nclk,(bx_tdp->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", bx_wdp->bx_wd_my_worker_thread_number,status,bufhdrp->bh_transfer_size,bufhdrp->bh_file_offset);
+			nclk_now(&nclk);
+
+			if (DEBUG) {
+				fprintf(stderr, "%llu worker_thread_main: my_worker_thread_number=%s - "
+					"read %d of %d bytes starting at offset %d - time %zd\n",
+					(unsigned long long int)nclk,
+					(bx_tdp->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT",
+					bx_wdp->bx_wd_my_worker_thread_number,
+					status,
+					bufhdrp->bh_transfer_size,
+					bufhdrp->bh_file_offset);
+			}
+
 			// Put this buffer on the output target queue
 			qp = &bx_td[bx_wdp->bx_wd_next_buffer_queue].bx_td_buffer_queue;
 			bh_enqueue(bx_wdp->bx_wd_bufhdrp, qp);
@@ -125,18 +165,50 @@ if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s -
 			} else {
 				bufhdrp->bh_valid_size = status;
 			}
-nclk_now(&nclk);
-if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s - wrote %d of %d bytes starting at offset %d - requeuing buffer %zd - time %p\n", (unsigned long long int)nclk,(bx_tdp->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", bx_wdp->bx_wd_my_worker_thread_number,status,bufhdrp->bh_transfer_size,bufhdrp->bh_file_offset, bufhdrp);
+			nclk_now(&nclk);
+
+			if (DEBUG) {
+				fprintf(stderr, "%llu worker_thread_main: my_worker_thread_number=%s - "
+					"wrote %d of %d bytes starting at offset %d - requeuing buffer %zd - time %p\n",
+					(unsigned long long int)nclk,
+					(bx_tdp->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT",
+					bx_wdp->bx_wd_my_worker_thread_number,
+					status,
+					bufhdrp->bh_transfer_size,
+					bufhdrp->bh_file_offset,
+					(void *)bufhdrp);
+			}
+
 			// Put this buffer on the input target queue
 			qp = &bx_td[bx_wdp->bx_wd_next_buffer_queue].bx_td_buffer_queue;
 			bh_enqueue(bufhdrp, qp);
 			bufqueue_show(qp);
 		}
-nclk_now(&nclk);
-if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s - transferred %d bytes - time %d\n", (unsigned long long int)nclk,(bx_tdp->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", bx_wdp->bx_wd_my_worker_thread_number,status);
-if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s - releasing the bx_wd_mutex lock %d\n", (unsigned long long int)nclk,(bx_tdp->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", bx_wdp->bx_wd_my_worker_thread_number);
+
+		nclk_now(&nclk);
+
+		if (DEBUG) {
+			fprintf(stderr, "%llu worker_thread_main: my_worker_thread_number=%s - "
+				"transferred %d bytes - time %d\n",
+				(unsigned long long int)nclk,
+				(bx_tdp->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT",
+				bx_wdp->bx_wd_my_worker_thread_number,
+				status);
+			fprintf(stderr, "%llu worker_thread_main: my_worker_thread_number=%s - "
+				"releasing the bx_wd_mutex lock %d\n",
+				(unsigned long long int)nclk,
+				(bx_tdp->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT",
+				bx_wdp->bx_wd_my_worker_thread_number);
+		}
 		pthread_mutex_unlock(&bx_wdp->bx_wd_mutex);
 	}
-if (DEBUG) fprintf(stderr,"%llu worker_thread_main: my_worker_thread_number=%s %d - Exit \n", (unsigned long long int)nclk,(bx_tdp->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", bx_wdp->bx_wd_my_worker_thread_number);
+	
+	if (DEBUG) {
+		fprintf(stderr, "%llu worker_thread_main: my_worker_thread_number=%s %d - Exit \n",
+			(unsigned long long int)nclk,
+			(bx_tdp->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT",
+			bx_wdp->bx_wd_my_worker_thread_number);
+	}
+
    	return 0;
 } // End of worker_thread_main()

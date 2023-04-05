@@ -28,9 +28,21 @@
 int
 bx_wd_show(struct bx_wd *bx_wdp) {
 
-	fprintf(stderr,"Worker Thread Data Structure: bx_wdp=%p, next=%p, prev=%p, flags=0x%016x\n", bx_wdp, bx_wdp->bx_wd_next, bx_wdp->bx_wd_prev, bx_wdp->bx_wd_flags); 
-	fprintf(stderr,"Worker Thread Data Structure: bx_wdp=%p, my_worker_thread_number=%d, fd=%d\n", bx_wdp, bx_wdp->bx_wd_my_worker_thread_number, bx_wdp->bx_wd_fd); 
-	fprintf(stderr,"Worker Thread Data Structure: bx_wdp=%p, bufhdrp=%p, next_buffer_queue=%d, my_queue=%p\n", bx_wdp, bx_wdp->bx_wd_bufhdrp, bx_wdp->bx_wd_next_buffer_queue, bx_wdp->bx_wd_my_queue); 
+	fprintf(stderr, "Worker Thread Data Structure: bx_wdp=%p, next=%p, prev=%p, flags=0x%016x\n",
+		(void *)bx_wdp,
+		(void *)bx_wdp->bx_wd_next,
+		(void *)bx_wdp->bx_wd_prev,
+		bx_wdp->bx_wd_flags); 
+	fprintf(stderr, "Worker Thread Data Structure: bx_wdp=%p, my_worker_thread_number=%d, fd=%d\n",
+		(void *)bx_wdp,
+		bx_wdp->bx_wd_my_worker_thread_number,
+		bx_wdp->bx_wd_fd); 
+	fprintf(stderr, "Worker Thread Data Structure: bx_wdp=%p, bufhdrp=%p, next_buffer_queue=%d, "
+		"my_queue=%p\n",
+		(void *)bx_wdp,
+		(void *)bx_wdp->bx_wd_bufhdrp,
+		bx_wdp->bx_wd_next_buffer_queue,
+		(void *)bx_wdp->bx_wd_my_queue); 
 	return(0);
 } // End of bx_wd_show()
 
@@ -42,8 +54,15 @@ bx_wd_queue_show(struct bx_wd_queue *qp) {
 
 
 	fprintf(stderr,"\n");
-	fprintf(stderr,"Worker Thread Data Structure QUEUE: qp=%p, name='%s', counter=%d, flags=0x%08x\n", qp, qp->q_name, qp->q_counter, qp->q_flags); 
-	fprintf(stderr,"Worker Thread Data Structure QUEUE: qp=%p, first=%p, last=%p\n\n", qp, qp->q_first, qp->q_last); 
+	fprintf(stderr, "Worker Thread Data Structure QUEUE: qp=%p, name='%s', counter=%d, flags=0x%08x\n",
+		(void *)qp,
+		qp->q_name,
+		qp->q_counter,
+		qp->q_flags); 
+	fprintf(stderr, "Worker Thread Data Structure QUEUE: qp=%p, first=%p, last=%p\n\n",
+		(void *)qp,
+		(void *)qp->q_first,
+		(void *)qp->q_last); 
 	bx_wdp = qp->q_first;
 	while (bx_wdp) {
 		bx_wd_show(bx_wdp);
@@ -57,7 +76,6 @@ bx_wd_queue_show(struct bx_wd_queue *qp) {
 int
 bx_wd_queue_init(struct bx_wd_queue *qp, char *q_name) {
 	int	status;
-
 
 	qp->q_name = q_name;
 	qp->q_counter = 0;
@@ -109,7 +127,10 @@ bx_wd_enqueue(struct bx_wd *bx_wdp, struct bx_wd_queue *qp) {
 		// Enter barrier of waiting dequeue() operation
 		status = pthread_cond_broadcast(&qp->q_conditional);
 		if ((status != 0) && (status != PTHREAD_BARRIER_SERIAL_THREAD)) {
-			fprintf(stderr,"bx_wd_enqueue: ERROR: pthread_cond_broadcast failed: status is %d, errno is %d\n", status, errno);
+			fprintf(stderr, "bx_wd_enqueue: ERROR: pthread_cond_broadcast failed: "
+				"status is %d, errno is %d\n",
+				status,
+				errno);
 			perror("Reason");
 		}
 	}
@@ -122,7 +143,6 @@ bx_wd_enqueue(struct bx_wd *bx_wdp, struct bx_wd_queue *qp) {
 struct bx_wd *
 bx_wd_dequeue(struct bx_wd_queue *qp) {
 	struct	bx_wd	*bx_wdp;
-
 
 	// Get the lock for this item queue
 	pthread_mutex_lock(&qp->q_mutex);

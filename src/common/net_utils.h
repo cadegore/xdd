@@ -43,8 +43,8 @@ static inline uint64_t ntohll(uint64_t value)
  */
 static inline uint64_t htonll(uint64_t value)
 {
-    // Re-use the htonll implementation to swap the bytes
-    return htonll(value);
+    // Use htonl implementation to swap the bytes
+    return htonl(value);
 }
 
 #endif /* NET_UTILS_H */

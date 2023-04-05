@@ -28,12 +28,30 @@ int
 bufhdr_show(struct bx_buffer_header *bp) {
 
 
-	fprintf(stderr,"BUFHDR: bp=%p, next=%p, prev=%p, flags=0x%016llu\n", bp, bp->bh_next, bp->bh_prev, bp->bh_flags); 
-	fprintf(stderr,"BUFHDR: bp=%p, startp=%p, size=%d\n", bp, bp->bh_startp, bp->bh_size);
-	fprintf(stderr,"BUFHDR: bp=%p, valid_startp=%p, valid_size=%d\n", bp, bp->bh_valid_startp, bp->bh_valid_size);
-	fprintf(stderr,"BUFHDR: bp=%p, file_offset=%lld, sequence=%lld\n", bp, (long long int)bp->bh_file_offset,(long long int)bp->bh_sequence);
-	fprintf(stderr,"BUFHDR: bp=%p, from=%p, to=%p\n", bp, bp->bh_from, bp->bh_to);
-	fprintf(stderr,"BUFHDR: bp=%p, target=%d, time=%lld\n\n", bp, bp->bh_target,(long long int)bp->bh_time);
+	fprintf(stderr, "BUFHDR: bp=%p, next=%p, prev=%p, flags=0x%016llu\n",
+		(void *)bp,
+		(void *)bp->bh_next,
+		(void *)bp->bh_prev,
+		bp->bh_flags); 
+	fprintf(stderr,"BUFHDR: bp=%p, startp=%p, size=%d\n",
+		(void *)bp,
+		(void *)bp->bh_startp,
+		bp->bh_size);
+	fprintf(stderr, "BUFHDR: bp=%p, valid_startp=%p, valid_size=%d\n",
+		(void *)bp,
+		(void *)bp->bh_valid_startp,
+		bp->bh_valid_size);
+	fprintf(stderr,"BUFHDR: bp=%p, file_offset=%lld, sequence=%lld\n",
+		(void *)bp,
+		(long long int)bp->bh_file_offset,
+		(long long int)bp->bh_sequence);
+	fprintf(stderr,"BUFHDR: bp=%p, from=%p, to=%p\n",
+		(void *)bp,
+		(void *)bp->bh_from,
+		(void *)bp->bh_to);
+	fprintf(stderr,"BUFHDR: bp=%p, target=%d, time=%lld\n\n",
+		(void *)bp, bp->bh_target,
+		(long long int)bp->bh_time);
 	return(0);
 } // End of bufhdr_show()
 
@@ -43,10 +61,11 @@ int
 bufqueue_show(struct bx_buffer_queue *bq) {
 	struct bx_buffer_header	*bp;
 
-
 	fprintf(stderr,"\n");
-	fprintf(stderr,"QUEUE: bq=%p, name='%s', counter=%d, flags=0x%08x\n", bq, bq->bq_name, bq->bq_counter, bq->bq_flags); 
-	fprintf(stderr,"QUEUE: bq=%p, first=%p, last=%p\n\n", bq, bq->bq_first, bq->bq_last); 
+	fprintf(stderr, "QUEUE: bq=%p, name='%s', counter=%d, flags=0x%08x\n",
+		(void *)bq, bq->bq_name, bq->bq_counter, bq->bq_flags); 
+	fprintf(stderr, "QUEUE: bq=%p, first=%p, last=%p\n\n",
+		(void *)bq, (void *)bq->bq_first, (void *)bq->bq_last); 
 	bp = bq->bq_first;
 	while (bp) {
 		bufhdr_show(bp);
@@ -61,7 +80,7 @@ int
 bufqueue_init(struct bx_buffer_queue *bq, char *bq_name) {
 	int	status;
 
-fprintf(stderr,"bufqueue_init: Initializing buffer queue %s...",bq_name);
+	fprintf(stderr, "bufqueue_init: Initializing buffer queue %s...", bq_name);
 	bq->bq_name = bq_name;
 	bq->bq_counter = 0;
 	bq->bq_flags = 0;
@@ -77,7 +96,8 @@ fprintf(stderr,"bufqueue_init: Initializing buffer queue %s...",bq_name);
 		perror("Error initializing queue barrier");
 		return(-1);
 	}
-fprintf(stderr,"Done.\n");
+	fprintf(stderr,"Done.\n");
+
 	return(0);
 } // End of bufqueue_init()
 
@@ -87,8 +107,9 @@ int
 bufhdr_init(struct bx_buffer_header *bp, int bh_size) {
 	int	status;
 
-
-fprintf(stderr,"bufhdr_init: Initializing buffer header %p size %d ...",bp,bh_size);
+	fprintf(stderr, "bufhdr_init: Initializing buffer header %p size %d ...",
+		(void *)bp,
+		bh_size);
 	bp->bh_next = 0;
 	bp->bh_prev = 0;
 	status = pthread_mutex_init(&bp->bh_mutex, 0);
@@ -111,7 +132,8 @@ fprintf(stderr,"bufhdr_init: Initializing buffer header %p size %d ...",bp,bh_si
 	bp->bh_target = 0;
 	bp->bh_time = 0;
 	bp->bh_flags = BX_BUFHDR_INITIALIZED;
-fprintf(stderr,"Done.\n");
+	fprintf(stderr,"Done.\n");
+
 	return(0);
 }
 //
@@ -147,7 +169,10 @@ bh_enqueue(struct bx_buffer_header *bp, struct bx_buffer_queue *bq) {
 		// Issue a broadcast to wake up any threads waiting on this queue
 		status = pthread_cond_broadcast(&bq->bq_conditional);
 		if ((status != 0) && (status != PTHREAD_BARRIER_SERIAL_THREAD)) {
-			fprintf(stderr,"bx_wd_enqueue: ERROR: pthread_cond_broadcast failed: status is %d, errno is %d\n", status, errno);
+			fprintf(stderr, "bx_wd_enqueue: ERROR: pthread_cond_broadcast failed: "
+				"status is %d, errno is %d\n",
+				status,
+				errno);
 			perror("Reason");
 		}
 	}
@@ -183,8 +208,10 @@ bh_dequeue(struct bx_buffer_queue *bq) {
 	bq->bq_counter--;
 	// Release the lock for this item queue
 	pthread_mutex_unlock(&bq->bq_mutex);
+
 	return(bp);
 } // End of dequeue()
+
 /**************************************************************************
 *   Queue and buffer initialization
 **************************************************************************/
@@ -196,10 +223,10 @@ bh_dequeue(struct bx_buffer_queue *bq) {
 int
 qb_init() {
 	struct	bx_td	*p;
-	struct	bx_buffer_header	*bp;
+	struct	bx_buffer_header *bp;
 	int 	i;
-	int		first_target;
-    int 	status;
+	int	first_target;
+	int 	status;
 
 
 	for (i = 0; i < MAX_TARGETS; i++) {
@@ -221,7 +248,7 @@ qb_init() {
 // TBD - the "buffer size" needs to be calculated as the maximum transfer size of all targets
 		status = bufhdr_init(bp,Buffer_Size);
 		if (status < 0) {
-			fprintf(stderr,"qb_init: buffer header initialization failed for buffer %d\n",i);
+			fprintf(stderr, "qb_init: buffer header initialization failed for buffer %d\n", i);
 			return(-1);
 		}
 		// Put this buffer on the INPUT Target queue
@@ -231,4 +258,3 @@ qb_init() {
 	return(0);
 
 } // End of qb_init()
-

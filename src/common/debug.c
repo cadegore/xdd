@@ -401,7 +401,7 @@ xdd_show_e2e(xint_e2e_t *e2ep) {
     fprintf(stderr,"\txdd_show_e2e: int32_t    e2e_next_csd=%d\n",e2ep->e2e_next_csd);             // The next available csd to use 
     fprintf(stderr,"\txdd_show_e2e: xdd_e2e_header_t *e2e_hdrp=%p\n",(void *)e2ep->e2e_hdrp);                // Pointer to the header portion of a packet
 	if (e2ep->e2e_hdrp) xdd_show_e2e_header(e2ep->e2e_hdrp);
-    fprintf(stderr,"\txdd_show_e2e: unsigned char *e2e_datap=%p\n",e2ep->e2e_datap);                // Pointer to the data portion of a packet
+    fprintf(stderr,"\txdd_show_e2e: unsigned char *e2e_datap=%p\n",(void *)e2ep->e2e_datap);                // Pointer to the data portion of a packet
     fprintf(stderr,"\txdd_show_e2e: int32_t    e2e_header_size=%d\n",e2ep->e2e_header_size);         // Size of the header portion of the buffer 
     fprintf(stderr,"\txdd_show_e2e: int32_t    e2e_data_size=%d\n",e2ep->e2e_data_size);             // Size of the data portion of the buffer
     fprintf(stderr,"\txdd_show_e2e: int32_t    e2e_xfer_size=%d\n",e2ep->e2e_xfer_size);             // Number of bytes per End to End request - size of data buffer plus size of E2E Header
@@ -560,9 +560,9 @@ xdd_show_ts_table(xint_timestamp_t *ts_tablep, int target_number) {
 	fprintf(stderr,"xdd_show_ts_table: int64_t         ts_size=%lld\n",(long long int)ts_tablep->ts_size);  						// Time Stamping Size in number of entries 
 	fprintf(stderr,"xdd_show_ts_table: int64_t         ts_trigop=%lld\n",(long long int)ts_tablep->ts_trigop);  					// Time Stamping trigger operation number 
 	fprintf(stderr,"xdd_show_ts_table: nclk_t          ts_trigtime=%lld\n",(long long int)ts_tablep->ts_trigtime); 					// Time Stamping trigger time 
-	fprintf(stderr,"xdd_show_ts_table: char            *ts_binary_filename=%p: '%s'\n",ts_tablep->ts_binary_filename,
+	fprintf(stderr,"xdd_show_ts_table: char            *ts_binary_filename=%p: '%s'\n",(void *)ts_tablep->ts_binary_filename,
 					                                                            (ts_tablep->ts_binary_filename != NULL)?ts_tablep->ts_binary_filename:"NA"); // Timestamp binary output filename for this Target
-	fprintf(stderr,"xdd_show_ts_table: char            *ts_output_filename=%p: '%s'\n",ts_tablep->ts_output_filename,
+	fprintf(stderr,"xdd_show_ts_table: char            *ts_output_filename=%p: '%s'\n",(void *)ts_tablep->ts_output_filename,
 					                                                            (ts_tablep->ts_output_filename != NULL)?ts_tablep->ts_output_filename:"NA"); // Timestamp report output filename for this Target
 	fprintf(stderr,"xdd_show_ts_table: FILE            *ts_tsfp=%p\n",(void *)ts_tablep->ts_tsfp);   	// Pointer to the time stamp output file 
 	fprintf(stderr,"xdd_show_ts_table: xdd_ts_header_t *ts_hdrp=%p\n",(void *)ts_tablep->ts_hdrp); // Pointer to the time stamp output file 

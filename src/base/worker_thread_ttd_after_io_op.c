@@ -37,7 +37,8 @@ xdd_threshold_after_io_op(worker_data_t *wdp) {
 	if (tdp->td_report_threshold) {
 		if (tdp->td_counters.tc_current_op_elapsed_time > tdp->td_report_threshold) {
 			excess_time = (tdp->td_counters.tc_current_op_elapsed_time - tdp->td_report_threshold)/MILLION;
-			fprintf(xgp->output, "%s: Target number %d Worker Thread %d: INFO: Threshold, %lld, exceeded by, %lld, microseconds, IO time was, %lld, usec on block, %lld\n",
+			fprintf(xgp->output, "%s: Target number %d Worker Thread %d: INFO: Threshold, %lld, exceeded by, "
+				"%lld, microseconds, IO time was, %lld, usec on block, %lld\n",
 				xgp->progname, 
 				tdp->td_target_number, 
 				wdp->wd_worker_number,
@@ -66,14 +67,16 @@ xdd_status_after_io_op(worker_data_t *wdp) {
 
 	/* Check for errors in the last operation */
 	if ((wdp->wd_counters.tc_current_error_count > 0) && (xgp->global_options & GO_STOP_ON_ERROR)) {
-		fprintf(xgp->errout, "%s: status_after_io_op: Target %d Worker Thread %d: ERROR: Error on this target caused a Stop_On_Error Event\n",
+		fprintf(xgp->errout, "%s: status_after_io_op: Target %d Worker Thread %d: ERROR: Error on this target "
+			"caused a Stop_On_Error Event\n",
 			xgp->progname,
 			tdp->td_target_number, 
 			wdp->wd_worker_number);
 	}
 
 	if (wdp->wd_counters.tc_current_error_count >= xgp->max_errors) {
-		fprintf(xgp->errout, "%s: status_after_io_op: Target %d Worker Thread %d: WARNING: Maximum error threshold reached on target - current error count is %lld, maximum count is %lld\n",
+		fprintf(xgp->errout, "%s: status_after_io_op: Target %d Worker Thread %d: WARNING: Maximum error "
+			"threshold reached on target - current error count is %lld, maximum count is %lld\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number,
@@ -82,7 +85,8 @@ xdd_status_after_io_op(worker_data_t *wdp) {
 	}
 
 	if ((wdp->wd_task.task_io_status == 0) && (wdp->wd_task.task_errno == 0)) {
-		fprintf(xgp->errout, "%s: status_after_io_op: Target %d Worker Thread %d: WARNING: End-Of-File reached on target named '%s' status=%d, errno=%d\n",
+		fprintf(xgp->errout, "%s: status_after_io_op: Target %d Worker Thread %d: WARNING: End-Of-File reached "
+			"on target named '%s' status=%d, errno=%d\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number,
@@ -149,7 +153,7 @@ xdd_dio_after_io_op(worker_data_t *wdp) {
 	    
 	// Check to see if the open worked
 	if (status != 0 ) { // error openning target 
-	    fprintf(xgp->errout,"%s: xdd_dio_after_io_op: ERROR: Target %d Worker Thread %d: Reopen of target '%s' failed\n",
+	    fprintf(xgp->errout, "%s: xdd_dio_after_io_op: ERROR: Target %d Worker Thread %d: Reopen of target '%s' failed\n",
 		    xgp->progname,
 		    tdp->td_target_number,
 		    wdp->wd_worker_number,
@@ -206,11 +210,16 @@ xdd_raw_after_io_op(worker_data_t *wdp) {
 void
 xdd_e2e_after_io_op(worker_data_t *wdp) {
 	target_data_t	*tdp;
-
-
 	tdp = wdp->wd_tdp;
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_after_io_op: Target: %d: Worker: %d: ENTER\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number);
-if (xgp->global_options & GO_DEBUG_E2E) xdd_show_task(&wdp->wd_task);
+
+	if (xgp->global_options & GO_DEBUG_E2E) {
+		fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_after_io_op: Target: %d: Worker: %d: ENTER\n",
+		(long long int)pclk_now(),
+		tdp->td_target_number,
+		wdp->wd_worker_number);
+		
+		xdd_show_task(&wdp->wd_task);
+	}
 
 	if ( (wdp->wd_task.task_io_status > 0) && (tdp->td_target_options & TO_ENDTOEND) ) {
 		if ((tdp->td_target_options & TO_E2E_SOURCE) || (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) {
@@ -229,15 +238,35 @@ if (xgp->global_options & GO_DEBUG_E2E) xdd_show_task(&wdp->wd_task);
 				xint_e2e_xni_send(wdp);
 			}
 			else {
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_after_io_op: Target: %d: Worker: %d: Calling xdd_e2e_src_send...\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number);
+				if (xgp->global_options & GO_DEBUG_E2E) {
+					fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_after_io_op: Target: %d: Worker: %d: "
+						"Calling xdd_e2e_src_send...\n",
+						(long long int)pclk_now(),
+						tdp->td_target_number,
+						wdp->wd_worker_number);
+				}
+
                 xdd_e2e_src_send(wdp);
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_after_io_op: Target: %d: Worker: %d: Returned from xdd_e2e_src_send...\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number);
+
+				if (xgp->global_options & GO_DEBUG_E2E) {
+					fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_after_io_op: Target: %d: Worker: %d: "
+						"Returned from xdd_e2e_src_send...\n",
+						(long long int)pclk_now(),
+						tdp->td_target_number,
+						wdp->wd_worker_number);
+				}
 			}
 			wdp->wd_current_state &= ~WORKER_CURRENT_STATE_SRC_SEND;
 
 		} // End of me being the SOURCE in an End-to-End test 
 	} // End of processing a End-to-End
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_after_io_op: Target: %d: Worker: %d: EXIT...\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number);
+
+	if (xgp->global_options & GO_DEBUG_E2E) {
+		fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_after_io_op: Target: %d: Worker: %d: EXIT...\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number);
+	}
 } // End of xdd_e2e_after_io_op(wdp) 
 
 /*----------------------------------------------------------------------------*/
@@ -259,7 +288,8 @@ xdd_extended_stats(worker_data_t *wdp) {
 		return;
 
 	if (tdp->td_esp == NULL) {
-		fprintf(xgp->errout, "%s: xdd_extended_stats: Target %d Worker Thread %d: INTERNAL ERROR: No pointer to Extended Stats Structure for target named '%s'\n",
+		fprintf(xgp->errout, "%s: xdd_extended_stats: Target %d Worker Thread %d: INTERNAL ERROR: "
+			"No pointer to Extended Stats Structure for target named '%s'\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number,

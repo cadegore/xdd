@@ -61,7 +61,9 @@ int32_t
 xdd_parse_arg_count_check(int32_t args, int32_t argc, char *option) {
 
 	if (argc <= args+1) {
-		fprintf(xgp->errout,"%s: ERROR: Not enough arguments specified for option '%s'\n",xgp->progname, option);
+		fprintf(xgp->errout, "%s: ERROR: Not enough arguments specified for option '%s'\n",
+			xgp->progname,
+			option);
 		return(0);
 	}
 	return(1);
@@ -85,7 +87,7 @@ xddfunc_blocksize(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 
 	block_size = atoi(argv[args+1]);
 	if (block_size <= 0) {
-		fprintf(xgp->errout,"%s: blocksize of %d is not valid. blocksize must be a number greater than 0\n",
+		fprintf(xgp->errout, "%s: blocksize of %d is not valid. blocksize must be a number greater than 0\n",
 			xgp->progname,block_size);
 		return(0);
 	}
@@ -95,7 +97,9 @@ xddfunc_blocksize(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	
 		tdp->td_block_size = block_size;
 		if (tdp->td_block_size <= 0) {
-			fprintf(xgp->errout,"%s: blocksize of %d is not valid. blocksize must be a number greater than 0\n",xgp->progname,tdp->td_block_size);
+			fprintf(xgp->errout, "%s: blocksize of %d is not valid. blocksize must be a number greater than 0\n",
+			xgp->progname,
+			tdp->td_block_size);
 			return(0);
 		}
         return(args+2);
@@ -164,7 +168,7 @@ xddfunc_combinedout(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 {
 	
 	if (argc <= 1) {
-		fprintf(stderr,"%s: Error: No file name specified for Combined output\n", xgp->progname);
+		fprintf(stderr, "%s: Error: No file name specified for Combined output\n", xgp->progname);
 		xgp->combined_output_filename = "";
 		return(-1);
 	}
@@ -172,7 +176,7 @@ xddfunc_combinedout(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 		xgp->combined_output_filename = argv[1];
 		xgp->combined_output = fopen(xgp->combined_output_filename,"a");
 		if (xgp->combined_output == NULL) {
-			fprintf(stderr,"%s: Error: Cannot open Combined output file %s\n", xgp->progname,argv[1]);
+			fprintf(stderr, "%s: Error: Cannot open Combined output file %s\n", xgp->progname,argv[1]);
 			xgp->combined_output_filename = "";
 		} else xgp->global_options |= GO_COMBINED;
 	}
@@ -239,7 +243,7 @@ int xddfunc_cookie(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags
 
 	// two hex digits represent one byte
 	if (strlen(cookie_str) != sizeof(tmptdp_.td_magic_cookie)*2) {
-		fprintf(xgp->errout,"%s: ERROR: invalid '-cookie' %s\n", xgp->progname, cookie_str);
+		fprintf(xgp->errout, "%s: ERROR: invalid '-cookie' %s\n", xgp->progname, cookie_str);
 		return(-1);
 	}
 
@@ -249,7 +253,7 @@ int xddfunc_cookie(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags
 		unsigned int bite = 0;  // just in case `byte' is a typedef
 
 		if (!isxdigit(cookie_str[i]) || !isxdigit(cookie_str[i+1]) || sscanf(cookie_str+i, "%2x", &bite) != 1) {
-			fprintf(xgp->errout,"%s: ERROR: invalid '-cookie' %s\n", xgp->progname, cookie_str);
+			fprintf(xgp->errout, "%s: ERROR: invalid '-cookie' %s\n", xgp->progname, cookie_str);
 			return(-1);
 		}
 
@@ -316,14 +320,14 @@ xddfunc_csvout(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 {
 	if (flags & XDD_PARSE_PHASE2) {
 		if (argc <= 1) {
-			fprintf(stderr,"%s: Error: No file name specified for CSV output\n", xgp->progname);
+			fprintf(stderr, "%s: Error: No file name specified for CSV output\n", xgp->progname);
 			xgp->csvoutput_filename = "";
 			return(-1);
 		}
 		xgp->csvoutput_filename = argv[1];
 		xgp->csvoutput = fopen(xgp->csvoutput_filename,"a");
 		if (xgp->csvoutput == NULL) {
-			fprintf(stderr,"%s: Error: Cannot open Comma Separated Values output file %s\n", xgp->progname,argv[1]);
+			fprintf(stderr, "%s: Error: Cannot open Comma Separated Values output file %s\n", xgp->progname,argv[1]);
 			xgp->csvoutput_filename = "";
 		} else xgp->global_options |= GO_CSV;
 	}
@@ -403,7 +407,8 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 	} else if (strcmp(pattern_type, "ascii") == 0) {
 		retval++;
 		if (argc <= args+2) {
-			fprintf(xgp->errout,"%s: ERROR: not enough arguments specified for the option '-datapattern'\n",xgp->progname);
+			fprintf(xgp->errout,"%s: ERROR: not enough arguments specified for the option '-datapattern'\n",
+				xgp->progname);
 			return(0);
 		}
 		pattern = (unsigned char *)argv[args+2];
@@ -429,14 +434,16 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 	} else if (strcmp(pattern_type, "hex") == 0) {
 		retval++;
 		if (argc <= args+2) {
-			fprintf(xgp->errout,"%s: ERROR: not enough arguments specified for the option '-datapattern'\n",xgp->progname);
+			fprintf(xgp->errout, "%s: ERROR: not enough arguments specified for the option '-datapattern'\n",
+				xgp->progname);
 			return(0);
 		}
 		pattern = (unsigned char *)argv[args+2];
 		pattern_length = strlen((char *)pattern);
 		pattern_value = 0;
 		if (pattern_length <= 0) {
-			fprintf(xgp->errout, "%s: WARNING: 0-length hex data pattern specified - using 0x00 instead.\n",xgp->progname);
+			fprintf(xgp->errout, "%s: WARNING: 0-length hex data pattern specified - using 0x00 instead.\n",
+				xgp->progname);
 			pattern = (unsigned char *)"\0";
 		}
 		else {
@@ -496,7 +503,9 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 			pattern_length = 2;
 		}
 		if (pattern_length > 16) { // 16 nibbles or 8 bytes
-			fprintf(xgp->errout, "%s: WARNING: Length of data pattern is too long <%d> - truncating to 8 bytes.\n",xgp->progname, (int)pattern_length);
+			fprintf(xgp->errout, "%s: WARNING: Length of data pattern is too long <%d> - truncating to 8 bytes.\n",
+				xgp->progname,
+				(int)pattern_length);
 			pattern[16] = '\0';
 		}
 		pattern_value = malloc(((pattern_length+1)/2));
@@ -551,7 +560,7 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 	} else if (strcmp(pattern_type, "file") == 0 ||  strcmp(pattern_type, "wholefile") == 0) {
 		retval++;
 		if (argc <= args+2) {
-			fprintf(xgp->errout,"%s: not enough arguments specified for the option '-datapattern'\n",xgp->progname);
+			fprintf(xgp->errout, "%s: not enough arguments specified for the option '-datapattern'\n", xgp->progname);
 			return(0);
 		} else {
 #if (LINUX || DARWIN)
@@ -560,7 +569,9 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 			stat_status = stat64((char *)argv[args+2], &stat_buf);
 #endif
 			if (stat_status < 0) {
-				fprintf(xgp->errout, "%s: could not open %s to use for the data pattern\n", xgp->progname, (char *)argv[args+2]);
+				fprintf(xgp->errout, "%s: could not open %s to use for the data pattern\n",
+					xgp->progname,
+					(char *)argv[args+2]);
 				return(0);
 			}
 			pattern_length = stat_buf.st_size;
@@ -574,7 +585,10 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 			tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
 			tdp->td_dpp->data_pattern_length = pattern_length;
 			if (!xdd_datapattern_wholefile_enough_ram(tdp)) {
-				fprintf(xgp->errout, "%s: file %s can not be loaded into memory because 50%% of RAM is currently unavailable\n", xgp->progname, (char *)argv[args+2]);
+				fprintf(xgp->errout, "%s: file %s can not be loaded into memory because 50%% of RAM is "
+					"currently unavailable\n",
+					xgp->progname,
+					(char *)argv[args+2]);
 				return(0);
 			}
 			tdp->dpp_fd = open(tdp->td_dpp->data_pattern_filename, O_RDONLY);
@@ -598,7 +612,9 @@ xddfunc_datapattern(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flag
 					tdp->td_dpp->data_pattern_filename = (char *)argv[args+2];
 					tdp->td_dpp->data_pattern_length = pattern_length;
 					if (!xdd_datapattern_wholefile_enough_ram(tdp)) {
-						fprintf(xgp->errout, "%s: the file %s is larger than 50%% of total RAM\n", xgp->progname, (char *)argv[args+2]);
+						fprintf(xgp->errout, "%s: the file %s is larger than 50%% of total RAM\n",
+							xgp->progname,
+							(char *)argv[args+2]);
 						return(0);
 					}
 					tdp->dpp_fd = open(tdp->td_dpp->data_pattern_filename, O_RDONLY);
@@ -953,8 +969,11 @@ xddfunc_endtoend(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		if (NULL == tdp->td_e2ep) { // If there is no e2e struct then allocate one.
 	    	tdp->td_e2ep = xdd_get_e2ep();
 			if (NULL == tdp->td_e2ep) {
-	    		fprintf(xgp->errout,"%s: ERROR: Cannot allocate %d bytes of memory for Target Data Struct END TO END Data Structure for target %d\n",
-		    		xgp->progname, (int)sizeof(xint_data_pattern_t), target_number);
+	    		fprintf(xgp->errout,"%s: ERROR: Cannot allocate %d bytes of memory for Target Data Struct "
+					"END TO END Data Structure for target %d\n",
+		    		xgp->progname,
+					(int)sizeof(xint_data_pattern_t),
+					target_number);
 	    		return(-1);
 			}
 		}
@@ -965,8 +984,11 @@ xddfunc_endtoend(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 			if (NULL == tdp->td_e2ep) { // If there is no e2e struct then allocate one.
 	    		tdp->td_e2ep = xdd_get_e2ep();
 				if (NULL == tdp->td_e2ep) {
-	    			fprintf(xgp->errout,"%s: ERROR: Cannot allocate %d bytes of memory for Target Data Struct END TO END Data Structure for target %d\n",
-		    			xgp->progname, (int)sizeof(xint_data_pattern_t), target_number);
+	    			fprintf(xgp->errout,"%s: ERROR: Cannot allocate %d bytes of memory for Target Data Struct "
+						"END TO END Data Structure for target %d\n",
+		    			xgp->progname,
+						(int)sizeof(xint_data_pattern_t),
+						target_number);
 	    			return(-1);
 				}
 			}
@@ -982,8 +1004,10 @@ xddfunc_endtoend(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
     if (target_number >= 0) { /* Set this option value for a specific target */
 		args_index += args; 
 		if (target_number >= MAX_TARGETS) { /* Make sure the target number is somewhat valid */
-	    	fprintf(stderr,"%s: Invalid Target Number %d specified for End-to-End option %s\n",
-		    	xgp->progname, target_number, argv[args_index]);
+	    	fprintf(stderr, "%s: Invalid Target Number %d specified for End-to-End option %s\n",
+		    	xgp->progname,
+				target_number,
+				argv[args_index]);
 	    	return(0);
 		}
     }
@@ -1165,7 +1189,7 @@ xddfunc_endtoend(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 				}
 #else
 				if (numa_node) {
-		    		fprintf(stderr,"%s: NUMA node end-to-end option ignored: %s\n",xgp->progname, numa_node);
+		    		fprintf(stderr,"%s: NUMA node end-to-end option ignored: %s\n", xgp->progname, numa_node);
 				}
 #endif
 	    	} 
@@ -1216,7 +1240,7 @@ xddfunc_endtoend(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 						}
 #else
 						if (numa_node) {
-			    			fprintf(stderr,"%s: NUMA node end-to-end option ignored: %s\n",xgp->progname, numa_node);
+			    			fprintf(stderr,"%s: NUMA node end-to-end option ignored: %s\n", xgp->progname, numa_node);
 						}
 #endif
 		    		} // End of IF stmnt that sets the Port/NPorts
@@ -1378,7 +1402,7 @@ xddfunc_endtoend(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		}
 		return(args_index+3);
     } else {
-		fprintf(stderr,"%s: Invalid End-to-End option %s\n",xgp->progname, argv[args_index]);
+		fprintf(stderr,"%s: Invalid End-to-End option %s\n", xgp->progname, argv[args_index]);
 		return(0);
     }/* End of the -endtoend (e2e or war) sub options */
 }
@@ -1497,7 +1521,8 @@ xddfunc_heartbeat(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
     if (args < 0) return(-1);
 
 	if (argc < 1) {
-		fprintf(xgp->errout,"%s: ERROR: not enough arguments specified for the option '-heartbeat'\n",xgp->progname);
+		fprintf(xgp->errout, "%s: ERROR: not enough arguments specified for the option '-heartbeat'\n",
+			xgp->progname);
 		return(0);
 	}
 
@@ -1507,7 +1532,7 @@ xddfunc_heartbeat(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	sp = argv[1];
 	len = strlen(sp);
 	if (len <= 0) {
-		fprintf(xgp->errout,"%s: WARNING: The option for '-heartbeat' is zero length\n",xgp->progname);
+		fprintf(xgp->errout, "%s: WARNING: The option for '-heartbeat' is zero length\n",xgp->progname);
 		return(1);
 	}
 	
@@ -1526,7 +1551,9 @@ xddfunc_heartbeat(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	if (digits) { // The heartbeat option is "number of seconds"
 		hb.hb_interval = atoi(sp);
 		if (hb.hb_interval <= 0) { // This should not happen but let's check just to be certain
-			fprintf(stderr,"%s: Error: Heartbeat value of '%d' cannot be negative\n", xgp->progname, hb.hb_interval);
+			fprintf(stderr,"%s: Error: Heartbeat value of '%d' cannot be negative\n",
+				xgp->progname,
+				hb.hb_interval);
 			return(-1);
 		}
 		return(2);
@@ -1587,7 +1614,7 @@ xddfunc_heartbeat(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	} 
 	if (return_value == -1) {
 		// Not a recognizable option
-		fprintf(stderr,"%s: ERROR: Unknown option specified for the heartbeat: '%s'\n", xgp->progname, sp);
+		fprintf(stderr, "%s: ERROR: Unknown option specified for the heartbeat: '%s'\n", xgp->progname, sp);
 		return(-1);
 	}
 
@@ -1605,7 +1632,10 @@ xddfunc_heartbeat(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 			len = strlen(hb.hb_filename);
 			filename = (char *)malloc(len+16);
 			if (filename == NULL) {
-				fprintf(stderr,"%s: ERROR: Cannot allocate %d bytes for heartbeat output file name: '%s'\n", xgp->progname, len+16,hb.hb_filename);
+				fprintf(stderr, "%s: ERROR: Cannot allocate %d bytes for heartbeat output file name: '%s'\n",
+					xgp->progname,
+					len+16,
+					hb.hb_filename);
 				return(-1);
 			}
 			sprintf(filename,"%s.T%04d.csv",hb.hb_filename,tdp->td_target_number);
@@ -1628,7 +1658,10 @@ xddfunc_heartbeat(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 					len = strlen(hb.hb_filename);
 					filename = (char *)malloc(len+16);
 					if (filename == NULL) {
-						fprintf(stderr,"%s: ERROR: Cannot allocate %d bytes for heartbeat output file name: '%s'\n", xgp->progname, len+16,hb.hb_filename);
+						fprintf(stderr, "%s: ERROR: Cannot allocate %d bytes for heartbeat output file name: '%s'\n",
+							xgp->progname,
+							len+16,
+							hb.hb_filename);
 						return(-1);
 					}
 					sprintf(filename,"%s.T%04d.csv",hb.hb_filename,tdp->td_target_number);
@@ -1850,7 +1883,8 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		master_target_datap->td_lsp = (lockstep_t *)malloc(sizeof(lockstep_t));
 		if (master_target_datap->td_lsp == 0) {
 			fprintf(stderr,"%s: Cannot allocate %d bytes of memory for Master lockstep structure\n",
-			xgp->progname, (int)sizeof(lockstep_t));
+				xgp->progname,
+				(int)sizeof(lockstep_t));
 			return(0);
 		}
 		memset(master_target_datap->td_lsp, 0, sizeof(lockstep_t ));
@@ -1862,7 +1896,8 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		slave_target_datap->td_lsp = (lockstep_t *)malloc(sizeof(lockstep_t));
 		if (slave_target_datap->td_lsp == 0) {
 			fprintf(stderr,"%s: Cannot allocate %d bytes of memory for Slave lockstep structure\n",
-			xgp->progname, (int)sizeof(lockstep_t));
+				xgp->progname,
+				(int)sizeof(lockstep_t));
 			return(0);
 		}
 		memset(slave_target_datap->td_lsp, 0, sizeof(lockstep_t));
@@ -1896,7 +1931,7 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		master_lsp->ls_interval_units = "SECONDS";
 		master_lsp->ls_interval_value = (nclk_t)(tmpf * BILLION);
 		if (master_lsp->ls_interval_value <= 0.0) {
-			fprintf(stderr,"%s: Invalid lockstep interval time: %f. This value must be greater than 0.0\n",
+			fprintf(stderr, "%s: Invalid lockstep interval time: %f. This value must be greater than 0.0\n",
 				xgp->progname, tmpf);
             return(0);
 		};
@@ -1906,7 +1941,7 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		master_lsp->ls_interval_type = LS_INTERVAL_OP;
 		master_lsp->ls_interval_units = "OPERATIONS";
 		if (master_lsp->ls_interval_value <= 0) {
-			fprintf(stderr,"%s: Invalid lockstep interval op: %lld. This value must be greater than 0\n",
+			fprintf(stderr, "%s: Invalid lockstep interval op: %lld. This value must be greater than 0\n",
 				xgp->progname, 
 				(long long)master_lsp->ls_interval_value);
             return(0);
@@ -1917,8 +1952,9 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		master_lsp->ls_interval_type = LS_INTERVAL_PERCENT;
 		master_lsp->ls_interval_units = "PERCENT";
 		if ((master_lsp->ls_interval_value < 0.0) || (master_lsp->ls_interval_value > 1.0)) {
-			fprintf(stderr,"%s: Invalid lockstep interval percent: %f. This value must be between 0.0 and 100.0\n",
-				xgp->progname, atof(argv[4]) );
+			fprintf(stderr, "%s: Invalid lockstep interval percent: %f. This value must be between 0.0 and 100.0\n",
+				xgp->progname,
+				atof(argv[4]) );
             return(0);
 		}
 		retval = 5;    
@@ -1928,8 +1964,9 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		master_lsp->ls_interval_type = LS_INTERVAL_BYTES;
 		master_lsp->ls_interval_units = "BYTES";
 		if (tmpf <= 0.0) {
-			fprintf(stderr,"%s: Invalid lockstep interval mbytes: %f. This value must be greater than 0\n",
-				xgp->progname,tmpf);
+			fprintf(stderr, "%s: Invalid lockstep interval mbytes: %f. This value must be greater than 0\n",
+				xgp->progname,
+				tmpf);
             return(0);
 		}
 		retval = 5;    
@@ -1939,14 +1976,14 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		master_lsp->ls_interval_type = LS_INTERVAL_BYTES;
 		master_lsp->ls_interval_units = "BYTES";
 		if (tmpf <= 0.0) {
-			fprintf(stderr,"%s: Invalid lockstep interval kbytes: %f. This value must be greater than 0\n",
-				xgp->progname,tmpf);
+			fprintf(stderr, "%s: Invalid lockstep interval kbytes: %f. This value must be greater than 0\n",
+				xgp->progname,
+				tmpf);
             return(0);
 		}
 		retval = 5;   
 	} else {
-		fprintf(stderr,"%s: Invalid lockstep interval qualifer: %s\n",
-				xgp->progname, when);
+		fprintf(stderr, "%s: Invalid lockstep interval qualifer: %s\n", xgp->progname, when);
         return(0);
 	}
 	/* This section looks at what the slave target is supposed to do for a "task" */
@@ -1958,7 +1995,8 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		slave_lsp->ls_interval_value = (nclk_t)(tmpf * BILLION);
 		if (slave_lsp->ls_interval_value <= 0.0) {
 			fprintf(stderr,"%s: Invalid lockstep task time: %f. This value must be greater than 0.0\n",
-				xgp->progname, tmpf);
+				xgp->progname,
+				tmpf);
             return(0);
 		};
 		retval += 2;
@@ -1979,8 +2017,9 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		slave_lsp->ls_interval_type = LS_INTERVAL_BYTES;
 		slave_lsp->ls_interval_units = "BYTES";
 		if (tmpf <= 0.0) {
-			fprintf(stderr,"%s: Invalid lockstep task mbytes: %f. This value must be greater than 0\n",
-				xgp->progname,tmpf);
+			fprintf(stderr, "%s: Invalid lockstep task mbytes: %f. This value must be greater than 0\n",
+				xgp->progname,
+				tmpf);
         return(0);
 		}
 		retval += 2;     
@@ -1991,13 +2030,13 @@ xddfunc_lockstep(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		slave_lsp->ls_interval_units = "BYTES";
 		if (tmpf <= 0.0) {
 			fprintf(stderr,"%s: Invalid lockstep task kbytes: %f. This value must be greater than 0\n",
-				xgp->progname,tmpf);
+				xgp->progname,
+				tmpf);
         return(0);
 		}
 		retval += 2;    
 	} else {
-		fprintf(stderr,"%s: Invalid lockstep task qualifer: %s\n",
-				xgp->progname, what);
+		fprintf(stderr,"%s: Invalid lockstep task qualifer: %s\n", xgp->progname, what);
         return(0);
 	}
 	lockstep_startup = argv[7];  
@@ -2083,13 +2122,13 @@ xddfunc_maxerrors(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 
 
 	if (argc <= 1) {
-		fprintf(stderr,"%s: Error: No value specified for max errors\n", xgp->progname);
+		fprintf(stderr, "%s: Error: No value specified for max errors\n", xgp->progname);
 		return(-1);
 	}
 	if (flags & XDD_PARSE_PHASE2) {
 		errors = atoll(argv[1]);
 		if (errors <= 0) {
-			fprintf(stderr,"%s: Error: Max errors value of '%lld' cannot be negative\n", xgp->progname, errors);
+			fprintf(stderr, "%s: Error: Max errors value of '%lld' cannot be negative\n", xgp->progname, errors);
 			return(-1);
 		} 
 		xgp->max_errors = errors;
@@ -2105,13 +2144,15 @@ xddfunc_max_errors_to_print(xdd_plan_t *planp, int32_t argc, char *argv[], uint3
 
 
 	if (argc <= 1) {
-		fprintf(stderr,"%s: Error: No value specified for max errors to print\n", xgp->progname);
+		fprintf(stderr, "%s: Error: No value specified for max errors to print\n", xgp->progname);
 		return(-1);
 	}
 	if (flags & XDD_PARSE_PHASE2) {
 		errors = atoi(argv[1]);
 		if (errors <= 0) {
-			fprintf(stderr,"%s: Error: Max errors to print value of '%d' cannot be negative\n", xgp->progname, errors);
+			fprintf(stderr, "%s: Error: Max errors to print value of '%d' cannot be negative\n",
+				xgp->progname,
+				errors);
 			return(-1);
 		} 
 		xgp->max_errors_to_print = errors;
@@ -2453,7 +2494,7 @@ xddfunc_operation(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	} else if ((strcmp(opname, "noop") == 0) || (strcmp(opname, "nop") == 0)) {
 		rwratio = -1.0; /* all NOOP operations */
 	} else {
-		fprintf(xgp->errout,"%s: xddfunc_operation: ERROR: Operation '%s' is not valid. Acceptable operations are 'read', 'write', or 'noop'.\n",
+		fprintf(xgp->errout, "%s: xddfunc_operation: ERROR: Operation '%s' is not valid. Acceptable operations are 'read', 'write', or 'noop'.\n",
 			xgp->progname,
 			opname);
 			return(0);
@@ -2513,7 +2554,7 @@ xddfunc_ordering(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		storage_ordering = 1;
 		network_ordering = 1;
 	} else {
-		fprintf(xgp->errout,"%s: xddfunc_ordering: ERROR: Don't know how to order '%s'. This should be either 'storage', 'network', or 'both'.\n",
+		fprintf(xgp->errout, "%s: xddfunc_ordering: ERROR: Don't know how to order '%s'. This should be either 'storage', 'network', or 'both'.\n",
 			xgp->progname,
 			thing);
 			return(0);
@@ -2537,7 +2578,7 @@ xddfunc_ordering(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		if (network_ordering)
 			no_network_ordering = 1; 
 	} else {
-		fprintf(xgp->errout,"%s: xddfunc_ordering: ERROR: Don't know what '%s' ordering is. This should be either 'serial', 'loose', or 'none'.\n",
+		fprintf(xgp->errout, "%s: xddfunc_ordering: ERROR: Don't know what '%s' ordering is. This should be either 'serial', 'loose', or 'none'.\n",
 			xgp->progname,
 			thing);
 			return(0);
@@ -2613,7 +2654,7 @@ xddfunc_output(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		xgp->output_filename = argv[1];
 		xgp->output = fopen(xgp->output_filename,"a");
 		if (xgp->output == NULL) {
-			fprintf(xgp->errout,"%s: Error: Cannot open output file %s - defaulting to standard out\n", xgp->progname,argv[1]);
+			fprintf(xgp->errout, "%s: Error: Cannot open output file %s - defaulting to standard out\n", xgp->progname,argv[1]);
 			xgp->output = stdout;
 			xgp->output_filename = "stdout";
 		}
@@ -2626,13 +2667,13 @@ xddfunc_output_format(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t fl
 {
 	
 	if (argc <= 1) {
-		fprintf(stderr,"%s: Error: No format string specified for '-outputformat' option\n", xgp->progname);
+		fprintf(stderr, "%s: Error: No format string specified for '-outputformat' option\n", xgp->progname);
 		return(-1);
 	}
 	if (flags & XDD_PARSE_PHASE2) {
 		if (strcmp(argv[1], "add") == 0) {
 			if (argc <= 2) {
-				fprintf(stderr,"%s: Error: No format string specified for '-outputformat add' option\n", xgp->progname);
+				fprintf(stderr, "%s: Error: No format string specified for '-outputformat add' option\n", xgp->progname);
 				return(-1);
 			}
 			xdd_results_format_id_add(argv[2], planp->format_string);

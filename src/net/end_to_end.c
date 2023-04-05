@@ -69,7 +69,14 @@ xdd_e2e_src_send(worker_data_t *wdp) {
 	e2ep = wdp->wd_e2ep;
 	e2ehp = e2ep->e2e_hdrp;
 	if (xgp->global_options & GO_DEBUG_E2E) {
-		fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: ENTER: e2ep=%p: e2ehp=%p: e2e_datap=%p\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number,(void *) e2ep,(void *) e2ehp,(void *) e2ep->e2e_datap);
+		fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: ENTER: e2ep=%p: "
+			"e2ehp=%p: e2e_datap=%p\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			(void *)e2ep,
+			(void *)e2ehp,
+			(void *)e2ep->e2e_datap);
 	}
 		
 
@@ -104,18 +111,41 @@ xdd_e2e_src_send(worker_data_t *wdp) {
 	}
 
 	if (xgp->global_options & GO_DEBUG_E2E) {
-	   	fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Preparing to send %d bytes: e2ep=%p: e2ehp=%p: e2e_datap=%p: e2e_xfer_size=%d: e2eh_data_length=%lld\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, e2ep->e2e_xfer_size,(void *)e2ep,(void *)e2ehp,(void *)e2ep->e2e_datap,e2ep->e2e_xfer_size,(long long int)e2ehp->e2eh_data_length);
+	   	fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Preparing to send %d "
+			"bytes: e2ep=%p: e2ehp=%p: e2e_datap=%p: e2e_xfer_size=%d: e2eh_data_length=%lld\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			e2ep->e2e_xfer_size,
+			(void *)e2ep,
+			(void *)e2ehp,
+			(void *)e2ep->e2e_datap,e2ep->e2e_xfer_size,
+			(long long int)e2ehp->e2eh_data_length);
+
+		xdd_show_e2e_header((xdd_e2e_header_t *)bufp);
 	}
-	if (xgp->global_options & GO_DEBUG_E2E) xdd_show_e2e_header((xdd_e2e_header_t *)bufp);
 
 	nclk_now(&wdp->wd_counters.tc_current_net_start_time);
 	while (bytes_sent < e2ep->e2e_xfer_size) {
 		send_size = e2ep->e2e_xfer_size - bytes_sent;
 		if (send_size > max_xfer) 
 			send_size = max_xfer;
-	if (xgp->global_options & GO_DEBUG_E2E) {
-		fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Actually sending <send_size> %d bytes: e2ep=%p: e2ehp=%p: e2e_datap=%p: bytes_sent=%d: e2ehp+bytes_sent=%p: first 8 bytes=0x%016llx\n",(long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, send_size,(void *)e2ep,(void *)e2ehp,(void *)e2ep->e2e_datap,(int)bytes_sent,bufp, *((unsigned long long int *)bufp));
-	}
+
+		if (xgp->global_options & GO_DEBUG_E2E) {
+			fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: "
+				"Actually sending <send_size> %d bytes: e2ep=%p: e2ehp=%p: e2e_datap=%p: "
+				"bytes_sent=%d: e2ehp+bytes_sent=%p: first 8 bytes=0x%016llx\n",
+				(long long int)pclk_now(),
+				tdp->td_target_number,
+				wdp->wd_worker_number,
+				send_size,
+				(void *)e2ep,
+				(void *)e2ehp,
+				(void *)e2ep->e2e_datap,
+				(int)bytes_sent,
+				(void *)bufp,
+				*((unsigned long long int *)bufp));
+		}
 		
 		if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
 			e2ep->e2e_send_status = pwrite(e2ep->e2e_sd, bufp, send_size, wdp->wd_task.task_byte_offset);
@@ -139,7 +169,15 @@ xdd_e2e_src_send(worker_data_t *wdp) {
 		bufp += e2ep->e2e_send_status;
 		sento_calls++;
 		if (xgp->global_options & GO_DEBUG_E2E) {
-			fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Sent %d of %d bytes - %d bytes sent so far: bufp=%p\n",(long long int)pclk_now(),  tdp->td_target_number, wdp->wd_worker_number, e2ep->e2e_send_status,e2ep->e2e_xfer_size,bytes_sent,(void *)bufp);
+			fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: Sent %d of "
+				"%d bytes - %d bytes sent so far: bufp=%p\n",
+				(long long int)pclk_now(),
+				tdp->td_target_number,
+				wdp->wd_worker_number,
+				e2ep->e2e_send_status,
+				e2ep->e2e_xfer_size,
+				bytes_sent,
+				(void *)bufp);
 		}
 		   
 	}
@@ -162,7 +200,13 @@ xdd_e2e_src_send(worker_data_t *wdp) {
 		return(-1);
 	}
 
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: EXIT...\n",(long long int)pclk_now(),tdp->td_target_number, wdp->wd_worker_number);
+	if (xgp->global_options & GO_DEBUG_E2E) {
+		fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_src_send: Target: %d: Worker: %d: EXIT...\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number);
+	}
+
 	return(0);
 
 } /* end of xdd_e2e_src_send() */
@@ -181,10 +225,20 @@ xdd_e2e_dest_connection(worker_data_t *wdp) {
 	tdp = wdp->wd_tdp;
 	e2ep = wdp->wd_e2ep;
 
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_connection: Target %d Worker: %d: ENTER: e2e_nd=%d: e2e_sd=%d: FD_SETSIZE=%d\n", (long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number,e2ep->e2e_nd,e2ep->e2e_sd,FD_SETSIZE);
+	if (xgp->global_options & GO_DEBUG_E2E) {
+		fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_connection: Target %d Worker: %d: "
+			"ENTER: e2e_nd=%d: e2e_sd=%d: FD_SETSIZE=%d\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			e2ep->e2e_nd,
+			e2ep->e2e_sd,
+			FD_SETSIZE);
+	}
 
 	int rc = select(e2ep->e2e_nd, &e2ep->e2e_readset, NULL, NULL, NULL);
 	assert(rc != -1);
+
 	/* Handle all the descriptors that are ready */
 	/* There are two type of sockets: the one sd socket and multiple 
 	 * client sockets. We first check to see if the sd is in the readset.
@@ -192,12 +246,27 @@ if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e
 	 * in which case we need to issue an accept to establish the connection
 	 * and obtain a new Client Socket Descriptor (csd).
 	 */
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_connection: Target %d Worker: %d: Inside SELECT \n", (long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number);
+	if (xgp->global_options & GO_DEBUG_E2E) {
+		fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_connection: Target %d Worker: %d: "
+			"Inside SELECT \n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number);
+	}
+
 	if (FD_ISSET(e2ep->e2e_sd, &e2ep->e2e_readset)) { /* Process an incoming connection */
 		e2ep->e2e_current_csd = e2ep->e2e_next_csd;
 
 		e2ep->e2e_csd[e2ep->e2e_current_csd] = accept(e2ep->e2e_sd, (struct sockaddr *)&e2ep->e2e_rname,&e2ep->e2e_rnamelen);
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_connection: Target %d Worker: %d: connection accepted: sd=%d\n", (long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, e2ep->e2e_sd);
+
+		if (xgp->global_options & GO_DEBUG_E2E) {
+			fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_connection: Target %d Worker: %d: "
+				"connection accepted: sd=%d\n",
+				(long long int)pclk_now(),
+				tdp->td_target_number,
+				wdp->wd_worker_number,
+				e2ep->e2e_sd);
+		}
 
 		FD_SET(e2ep->e2e_csd[e2ep->e2e_current_csd], &e2ep->e2e_active); /* Mark this fd as active */
 		FD_SET(e2ep->e2e_csd[e2ep->e2e_current_csd], &e2ep->e2e_readset); /* Put in readset so that it gets processed */
@@ -251,7 +320,16 @@ xdd_e2e_dest_receive_header(worker_data_t *wdp) {
 	e2ep->e2e_xfer_size = e2ep->e2e_header_size;
 
 	if (xgp->global_options & GO_DEBUG_E2E) {
-		fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive_header: Target %d Worker: %d: ENTER: Waiting to receive %d bytes of header: op# %lld: e2ep=%p: e2ehp=%p: e2e_datap=%p\n", (long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, e2ep->e2e_header_size, (long long int)wdp->wd_task.task_op_number, (void *)e2ep, (void *)e2ehp, (void *)e2ep->e2e_datap );
+		fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive_header: Target %d Worker: %d: ENTER: "
+			"Waiting to receive %d bytes of header: op# %lld: e2ep=%p: e2ehp=%p: e2e_datap=%p\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			e2ep->e2e_header_size,
+			(long long int)wdp->wd_task.task_op_number,
+			(void *)e2ep,
+			(void *)e2ehp,
+			(void *)e2ep->e2e_datap);
 	}
 		
 
@@ -281,24 +359,43 @@ xdd_e2e_dest_receive_header(worker_data_t *wdp) {
 				if (receive_size > max_xfer)
 					receive_size = max_xfer;
 				
-				// Issue recvfrom()
-			if (xgp->global_options & GO_DEBUG_E2E) {
-				fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive_header: Target: %d: Worker: %d: HEADER: Calling recvfrom bytes_received=%d: receive_size=%d: e2ehp=%p: new_bp=%p\n", (long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, bytes_received, receive_size,(void *)e2ehp,(void *) bufp);
-			}
+				if (xgp->global_options & GO_DEBUG_E2E) {
+					fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive_header: Target: %d: Worker: %d: "
+						"HEADER: Calling recvfrom bytes_received=%d: receive_size=%d: e2ehp=%p: new_bp=%p\n",
+						(long long int)pclk_now(),
+						tdp->td_target_number,
+						wdp->wd_worker_number,
+						bytes_received,
+						receive_size,
+						(void *)e2ehp,
+						(void *)bufp);
+				}
 				
+				// Issue recvfrom()
 				status = recvfrom(e2ep->e2e_csd[e2ep->e2e_current_csd], 
 								  bufp,
 								  receive_size, 
 								  0, 
 								  NULL,
 								  NULL);
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive_header: Target: %d: Worker: %d: HEADER: Received %d of %d bytes\n", (long long int)pclk_now(),  tdp->td_target_number, wdp->wd_worker_number, status, e2ep->e2e_header_size);
-if (xgp->global_options & GO_DEBUG_E2E) xdd_show_e2e_header(e2ehp);
+
+				if (xgp->global_options & GO_DEBUG_E2E) {
+					fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive_header: Target: %d: Worker: %d: HEADER: "
+						"Received %d of %d bytes\n",
+						(long long int)pclk_now(),
+						tdp->td_target_number,
+						wdp->wd_worker_number,
+						status,
+						e2ep->e2e_header_size);
+
+					xdd_show_e2e_header(e2ehp);
+				}
 
 				// Check for errors
 				if (status <= 0) {
 					e2ep->e2e_recv_status = status;
-					fprintf(xgp->errout,"\n%s: xdd_e2e_dest_receive_header: Target %d Worker: %d: ERROR RECEIVING HEADER: recv_status=%d, errno=%d\n",
+					fprintf(xgp->errout, "\n%s: xdd_e2e_dest_receive_header: Target %d Worker: %d: "
+						"ERROR RECEIVING HEADER: recv_status=%d, errno=%d\n",
 						xgp->progname,
 						tdp->td_target_number,
 						wdp->wd_worker_number,
@@ -310,13 +407,24 @@ if (xgp->global_options & GO_DEBUG_E2E) xdd_show_e2e_header(e2ehp);
 				bytes_received += status;
 				bufp += status;
 			} // End of WHILE loop that received incoming data from the source machine
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive_header: Target: %d: Worker: %d: HEADER: Got the header... now check to see if the status <%d> is > 0 \n", (long long int)pclk_now(),  tdp->td_target_number, wdp->wd_worker_number, status);
+
+
+		if (xgp->global_options & GO_DEBUG_E2E) {
+			fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive_header: Target: %d: Worker: %d: HEADER: "
+				"Got the header... now check to see if the status <%d> is > 0 \n",
+				(long long int)pclk_now(),
+				tdp->td_target_number,
+				wdp->wd_worker_number,
+				status);
+		}
+
 		} // End of IF stmnt that processes a CSD 
 	} // End of FOR loop that processes all CSDs that were ready
 
 	if (bytes_received != e2ep->e2e_header_size) {
 		// This is an internal error that should not occur...
-		fprintf(xgp->errout,"\n%s: xdd_e2e_dest_receive_header: Target %d Worker: %d: INTERNAL ERROR: The number of bytes received <%d> is not equal to the size of the E2E Header <%d>\n",
+		fprintf(xgp->errout, "\n%s: xdd_e2e_dest_receive_header: Target %d Worker: %d: INTERNAL ERROR: "
+			"The number of bytes received <%d> is not equal to the size of the E2E Header <%d>\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number,
@@ -390,7 +498,16 @@ xdd_e2e_dest_receive_data(worker_data_t *wdp) {
 	e2ep->e2e_xfer_size = e2ep->e2e_data_size;
 
 	if (xgp->global_options & GO_DEBUG_E2E) {
-	   	fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive_data: Target %d Worker: %d: ENTER: Waiting to receive %d bytes of DATA: op# %lld: e2ep=%p: e2ehp=%p: e2e_datap=%p\n", (long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, e2ep->e2e_data_size, (long long int)wdp->wd_task.task_op_number, (void *)e2ep, (void *)e2ehp, (void *)e2ep->e2e_datap );
+	   	fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive_data: Target %d Worker: %d: ENTER: "
+			"Waiting to receive %d bytes of DATA: op# %lld: e2ep=%p: e2ehp=%p: e2e_datap=%p\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			e2ep->e2e_data_size,
+			(long long int)wdp->wd_task.task_op_number,
+			(void *)e2ep,
+			(void *)e2ehp,
+			(void *)e2ep->e2e_datap);
 	}
 	// The following uses strictly TCP
 
@@ -413,25 +530,62 @@ xdd_e2e_dest_receive_data(worker_data_t *wdp) {
 			e2ep->e2e_data_size = e2ehp->e2eh_data_length;
 			bytes_received = 0;
 			bufp = (unsigned char *)e2ep->e2e_datap;
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive_data: Target: %d: Worker: %d: OK - IT IS A HEADER SO LETS READ DATA: bytes_received=%d:e2e_data_size=%d \n", (long long int)pclk_now(),  tdp->td_target_number, wdp->wd_worker_number, bytes_received,e2ep->e2e_data_size);
+
+			if (xgp->global_options & GO_DEBUG_E2E) {
+				fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive_data: Target: %d: Worker: %d: "
+					"OK - IT IS A HEADER SO LETS READ DATA: bytes_received=%d:e2e_data_size=%d \n",
+					(long long int)pclk_now(),
+					tdp->td_target_number,
+					wdp->wd_worker_number,
+					bytes_received,
+					e2ep->e2e_data_size);
+			}
+
 			while (bytes_received < e2ep->e2e_data_size) {
 				receive_size = e2ep->e2e_data_size - bytes_received;
 				if (receive_size > max_xfer)
 					receive_size = max_xfer;
+
+				if (xgp->global_options & GO_DEBUG_E2E) {
+					fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive_data: Target %d Worker: %d: "
+						"BEFORE RECVFROM DATA: Preparing to receive <receive_size> %d <e2e_data_size=%d> "
+						"bytes of data, op# %lld, buffer address %p, wd_bufp=%p, wd_task.task_datap=%p, "
+						"e2e_datap=%p\n",
+						(unsigned long long int)pclk_now(),
+						tdp->td_target_number,
+						wdp->wd_worker_number,
+						receive_size,
+						e2ep->e2e_data_size,
+						(long long int)wdp->wd_task.task_op_number,
+						(void *)(((unsigned char *)e2ehp) + bytes_received),
+						(void *)wdp->wd_bufp,
+						(void *)wdp->wd_task.task_datap,
+						(void *)e2ep->e2e_datap);
+				}
+
 				// Issue recvfrom()
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive_data: Target %d Worker: %d: BEFORE RECVFROM DATA: Preparing to receive <receive_size> %d <e2e_data_size=%d> bytes of data, op# %lld, buffer address %p, wd_bufp=%p, wd_task.task_datap=%p, e2e_datap=%p\n", (unsigned long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number, receive_size, e2ep->e2e_data_size, (long long int)wdp->wd_task.task_op_number, ((unsigned char *)e2ehp) + bytes_received, wdp->wd_bufp, wdp->wd_task.task_datap, e2ep->e2e_datap);
 				status = recvfrom(e2ep->e2e_csd[e2ep->e2e_current_csd], 
 								bufp, 
 								receive_size, 
 								0, 
 								NULL,
 								NULL);
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive_data: Target: %d: Worker: %d: AFTER RECVFROM DATA: Received %d of %d bytes\n", (long long int)pclk_now(),  tdp->td_target_number, wdp->wd_worker_number, status, e2ep->e2e_data_size);
+
+				if (xgp->global_options & GO_DEBUG_E2E) {
+					fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive_data: Target: %d: Worker: %d: "
+						"AFTER RECVFROM DATA: Received %d of %d bytes\n",
+						(long long int)pclk_now(),
+						tdp->td_target_number,
+						wdp->wd_worker_number,
+						status,
+						e2ep->e2e_data_size);
+				}
 
 				// Check for errors
 				if (status <= 0) {
 					e2ep->e2e_recv_status = status;
-					fprintf(xgp->errout,"\n%s: xdd_e2e_dest_receive_data: Target %d Worker: %d: ERROR RECEIVING HEADER: recv_status=%d, errno=%d\n",
+					fprintf(xgp->errout, "\n%s: xdd_e2e_dest_receive_data: Target %d Worker: %d: "
+						"ERROR RECEIVING HEADER: recv_status=%d, errno=%d\n",
 						xgp->progname,
 						tdp->td_target_number,
 						wdp->wd_worker_number,
@@ -467,7 +621,8 @@ xdd_e2e_dest_receive_error(worker_data_t *wdp) {
 	e2ep = wdp->wd_e2ep;
 
 	if (e2ep->e2e_recv_status == 0) { // A status of 0 means that the source side shut down unexpectedly - essentially and Enf-Of-File
-		fprintf(xgp->errout,"\n%s: xdd_e2e_dest_receive_error: Target %d Worker: %d: ERROR: Connection closed prematurely by Source, op number %lld, location %lld\n",
+		fprintf(xgp->errout, "\n%s: xdd_e2e_dest_receive_error: Target %d Worker: %d: ERROR: "
+			"Connection closed prematurely by Source, op number %lld, location %lld\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number,
@@ -475,7 +630,8 @@ xdd_e2e_dest_receive_error(worker_data_t *wdp) {
 			(long long int)wdp->wd_task.task_byte_offset);
 	} else if (e2ep->e2e_recv_status < 0) { // A status less than 0 indicates some kind of error.
 		errno_save = errno;
-		fprintf(xgp->errout,"\n%s: xdd_e2e_dest_receive_error: Target %d Worker: %d: ERROR: recvfrom returned -1, errno %d, op number %lld, location %lld\n",
+		fprintf(xgp->errout, "\n%s: xdd_e2e_dest_receive_error: Target %d Worker: %d: ERROR: "
+			"recvfrom returned -1, errno %d, op number %lld, location %lld\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number,
@@ -549,7 +705,13 @@ xdd_e2e_dest_receive(worker_data_t *wdp) {
 			return(-1);
 		}
 	} else {
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_dest_receive: Target %d Worker: %d: Received and EOF\n", (unsigned long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number);
+		if (xgp->global_options & GO_DEBUG_E2E) {
+			fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_dest_receive: Target %d Worker: %d: "
+				"Received and EOF\n",
+				(unsigned long long int)pclk_now(),
+				tdp->td_target_number,
+				wdp->wd_worker_number);
+		}
 	}
 	
 	nclk_now(&wdp->wd_counters.tc_current_net_end_time);
@@ -617,7 +779,12 @@ xdd_e2e_eof_source_side(worker_data_t *wdp) {
 	e2ep->e2e_header_size = sizeof(xdd_e2e_header_t);
 	e2ep->e2e_xfer_size = e2ep->e2e_header_size;
 
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_eof_source_side: Target %d Worker: %d: ENTER: \n", (long long int)pclk_now(), tdp->td_target_number, wdp->wd_worker_number);
+	if (xgp->global_options & GO_DEBUG_E2E) {
+		fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_eof_source_side: Target %d Worker: %d: ENTER: \n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number);
+	}
 
     /* If this is XNI, just short circuit */
     if (PLAN_ENABLE_XNI & tdp->td_planp->plan_options) {
@@ -668,7 +835,16 @@ if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e
 		}
 		bytes_sent += e2ep->e2e_send_status;
 		sendto_calls++;
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_eof_source_side: Target: %d: Worker: %d: Sent %d of %d bytes of the HEADER - %d bytes sent so far\n", (long long int)pclk_now(),  tdp->td_target_number, wdp->wd_worker_number, send_size, e2ep->e2e_header_size,bytes_sent);
+
+		if (xgp->global_options & GO_DEBUG_E2E) {
+			fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_eof_source_side: Target: %d: Worker: %d: "
+				"Sent %d of %d bytes of the HEADER - %d bytes sent so far\n",
+				(long long int)pclk_now(),
+				tdp->td_target_number,
+				wdp->wd_worker_number,
+				send_size,
+				e2ep->e2e_header_size,bytes_sent);
+		}
 	}
 	nclk_now(&wdp->wd_counters.tc_current_net_end_time);
 	

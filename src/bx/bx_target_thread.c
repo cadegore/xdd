@@ -42,14 +42,16 @@
 //
 int
 target_init(struct bx_td *p) {
-    int 			status;
-	int				i;
+	int 		status;
+	int		i;
 	unsigned int	qflags;
-	struct bx_wd		*bx_wdp;
+	struct bx_wd	*bx_wdp;
 
-fprintf(stderr,"\n %s Target Thread %d: Initializing\n",
-			(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
-			p->bx_td_my_target_number);
+
+	fprintf(stderr,"\n %s Target Thread %d: Initializing\n",
+		(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
+		p->bx_td_my_target_number);
+
 	qflags = 0;
 	// Open the file
 	if (p->bx_td_flags & BX_TD_INPUT) {
@@ -69,13 +71,15 @@ fprintf(stderr,"\n %s Target Thread %d: Initializing\n",
 	// Create the Worker Threads
 	for (i = 0; i < p->bx_td_number_of_worker_threads; i++) {
 		bx_wdp = &p->bx_td_bx_wd[i];
+
 		fprintf(stderr,"target_init: %s target %d creating Worker Threads %d of %d, fd=%d, bx_wdp=%p...\n",
-				(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
-				p->bx_td_my_target_number, 
-				i+1, 
-				p->bx_td_number_of_worker_threads,
-				p->bx_td_fd,
-				bx_wdp);
+			(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
+			p->bx_td_my_target_number, 
+			i+1, 
+			p->bx_td_number_of_worker_threads,
+			p->bx_td_fd,
+			(void *)bx_wdp);
+
 		bx_wdp->bx_wd_my_worker_thread_number = i;
 		bx_wdp->bx_wd_flags = qflags;
 		bx_wdp->bx_wd_fd = p->bx_td_fd;
@@ -87,9 +91,10 @@ fprintf(stderr,"\n %s Target Thread %d: Initializing\n",
 			return(-1);
 		}
 	}
-fprintf(stderr,"\n %s Target Thread %d: Initialization Complete\n",
-			(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
-			p->bx_td_my_target_number);
+
+	fprintf(stderr,"\n %s Target Thread %d: Initialization Complete\n",
+		(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
+		p->bx_td_my_target_number);
 
 	return(0);
 
@@ -121,29 +126,31 @@ fprintf(stderr,"\n %s Target Thread %d: Initialization Complete\n",
 // Therefore, this thread can 
 int
 target_input(struct bx_td *p) {
-	long long int	bytes_remaining;
+	long long int		bytes_remaining;
 	struct bx_wd		*bx_wdp = 0;
 	struct bx_buffer_header	*bufhdrp = 0;
-	struct bx_buffer_queue *qp;
-	int				i;
-	int				transfer_size;
-	off_t			current_file_offset;
+	struct bx_buffer_queue  *qp;
+	int			 i;
+	int			 transfer_size;
+	off_t			 current_file_offset;
 
 
-fprintf(stderr,"target_input: - ENTER\n");
+	fprintf(stderr, "target_input: - ENTER\n");
+
 	// Now copy the data from the input file to the output file 
 	bytes_remaining = p->bx_td_file_size;
 	current_file_offset = 0;
 	while(bytes_remaining > 0) {
-fprintf(stderr,"target_input: - bytes_remaining=%lld\n",(long long int)bytes_remaining);
+		fprintf(stderr, "target_input: - bytes_remaining=%lld\n", (long long int)bytes_remaining);
 		// Get the next available input qrhread
 		bx_wdp = bx_wd_dequeue(&p->bx_td_bx_wd_queue);
-fprintf(stderr,"target_input: - got a Worker Thread Data Structure: %p\n",bx_wdp);
-bufqueue_show(&p->bx_td_buffer_queue);	
+		fprintf(stderr, "target_input: - got a Worker Thread Data Structure: %p\n",
+			(void *)bx_wdp);
+		bufqueue_show(&p->bx_td_buffer_queue);	
 		// Get the next available buffer from the available buffer queue
 		bufhdrp = bh_dequeue(&p->bx_td_buffer_queue);
 	
-fprintf(stderr,"target_input: - got a BUFFER: %p\n",bufhdrp);
+		fprintf(stderr, "target_input: - got a BUFFER: %p\n", (void *)bufhdrp);
 		if (bytes_remaining < p->bx_td_transfer_size)
 			transfer_size = bytes_remaining;
 		else transfer_size = p->bx_td_transfer_size;
@@ -158,7 +165,7 @@ fprintf(stderr,"target_input: - got a BUFFER: %p\n",bufhdrp);
 		pthread_cond_broadcast(&bx_wdp->bx_wd_conditional);
 		bytes_remaining -= transfer_size;
 		current_file_offset += transfer_size;
-fprintf(stderr,"target_input: - WORKER THREAD RELEASED\n");
+		fprintf(stderr,"target_input: - WORKER THREAD RELEASED\n");
 	}
 
 	// At this point all the input operations have been scheduled and 
@@ -170,21 +177,29 @@ fprintf(stderr,"target_input: - WORKER THREAD RELEASED\n");
 	
 	for (i = 0; i < p->bx_td_number_of_worker_threads; i++) {
 		// Get the next available input qrhread
-fprintf(stderr,"target_input: - Waiting for WORKER THREAD %d of %d\n",i+1,p->bx_td_number_of_worker_threads);
+		fprintf(stderr, "target_input: - Waiting for WORKER THREAD %d of %d\n",
+			i+1,
+			p->bx_td_number_of_worker_threads);
 		bx_wdp = bx_wd_dequeue(&p->bx_td_bx_wd_queue);
 		bx_wdp->bx_wd_flags |= BX_WD_TERMINATE;
 		pthread_cond_broadcast(&bx_wdp->bx_wd_conditional);
-fprintf(stderr,"target_input: - WORKER THREAD %d of %d has completed\n",i+1,p->bx_td_number_of_worker_threads);
+		fprintf(stderr,"target_input: - WORKER THREAD %d of %d has completed\n",
+			i+1,
+			p->bx_td_number_of_worker_threads);
 	}
 
 	// Now we wait for all the buffers to come back from the OUTPUT target
 	// at which point we know that all the data has been written to the
 	// output device. 
 	for (i = 0; i < Number_Of_Buffers; i++) {
-fprintf(stderr,"target_input: - Waiting for BUFFER %d of %d\n",i+1,Number_Of_Buffers);
+		fprintf(stderr, "target_input: - Waiting for BUFFER %d of %d\n",
+			i+1
+			,Number_Of_Buffers);
 		// Get a buffer from the buffer queue
 		bufhdrp = bh_dequeue(&p->bx_td_buffer_queue);
-fprintf(stderr,"target_input: - BUFFER %d of %d completed\n",i+1,Number_Of_Buffers);
+		fprintf(stderr, "target_input: - BUFFER %d of %d completed\n",
+			i+1,
+			Number_Of_Buffers);
 	}
 	
 	// Now that all the buffers have returned from the OUTPUT target,
@@ -198,8 +213,9 @@ fprintf(stderr,"target_input: - BUFFER %d of %d completed\n",i+1,Number_Of_Buffe
 	qp = &bx_td[bx_wdp->bx_wd_next_buffer_queue].bx_td_buffer_queue;
 	bh_enqueue(bx_wdp->bx_wd_bufhdrp, qp);
 
-fprintf(stderr,"\n Target Input  %d: DONE\n",p->bx_td_my_target_number);
-    return 0;
+	fprintf(stderr, "\n Target Input  %d: DONE\n", p->bx_td_my_target_number);
+
+	return 0;
 } // End of target_input()
 
 /**************************************************************************
@@ -208,27 +224,28 @@ fprintf(stderr,"\n Target Input  %d: DONE\n",p->bx_td_my_target_number);
 // Just like the INPUT target thread only backwards.
 int
 target_output(struct bx_td *p) {
-	struct bx_wd	*bx_wdp = 0;
+	struct bx_wd		*bx_wdp = 0;
 	struct bx_buffer_header	*bufhdrp = 0;
-	int				buffers_written;
-	int				i;
+	int			buffers_written;
+	int			i;
 
 
 	buffers_written = 0;
-fprintf(stderr,"target_output: - ENTER\n");
+	fprintf(stderr, "target_output: - ENTER\n");
 	// Now copy the data from the input file to the output file 
 	while(1) {
 		// Get the next available buffer from the available buffer queue
 		bufhdrp = bh_dequeue(&p->bx_td_buffer_queue);
-fprintf(stderr,"target_output: - got a BUFHDR: %p\n",bx_wdp);
+		fprintf(stderr, "target_output: - got a BUFHDR: %p\n", (void *)bx_wdp);
 		if (bufhdrp->bh_flags & BX_BUFHDR_END_OF_FILE) {
-fprintf(stderr,"target_output: - got an EOF: %p\n",bx_wdp);
+			fprintf(stderr, "target_output: - got an EOF: %p\n", (void *)bx_wdp);
 			break;
 		}
 	
 		// Get the next available output qrhread
 		bx_wdp = bx_wd_dequeue(&p->bx_td_bx_wd_queue);
-fprintf(stderr,"target_output: - got a Worker Thread Data Structure: %p\n",bx_wdp);
+		fprintf(stderr, "target_output: - got a Worker Thread Data Structure: %p\n",
+			(void *)bx_wdp);
 	
 		// Point the Worker Threads to the buffer and release the Worker Threads
 		bx_wdp->bx_wd_bufhdrp = bufhdrp;
@@ -237,21 +254,27 @@ fprintf(stderr,"target_output: - got a Worker Thread Data Structure: %p\n",bx_wd
 
 		pthread_cond_broadcast(&bx_wdp->bx_wd_conditional);
 		buffers_written++;
-fprintf(stderr,"target_output: - WORKER THREAD RELEASED\n");
+		fprintf(stderr,"target_output: - WORKER THREAD RELEASED\n");
 	}
 
 	// Terminate all Worker Threads
 	for (i = 0; i < p->bx_td_number_of_worker_threads; i++) {
 		// Get the next available output qrhread
-fprintf(stderr,"target_output: - Waiting for WORKER THREAD %d of %d\n",i+1,p->bx_td_number_of_worker_threads);
+		fprintf(stderr,"target_output: - Waiting for WORKER THREAD %d of %d\n",
+			i+1,
+			p->bx_td_number_of_worker_threads);
 		bx_wdp = bx_wd_dequeue(&p->bx_td_bx_wd_queue);
 		bx_wdp->bx_wd_flags |= BX_WD_TERMINATE;
 		pthread_cond_broadcast(&bx_wdp->bx_wd_conditional);
-fprintf(stderr,"target_output: - WORKER THREAD %d of %d has completed\n",i+1,p->bx_td_number_of_worker_threads);
+		fprintf(stderr,"target_output: - WORKER THREAD %d of %d has completed\n",
+			i+1,
+			p->bx_td_number_of_worker_threads);
 	}
-	fprintf(stderr,"\n Target Output  %d: %d buffers written - DONE\n",p->bx_td_my_target_number, buffers_written);
+	fprintf(stderr,"\n Target Output  %d: %d buffers written - DONE\n",
+		p->bx_td_my_target_number,
+		buffers_written);
 
-    return 0;
+	return 0;
 } // End of target_output()
 
 /**************************************************************************
@@ -264,18 +287,18 @@ fprintf(stderr,"target_output: - WORKER THREAD %d of %d has completed\n",i+1,p->
 // waiting for all targets to complete. 
 void *
 target_main(void *pin) {
-    int status;
+	int status;
 	struct bx_td *p;
-
 
 	p = (struct bx_td *)pin;
 
-fprintf(stderr,"\n %s Target Thread %d: Starting\n",
-			(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
-			p->bx_td_my_target_number);
+	fprintf(stderr, "\n %s Target Thread %d: Starting\n",
+		(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
+		p->bx_td_my_target_number);
 	status = target_init(p);
 	if (status != 0) {
-		fprintf(stderr,"Target Thread %d: Error during initialization - exiting\n",p->bx_td_my_target_number);
+		fprintf(stderr, "Target Thread %d: Error during initialization - exiting\n",
+			p->bx_td_my_target_number);
 		return NULL;
 	}
 
@@ -287,30 +310,30 @@ fprintf(stderr,"\n %s Target Thread %d: Starting\n",
 		status = target_input(p);
 	else status = target_output(p);
 
-fprintf(stderr,"\n %s Target Thread %d: COMPLETED - status=%d\n",
-			(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
-			p->bx_td_my_target_number,
-			status);
+	fprintf(stderr, "\n %s Target Thread %d: COMPLETED - status=%d\n",
+		(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
+		p->bx_td_my_target_number,
+		status);
 	if (status != 0) {
-		fprintf(stderr,"%s Target %d: failed\n",
-			(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
+		fprintf(stderr, "%s Target %d: failed\n",
+			(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
 			p->bx_td_my_target_number);
 	}
 
-	fprintf(stderr,"\n %s Target Thread %d: DONE\n",
-			(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
-			p->bx_td_my_target_number);
+	fprintf(stderr, "\n %s Target Thread %d: DONE\n",
+		(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
+		p->bx_td_my_target_number);
 
 	// At this point this target is done so it will enter the "main barrier"
 	// where "main" is waiting. When all targets arrive then the barrier
 	// collapses and this target thread will exit.
-fprintf(stderr,"\n %s Target Thread %d: Entering MAIN_BARRIER\n",
-			(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
-			p->bx_td_my_target_number);
+	fprintf(stderr, "\n %s Target Thread %d: Entering MAIN_BARRIER\n",
+		(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
+		p->bx_td_my_target_number);
 	pthread_barrier_wait(&Main_Barrier);
-fprintf(stderr,"\n %s Target Thread %d: Leaving\n",
-			(p->bx_td_flags & BX_TD_INPUT)?"INPUT":"OUTPUT", 
-			p->bx_td_my_target_number);
+	fprintf(stderr, "\n %s Target Thread %d: Leaving\n",
+		(p->bx_td_flags & BX_TD_INPUT) ? "INPUT" : "OUTPUT", 
+		p->bx_td_my_target_number);
 
-    return NULL;
+	return NULL;
 } // End of target_main()

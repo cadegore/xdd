@@ -13,7 +13,8 @@
 /*
    gettime - get the global time from the global time server.
 */
-#include "xdd.h"
+#include "xint.h"
+
 /* global variables */
 /* Input parameters passed into the program */
 static char  *gettime_progname; /* Program name from argv[0] */
@@ -27,6 +28,12 @@ static int32_t  bounce;  /* number of times to hit the Global Time server */
 static nclk_t  wait_for_time;  /* number of times to hit the Global Time server */
 static nclk_t  global_time;  /* The actual global time */ 
 static int32_t  sleep_time_dw;  /* number of milli seconds to wait  */
+	
+typedef struct tthdr_s
+{
+	nclk_t timer_oh;
+} tthdr_t;
+
 /*----------------------------------------------------------------------------*/
 /* gts_init_global_clock_network() - Initialize the network so that we can
  *    talk to the global time timeserver.
@@ -37,7 +44,7 @@ static int32_t  sleep_time_dw;  /* number of milli seconds to wait  */
  * This routine will return the associated 32-bit address.
  *    
  */
-in_addr_t
+static int
 gts_init_global_clock_network(char *hostname) {
 	struct hostent *hostent; /* used to init the time server info */
 	in_addr_t addr;  /* Address of hostname from hostent */
@@ -97,16 +104,19 @@ gts_init_global_clock_network(char *hostname) {
 /*----------------------------------------------------------------------------*/
 /* gts_init_global_clock() - Initialize the global clock if requested
  */
+
 nclk_t
 gts_init_global_clock(void) {
 	nclk_t  delta;  /* time returned by clk_initialize() */
 	nclk_t  now;  /* the current time returned by nclk() */
 	/* Global clock stuff here */
 	if (gts_hostname) {
-		gts_addr = gts_init_global_clock_network(gts_hostname);
-		if (gts_addr == -1) { /* Problem with the network */
+		int err = gts_init_global_clock_network(gts_hostname);
+		if (err == -1) { /* Problem with the network */
 			fprintf(stderr,"%s: Error initializing global clock - network malfunction\n",gettime_progname);
 			return(0);
+		} else {
+			gts_addr = err;
 		}
 		clk_initialize(gts_addr, gts_port, bounce, &delta);
 		nclk_now(&now);
@@ -149,11 +159,12 @@ gts_init_global_clock(void) {
 
 	return(0);
 } /* end of gts_init_global_clock() */
+
 /*----------------------------------------------------------------------------*/
 /* gts_ts_overhead() - determine time stamp overhead
  */
 void
-gts_ts_overhead(struct tthdr *ttp) { 
+gts_ts_overhead(tthdr_t *ttp) { 
 	int32_t  i;
 	nclk_t  tv[101];
 	ttp->timer_oh = 0;
@@ -168,6 +179,7 @@ gts_ts_overhead(struct tthdr *ttp) {
 /*----------------------------------------------------------------------------*/
 /* gts_parse_args() - Parameter parsing 
  */
+
 void
 gts_parse_args(int32_t argc, char *argv[]) {
   	int32_t  i;
@@ -236,22 +248,18 @@ gts_usage(int32_t fullhelp) {
 	fprintf(stderr,"\t-waitfortime time_value\n");
 } /* end of gts_usage() */
 /*----------------------------------------------------------------------------*/
+
 int32_t
 main(int32_t argc,char *argv[]) {
-	struct tthdr ttp;
+	tthdr_t ttp;
 	/* Parese the input arguments */
 	gts_parse(argc,argv);
 	/* Init the Global Clock */
 	gts_init_global_clock();
 	if (verbose) {
 		gts_ts_overhead(&ttp);
-		fprintf(stderr,"Bounce count is %d\n",bounce);
+		fprintf(stderr,"Bounce count is %d\n", bounce);
 	}
 	/* Time to leave... sigh */
 	return(0);
-} /* end of main() */
- 
- 
- 
- 
- 
+} /* end of main() */ 

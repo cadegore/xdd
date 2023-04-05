@@ -14,8 +14,9 @@
  *   talk to the global clock timeserver.
  *   
  */
-#include "xdd.h"
-in_addr_t
+#include "xint.h"
+
+static int
 xdd_init_global_clock_network(char *hostname) {
 	struct hostent *hostent; /* used to init the time server info */
 	in_addr_t addr;  /* Address of hostname from hostent */
@@ -78,30 +79,34 @@ xdd_init_global_clock_network(char *hostname) {
 /*----------------------------------------------------------------------------*/
 /* xdd_init_global_clock() - Initialize the global clock if requested
  */
+
 void
-xdd_init_global_clock(nclk_t *nclkp) {
+xdd_init_global_clock(nclk_t *nclkp, xdd_plan_t *planp) {
 	nclk_t  now;  /* the current time returned by nclk() */
 
 
 	/* Global clock stuff here */
-	if (xgp->gts_hostname) {
-		xgp->gts_addr = xdd_init_global_clock_network(xgp->gts_hostname);
-		if (xgp->gts_addr == -1) { /* Problem with the network */
-			fprintf(xgp->errout,"%s: Error initializing global clock - network malfunction\n",xgp->progname);
+	if (planp->gts_hostname) {
+		int err = xdd_init_global_clock_network(planp->gts_hostname);
+		if (err == -1) { /* Problem with the network */
+			fprintf(xgp->errout, "%s: Error initializing global clock - network malfunction\n",
+				xgp->progname);
 			fflush(xgp->errout);
                         *nclkp = 0;
 			return;
+		} else {
+			planp->gts_addr = err;
 		}
-		clk_initialize(xgp->gts_addr, xgp->gts_port, xgp->gts_bounce, &xgp->gts_delta);
+		clk_initialize(planp->gts_addr, planp->gts_port, planp->gts_bounce, &planp->gts_delta);
 		nclk_now(&now);
-		xgp->ActualLocalStartTime = xgp->gts_time - xgp->gts_delta; 
-		xgp->gts_seconds_before_starting = ((xgp->ActualLocalStartTime - now) / BILLION); 
-		fprintf(xgp->errout,"Global Time now is %lld. Starting in %lld seconds at Global Time %lld\n",
-			(long long)(now+xgp->gts_delta)/BILLION, 
-			(long long)xgp->gts_seconds_before_starting, 
-			(long long)xgp->gts_time/BILLION); 
+		planp->ActualLocalStartTime = planp->gts_time - planp->gts_delta; 
+		planp->gts_seconds_before_starting = ((planp->ActualLocalStartTime - now) / BILLION); 
+		fprintf(xgp->errout, "Global Time now is %lld. Starting in %lld seconds at Global Time %lld\n",
+			(long long)(now + planp->gts_delta)/BILLION, 
+			(long long)planp->gts_seconds_before_starting, 
+			(long long)planp->gts_time/BILLION); 
 		fflush(xgp->errout);
-		*nclkp = xgp->ActualLocalStartTime;
+		*nclkp = planp->ActualLocalStartTime;
 		return;
 	}
 	nclk_now(nclkp);

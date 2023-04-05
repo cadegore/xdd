@@ -71,7 +71,8 @@ xdd_worker_thread_io(worker_data_t *wdp) {
 	// of the E2E operation.
 	status = xdd_worker_thread_ttd_before_io_op(wdp);
 	if (status) { // Must be a problem is status is anything but zero
-		fprintf(xgp->errout,"\n%s: xdd_worker_thread_io: Target %d Worker Thread %d: ERROR: Canceling run due to previous error\n",
+		fprintf(xgp->errout,"\n%s: xdd_worker_thread_io: Target %d Worker Thread %d: ERROR: "
+			"Canceling run due to previous error\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number);
@@ -168,13 +169,24 @@ xdd_worker_thread_wait_for_previous_io(worker_data_t *wdp) {
 	tdp = wdp->wd_tdp;
 	// Wait for the I/O operation ahead of this one to complete (if necessary)
 	tot_offset = (wdp->wd_task.task_op_number % tdp->td_totp->tot_entries) - 1;
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worker_thread_wait_for_previous_io: Target: %d: Worker: %d: task_op_number: %lld: tot_entries: %d: tot_offset: %d: ENTER \n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number, (long long int)wdp->wd_task.task_op_number, tdp->td_totp->tot_entries, tot_offset);
+
+	if (xgp->global_options & GO_DEBUG_IO) {
+		fprintf(stderr, "DEBUG_IO: %lld: xdd_worker_thread_wait_for_previous_io: Target: %d: "
+			"Worker: %d: task_op_number: %lld: tot_entries: %d: tot_offset: %d: ENTER \n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			(long long int)wdp->wd_task.task_op_number,
+			tdp->td_totp->tot_entries,
+			tot_offset);
+	}
+
 	if (tot_offset < 0) 
 		tot_offset = tdp->td_totp->tot_entries - 1; // The last TOT_ENTRY
 	
 //	if (tdp->td_target_options & TO_E2E_DESTINATION) {
 //		if (tdp->td_counters.tc_current_op_number == 0)
-		if (wdp->wd_task.task_op_number == 0)
+	if (wdp->wd_task.task_op_number == 0)
 		return(0);	// Dont need to wait for op minus 1 ;)
 //	} else {
 //		if (tdp->td_counters.tc_current_op_number == 0)
@@ -188,8 +200,19 @@ if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worke
 	wdp->wd_current_state &= ~WORKER_CURRENT_STATE_WT_WAITING_FOR_TOT_LOCK_TS;
 	nclk_now(&tep->tot_wait_ts);
 
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worker_thread_wait_for_previous_io: Target: %d: Worker: %d: tot_offset: %d: I AM WAITING FOR PREVIOUS IO starting at %lld\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,tot_offset,(long long int)tep->tot_wait_ts);
-if (xgp->global_options & GO_DEBUG_TOT) xdd_show_tot_entry(tdp->td_totp,tot_offset);
+	if (xgp->global_options & GO_DEBUG_IO) {
+		fprintf(stderr, "DEBUG_IO: %lld: xdd_worker_thread_wait_for_previous_io: Target: %d: "
+			"Worker: %d: tot_offset: %d: I AM WAITING FOR PREVIOUS IO starting at %lld\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			tot_offset,
+			(long long int)tep->tot_wait_ts);
+	}
+
+	if (xgp->global_options & GO_DEBUG_TOT)
+		xdd_show_tot_entry(tdp->td_totp,tot_offset);
+
 	wdp->wd_current_state |= WORKER_CURRENT_STATE_WT_WAITING_FOR_PREVIOUS_IO;
 
 	totwp = &wdp->wd_tot_wait;
@@ -217,9 +240,11 @@ if (xgp->global_options & GO_DEBUG_TOT) xdd_show_tot_entry(tdp->td_totp,tot_offs
 				} else {
 					if (xgp->global_options & GO_DEBUG_IO) {
 						fprintf(stderr, "DEBUG_IO: xdd_worker_thread_wait_for_previous_io: "
-								"Target: %d Worker: %d, tot_offset: %d, With -looseordering "
-								"previous IO never released this IO\n",
-								tdp->td_target_number, wdp->wd_worker_number, tot_offset);
+							"Target: %d Worker: %d, tot_offset: %d, With -looseordering "
+							"previous IO never released this IO\n",
+							tdp->td_target_number,
+							wdp->wd_worker_number,
+							tot_offset);
 					}
 					break;
 				}
@@ -232,7 +257,16 @@ if (xgp->global_options & GO_DEBUG_TOT) xdd_show_tot_entry(tdp->td_totp,tot_offs
 	wdp->wd_current_state &= ~WORKER_CURRENT_STATE_WT_WAITING_FOR_PREVIOUS_IO;
 	tep->tot_status = TOT_ENTRY_UNAVAILABLE;
 	pthread_mutex_unlock(&tep->tot_mutex);
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worker_thread_wait_for_previous_io: Target: %d: Worker: %d: tot_offset: %d: I AM DONE WAITING FOR PREVIOUS IO - released by worker %d\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,tot_offset,tep->tot_post_worker_thread_number);
+
+	if (xgp->global_options & GO_DEBUG_IO) {
+		fprintf(stderr, "DEBUG_IO: %lld: xdd_worker_thread_wait_for_previous_io: Target: %d: Worker: %d: "
+			"tot_offset: %d: I AM DONE WAITING FOR PREVIOUS IO - released by worker %d\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			tot_offset,
+			tep->tot_post_worker_thread_number);
+	}
 
 	return(0);
 } // End of xdd_worker_thread_wait_for_previous_io()
@@ -256,7 +290,15 @@ xdd_worker_thread_release_next_io(worker_data_t *wdp) {
 	tdp = wdp->wd_tdp;
 	tot_offset = (wdp->wd_task.task_op_number % tdp->td_totp->tot_entries);
 
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worker_thread_release_next_io: Target: %d: Worker: %d: task_op_number: %lld: tot_offset: %d: ENTER\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,(long long int)wdp->wd_task.task_op_number,tot_offset);
+	if (xgp->global_options & GO_DEBUG_IO) {
+		fprintf(stderr, "DEBUG_IO: %lld: xdd_worker_thread_release_next_io: Target: %d: Worker: %d: "
+			"task_op_number: %lld: tot_offset: %d: ENTER\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			(long long int)wdp->wd_task.task_op_number,tot_offset);
+	}
+
 	// Wait for the I/O operation ahead of this one to complete (if necessary)
 
 	tep = &tdp->td_totp->tot_entry[tot_offset];
@@ -267,7 +309,17 @@ if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worke
 	tep->tot_post_worker_thread_number = wdp->wd_worker_number;
 	nclk_now(&tep->tot_post_ts);
 
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worker_thread_release_next_io: Target: %d: Worker: %d: task_op_number: %lld: tot_offset: %d: RELEASING worker number %d\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,(long long int)wdp->wd_task.task_op_number,tot_offset,tep->tot_wait_worker_thread_number);
+	if (xgp->global_options & GO_DEBUG_IO) {
+		fprintf(stderr, "DEBUG_IO: %lld: xdd_worker_thread_release_next_io: Target: %d: Worker: %d: "
+			"task_op_number: %lld: tot_offset: %d: RELEASING worker number %d\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			(long long int)wdp->wd_task.task_op_number,
+			tot_offset,
+			tep->tot_wait_worker_thread_number);
+	}
+
 	// Update the TOT Entry counters
 	nclk_now(&tep->tot_update_ts);
 	tep->tot_update_worker_thread_number = wdp->wd_worker_number;
@@ -285,8 +337,11 @@ if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worke
 		totwp->totw_nextp = 0;
 		// If another Worker is waiting for the tot entry we will signal them the tot is available
 		status = pthread_cond_signal(&totwp->totw_condition);
+
 		if (status) {
-			fprintf(xgp->errout,"%s: xdd_worker_thread_release_next_io: Target %d Worker Thread %d: ERROR: Bad status from pthread_cond_signal: status=%d, errno=%d, task_op_number=%lld, tot_offset=%d\n",
+			fprintf(xgp->errout, "%s: xdd_worker_thread_release_next_io: Target %d Worker Thread %d: "
+				"ERROR: Bad status from pthread_cond_signal: status=%d, errno=%d, task_op_number=%lld, "
+				"tot_offset=%d\n",
 				xgp->progname,
 				tdp->td_target_number,
 				wdp->wd_worker_number,
@@ -297,8 +352,20 @@ if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worke
 			return(-1);
 		}
 	}
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worker_thread_release_next_io: Target: %d: Worker: %d: tot_offset: %d: worker %d has been RELEASED\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,tot_offset,tep->tot_wait_worker_thread_number);
-if (xgp->global_options & GO_DEBUG_TOT) xdd_show_tot_entry(tdp->td_totp,tot_offset);
+
+	if (xgp->global_options & GO_DEBUG_IO) {
+		fprintf(stderr, "DEBUG_IO: %lld: xdd_worker_thread_release_next_io: Target: %d: Worker: %d: "
+			"tot_offset: %d: worker %d has been RELEASED\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			tot_offset,
+			tep->tot_wait_worker_thread_number);
+	}
+
+	if (xgp->global_options & GO_DEBUG_TOT)
+		xdd_show_tot_entry(tdp->td_totp,tot_offset);
+
 	return(0);
 } // End of xdd_worker_thread_release_next_io()
 
@@ -332,8 +399,20 @@ xdd_worker_thread_update_local_counters(worker_data_t *wdp) {
 	// Get the pointer to the Target's Data
 	tdp = wdp->wd_tdp;
 
-
-if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worker_thread_update_local_counters: Target: %d: Worker: %d: byte_offset: %lld: wd_counters.tc_current_op_elapsed_time: %lld:  wd_counters.tc_current_op_start_time: %lld: wd_counters.tc_current_op_end_time: %lld: wd_counters.tc_current_op_elapsed_time: %lld\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,(long long int)wdp->wd_task.task_byte_offset,(unsigned long long int)wdp->wd_counters.tc_current_op_elapsed_time,(unsigned long long int)wdp->wd_counters.tc_current_op_start_time,(unsigned long long int)wdp->wd_counters.tc_current_op_end_time,(unsigned long long int)(wdp->wd_counters.tc_current_op_end_time - wdp->wd_counters.tc_current_op_start_time));
+	if (xgp->global_options & GO_DEBUG_IO) {
+		fprintf(stderr, "DEBUG_IO: %lld: xdd_worker_thread_update_local_counters: Target: %d: "
+			"Worker: %d: byte_offset: %lld: wd_counters.tc_current_op_elapsed_time: %lld: "
+			"wd_counters.tc_current_op_start_time: %lld: wd_counters.tc_current_op_end_time: %lld: "
+			"wd_counters.tc_current_op_elapsed_time: %lld\n",
+			(long long int)pclk_now(),
+			tdp->td_target_number,
+			wdp->wd_worker_number,
+			(long long int)wdp->wd_task.task_byte_offset,
+			(unsigned long long int)wdp->wd_counters.tc_current_op_elapsed_time,
+			(unsigned long long int)wdp->wd_counters.tc_current_op_start_time,
+			(unsigned long long int)wdp->wd_counters.tc_current_op_end_time,
+			(unsigned long long int)(wdp->wd_counters.tc_current_op_end_time - wdp->wd_counters.tc_current_op_start_time));
+	}
 
 	wdp->wd_counters.tc_current_op_elapsed_time = (wdp->wd_counters.tc_current_op_end_time - wdp->wd_counters.tc_current_op_start_time);
 	wdp->wd_counters.tc_accumulated_op_time += wdp->wd_counters.tc_current_op_elapsed_time;
@@ -365,7 +444,9 @@ if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worke
 		if (xgp->global_options & GO_STOP_ON_ERROR) {
 			tdp->td_abort = 1; // This tells all the other Worker Threads and the Target Thread to abort
 		}
-		fprintf(xgp->errout, "%s: I/O ERROR on Target %d Worker Thread %d: ERROR: Status %d, I/O Transfer Size [expected status] %d, %s Operation Number %lld\n",
+
+		fprintf(xgp->errout, "%s: I/O ERROR on Target %d Worker Thread %d: ERROR: Status %d, "
+			"I/O Transfer Size [expected status] %d, %s Operation Number %lld\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number,
@@ -373,9 +454,11 @@ if (xgp->global_options & GO_DEBUG_IO) fprintf(stderr,"DEBUG_IO: %lld: xdd_worke
 			(int)wdp->wd_task.task_xfer_size,
 			wdp->wd_task.task_op_string,
 			(long long)wdp->wd_task.task_op_number);
+
 		if (!(tdp->td_target_options & TO_SGIO)) {
 			if ((wdp->wd_counters.tc_current_io_status == 0) && (errno == 0)) { // Indicate this is an end-of-file condition
-				fprintf(xgp->errout, "%s: Target %d Worker Thread %d: WARNING: END-OF-FILE Reached during %s Operation Number %lld\n",
+				fprintf(xgp->errout, "%s: Target %d Worker Thread %d: WARNING: END-OF-FILE Reached "
+					"during %s Operation Number %lld\n",
 					xgp->progname,
 					tdp->td_target_number,
 					wdp->wd_worker_number,

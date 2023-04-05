@@ -60,7 +60,8 @@ xdd_dio_before_io_op(worker_data_t *wdp) {
 #endif
 	status = xdd_target_open(tdp);
 	if (status != 0 ) { /* error opening target */
-		fprintf(xgp->errout,"%s: xdd_dio_before_io_op: ERROR: Target %d Worker Thread %d: Reopen of target '%s' failed\n",
+		fprintf(xgp->errout, "%s: xdd_dio_before_io_op: ERROR: Target %d Worker Thread %d: "
+            "Reopen of target '%s' failed\n",
 			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number,
@@ -107,7 +108,7 @@ xdd_raw_before_io_op(worker_data_t *wdp) {
 					status = fstat64(wdp->wd_task.task_file_desc,&statbuf);
 #endif
 					if (status < 0) {
-						fprintf(xgp->errout,"%s: RAW: Error getting status on file\n", xgp->progname);
+						fprintf(xgp->errout, "%s: RAW: Error getting status on file\n", xgp->progname);
 						tdp->td_rawp->raw_data_ready = wdp->wd_task.task_xfer_size;
 					} else { /* figure out how much more data we can read */
 						tdp->td_rawp->raw_data_ready = statbuf.st_size - tdp->td_counters.tc_current_byte_offset;
@@ -127,13 +128,14 @@ xdd_raw_before_io_op(worker_data_t *wdp) {
 					status = xdd_raw_read_wait(wdp);
 					if (tdp->td_rawp->raw_msg.length != wdp->wd_task.task_xfer_size) 
 
-						fprintf(stderr,"error on msg recvd %d loc %lld, length %lld\n",
+						fprintf(stderr, "error on msg recvd %d loc %lld, length %lld\n",
 							tdp->td_rawp->raw_msg_recv-1, 
 							(long long)tdp->td_rawp->raw_msg.location,  
 							(long long)tdp->td_rawp->raw_msg.length);
 					if (tdp->td_rawp->raw_msg.sequence != tdp->td_rawp->raw_msg_last_sequence) {
 
-						fprintf(stderr,"sequence error on msg recvd %d loc %lld, length %lld seq num is %lld should be %lld\n",
+						fprintf(stderr, "sequence error on msg recvd %d loc %lld, length %lld seq num is %lld "
+                            "should be %lld\n",
 							tdp->td_rawp->raw_msg_recv-1, 
 							(long long)tdp->td_rawp->raw_msg.location,  
 							(long long)tdp->td_rawp->raw_msg.length, 
@@ -151,7 +153,8 @@ xdd_raw_before_io_op(worker_data_t *wdp) {
 					tdp->td_rawp->raw_data_length = ((tdp->td_rawp->raw_msg.location + tdp->td_rawp->raw_msg.length) - (tdp->td_rawp->raw_prev_loc + tdp->td_rawp->raw_prev_len));
 					tdp->td_rawp->raw_data_ready += tdp->td_rawp->raw_data_length;
 					if (tdp->td_rawp->raw_data_length > wdp->wd_task.task_xfer_size) 
-						fprintf(stderr,"msgseq=%lld, loc=%lld, len=%lld, data_length is %lld, data_ready is now %lld, iosize=%d\n",
+						fprintf(stderr, "msgseq=%lld, loc=%lld, len=%lld, data_length is %lld, data_ready is "
+                            "now %lld, iosize=%d\n",
 							(long long)tdp->td_rawp->raw_msg.sequence, 
 							(long long)tdp->td_rawp->raw_msg.location, 
 							(long long)tdp->td_rawp->raw_msg.length, 
@@ -210,17 +213,29 @@ xdd_e2e_before_io_op(worker_data_t *wdp) {
 	// The call to xdd_e2e_dest_recv() will block until there is data to read 
 	wdp->wd_current_state |= WORKER_CURRENT_STATE_DEST_RECEIVE;
 
-        if (PLAN_ENABLE_XNI & tdp->td_planp->plan_options) {
-            status = xint_e2e_xni_recv(wdp);
+    if (PLAN_ENABLE_XNI & tdp->td_planp->plan_options) {
+        status = xint_e2e_xni_recv(wdp);
+    }
+    else {
+        if (xgp->global_options & GO_DEBUG_E2E) {
+            fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_before_io_op: Target: %d: Worker: %d: "
+                "Calling xdd_e2e_dest_recv...\n ",
+                (long long int)pclk_now(),
+                tdp->td_target_number,
+                wdp->wd_worker_number);
         }
-        else {
 
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_before_io_op: Target: %d: Worker: %d: Calling xdd_e2e_dest_recv...\n ", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number);
+        status = xdd_e2e_dest_receive(wdp);
 
-	    status = xdd_e2e_dest_receive(wdp);
-
-if (xgp->global_options & GO_DEBUG_E2E) fprintf(stderr,"DEBUG_E2E: %lld: xdd_e2e_before_io_op: Target: %d: Worker: %d: Returning from xdd_e2e_dest_recv: e2e header:\n ", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number);
+        if (xgp->global_options & GO_DEBUG_E2E) {
+            fprintf(stderr, "DEBUG_E2E: %lld: xdd_e2e_before_io_op: Target: %d: Worker: %d: "
+                "Returning from xdd_e2e_dest_recv: e2e header:\n ",
+                (long long int)pclk_now(),
+                tdp->td_target_number,
+                wdp->wd_worker_number);
         }
+    }
+
 	wdp->wd_current_state &= ~WORKER_CURRENT_STATE_DEST_RECEIVE;
 
 	// If status is "-1" then soemthing happened to the connection - time to leave
@@ -260,8 +275,15 @@ xdd_throttle_before_io_op(worker_data_t *wdp) {
 
 	tdp = wdp->wd_tdp;
 	if (xgp->global_options & GO_DEBUG_THROTTLE) {
-		fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_throttle_before_io_op: Target: %d: Worker: %d: ENTER: td_throtp: %p: throttle: %f:\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,(void *)tdp->td_throtp,(tdp->td_throtp != NULL)?tdp->td_throtp->throttle:-69.69);
+		fprintf(stderr, "DEBUG_THROTTLE: %lld: xdd_throttle_before_io_op: Target: %d: Worker: %d: "
+            "ENTER: td_throtp: %p: throttle: %f:\n",
+            (long long int)pclk_now(),
+            tdp->td_target_number,
+            wdp->wd_worker_number,
+            (void *)tdp->td_throtp,
+            (tdp->td_throtp != NULL) ? tdp->td_throtp->throttle : -69.69);
 	}
+
 	if ((tdp->td_throtp == NULL) || (tdp->td_throtp->throttle <= 0.0)) 
 		return;
 
@@ -278,23 +300,34 @@ xdd_throttle_before_io_op(worker_data_t *wdp) {
 			now -= wdp->wd_counters.tc_pass_start_time;
 			if (now < tdp->td_seekhdr.seeks[wdp->wd_task.task_op_number].time1) { /* Then we may need to sleep */
 				sleep_time = (tdp->td_seekhdr.seeks[wdp->wd_task.task_op_number].time1 - now); /* sleep time in microseconds */
-if (xgp->global_options & GO_DEBUG_THROTTLE) fprintf(stderr,"DEBUG_THROTTLE: %lld: xdd_throttle_before_io_op: Target: %d: Worker: %d: OPS/BW: time1: %lld: now: %lld: sleep_time: %lld\n", (long long int)pclk_now(),tdp->td_target_number,wdp->wd_worker_number,(long long int)tdp->td_seekhdr.seeks[wdp->wd_task.task_op_number].time1,(long long int)now,(long long int)sleep_time);
-				if (sleep_time > 0) {
-					sleep_time_dw = sleep_time;
+
+                if (xgp->global_options & GO_DEBUG_THROTTLE) {
+                    fprintf(stderr, "DEBUG_THROTTLE: %lld: xdd_throttle_before_io_op: Target: %d: "
+                        "Worker: %d: OPS/BW: time1: %lld: now: %lld: sleep_time: %lld\n",
+                        (long long int)pclk_now(),
+                        tdp->td_target_number,
+                        wdp->wd_worker_number,
+                        (long long int)tdp->td_seekhdr.seeks[wdp->wd_task.task_op_number].time1,
+                        (long long int)now,
+                        (long long int)sleep_time);
+                }
+
+			    if (sleep_time > 0) {
+				    sleep_time_dw = sleep_time;
 #ifdef WIN32
-					Sleep(sleep_time_dw/1000);
+				    Sleep(sleep_time_dw/1000);
 #elif (LINUX || IRIX || AIX || DARWIN || FREEBSD) /* Change this line to use usleep */
-					if ((sleep_time_dw*CLK_TCK) > 1000) /* only sleep if it will be 1 or more ticks */
+				    if ((sleep_time_dw*CLK_TCK) > 1000) /* only sleep if it will be 1 or more ticks */
 #if (IRIX )
-						sginap((sleep_time_dw*CLK_TCK)/fixme);
+					    sginap((sleep_time_dw*CLK_TCK)/fixme);
 #elif (LINUX || AIX || DARWIN || FREEBSD) /* Change this line to use usleep */
-						// The sleep_time_dw is in units of nanoseconds so we 
-						// divide be 1000 to get the number of microseconds to sleep
-						usleep(sleep_time_dw/1000);
+					    // The sleep_time_dw is in units of nanoseconds so we 
+					    // divide be 1000 to get the number of microseconds to sleep
+					    usleep(sleep_time_dw/1000);
 #endif
 #endif
-				}
-			}
+			    }
+		    }
 		}
 	}
 } // xdd_throttle_before_io_op()

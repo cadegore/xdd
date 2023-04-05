@@ -69,7 +69,7 @@ xdd_initialization(int32_t argc,char *argv[], xdd_plan_t *planp) {
 
 	// Init the Global Clock 
 	// See global_clock.c
-	// xdd_init_global_clock(&xgp->ActualLocalStartTime);
+	// xdd_init_global_clock(&xgp->ActualLocalStartTime, planp);
 
 	// display configuration information about this run 
 	// See info_display.c

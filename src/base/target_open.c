@@ -54,7 +54,7 @@ xdd_target_open(target_data_t *tdp) {
 	nclk_now(&tdp->td_open_end_time); // Record the ending time of the open
 	// Check the status of the OPEN operation to see if it worked
 	if (tdp->td_file_desc < 0) {
-			fprintf(xgp->errout,"%s: xdd_target_open: ERROR: Could not open target number %d name %s\n",
+			fprintf(xgp->errout, "%s: xdd_target_open: ERROR: Could not open target number %d name %s\n",
 				xgp->progname,
 				tdp->td_target_number,
 				tdp->td_target_full_pathname);
@@ -94,7 +94,8 @@ xdd_target_reopen(target_data_t *tdp) {
 	/* open the old/new/recreated target file */
 	status = xdd_target_open(tdp);
 	if (status != 0) { /* error openning target */
-		fprintf(xgp->errout,"%s: xdd_target_reopen: ERROR: Aborting I/O for target number %d name %s due to open failure\n",
+		fprintf(xgp->errout, "%s: xdd_target_reopen: ERROR: Aborting I/O for target number %d "
+			"name %s due to open failure\n",
 			xgp->progname,
 			tdp->td_target_number,
 			tdp->td_target_full_pathname);
@@ -131,7 +132,8 @@ xdd_target_shallow_open(worker_data_t *wdp) {
 
 	// Check the status of the OPEN operation to see if it worked
 	if (tdp->td_file_desc < 0) {
-		fprintf(xgp->errout,"%s: xdd_target_shallow_open: ERROR: Could not shallow open target number %d name %s\n",
+		fprintf(xgp->errout, "%s: xdd_target_shallow_open: ERROR: Could not shallow open target "
+			"number %d name %s\n",
 			xgp->progname,
 			tdp->td_target_number,
 			tdp->td_target_full_pathname);
@@ -205,12 +207,13 @@ xdd_target_existence_check(target_data_t *tdp) {
 	if (status < 0) { 
 		if ((ENOENT == errno) && (tdp->td_rwratio == 0.0)) { // File does not yet exist
 			tdp->td_target_options |= TO_REGULARFILE;
-			fprintf(xgp->errout,"%s: xdd_target_existence_check: NOTICE: target number %d name %s does not exist so it will be created.\n",
+			fprintf(xgp->errout, "%s: xdd_target_existence_check: NOTICE: target number %d name %s does not "
+				"exist so it will be created.\n",
 				xgp->progname,
 				tdp->td_target_number,
 				tdp->td_target_full_pathname);
 		} else { // Something is wrong with the file
-			fprintf(xgp->errout,"%s: xdd_target_existence_check: ERROR: Could not stat target number %d name %s\n",
+			fprintf(xgp->errout, "%s: xdd_target_existence_check: ERROR: Could not stat target number %d name %s\n",
 				xgp->progname,
 				tdp->td_target_number,
 				tdp->td_target_full_pathname);
@@ -224,7 +227,7 @@ xdd_target_existence_check(target_data_t *tdp) {
 		tdp->td_target_options |= TO_REGULARFILE;
 	} else if (S_ISDIR(tdp->td_statbuf.st_mode)) { // Is this a Directory?
 		tdp->td_target_options |= TO_REGULARFILE;
-		fprintf(xgp->errout,"%s: xdd_target_existence_check: WARNING: Target number %d name %s is a DIRECTORY\n",
+		fprintf(xgp->errout, "%s: xdd_target_existence_check: WARNING: Target number %d name %s is a DIRECTORY\n",
 			xgp->progname,
 			tdp->td_target_number,
 			tdp->td_target_full_pathname);
@@ -242,20 +245,22 @@ xdd_target_existence_check(target_data_t *tdp) {
  	*/
 	if ( (tdp->td_target_options & TO_REGULARFILE) && !(tdp->td_rwratio < 1.0)) { // This is a purely read operation
 		if (tdp->td_target_bytes_to_xfer_per_pass > (uint64_t)tdp->td_statbuf.st_size) { // Check to make sure that the we won't read off the end of the file
-		fprintf(xgp->errout,"%s: xdd_target_existence_check: WARNING: Target number %d name %s <%lld bytes> is shorter than the the total requested transfer size <%lld bytes>\n",
-			xgp->progname,
-			tdp->td_target_number,
-			tdp->td_target_full_pathname,
-			(long long)tdp->td_statbuf.st_size, 
-			(long long)tdp->td_target_bytes_to_xfer_per_pass);
-		fflush(xgp->errout);
+			fprintf(xgp->errout, "%s: xdd_target_existence_check: WARNING: Target number %d name %s <%lld bytes> "
+				"is shorter than the the total requested transfer size <%lld bytes>\n",
+				xgp->progname,
+				tdp->td_target_number,
+				tdp->td_target_full_pathname,
+				(long long)tdp->td_statbuf.st_size, 
+				(long long)tdp->td_target_bytes_to_xfer_per_pass);
+			fflush(xgp->errout);
 		}
 	}
 	/* Perform sanity checks */
 	if (tdp->td_target_options & TO_DIO) {
 		/* make sure it is a regular file(even if it does NOT exist) or block device, otherwise fail */
   		if ( !(tdp->td_target_options & TO_REGULARFILE) && !(S_ISBLK(tdp->td_statbuf.st_mode))) {
-			fprintf(xgp->errout,"%s: xdd_target_existence_check: WARNING: Target number %d name %s must be a regular file or block special file (aka block device) when used with the -dio flag\n",
+			fprintf(xgp->errout, "%s: xdd_target_existence_check: WARNING: Target number %d name %s must be a "
+				"regular file or block special file (aka block device) when used with the -dio flag\n",
 				xgp->progname,
 				tdp->td_target_number,
 				tdp->td_target_full_pathname);
@@ -295,28 +300,70 @@ xdd_target_open_for_os(target_data_t *tdp) {
 	if (tdp->td_rwratio == 0.0) {
 		if (tdp->td_target_options & TO_SGIO) {
 			tdp->td_file_desc = open(tdp->td_target_full_pathname,tdp->td_open_flags|O_RDWR, 0777); /* Must open RDWR for SGIO */
-if (xgp->global_options & GO_DEBUG_OPEN) fprintf(stderr,"DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: SGIO WRITE: file_desc: %d\n ", (long long int)pclk_now(),tdp->td_target_number,tdp->td_queue_depth,tdp->td_file_desc);
+
+			if (xgp->global_options & GO_DEBUG_OPEN) {
+				fprintf(stderr, "DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: "
+					"SGIO WRITE: file_desc: %d\n ",
+					(long long int)pclk_now(),
+					tdp->td_target_number,
+					tdp->td_queue_depth,
+					tdp->td_file_desc);
+			}
+
 			xdd_sg_set_reserved_size(tdp,tdp->td_file_desc);
 			xdd_sg_get_version(tdp,tdp->td_file_desc);
 		} else {
 			tdp->td_file_desc = open(tdp->td_target_full_pathname,tdp->td_open_flags|O_WRONLY, 0666); /* write only */
-if (xgp->global_options & GO_DEBUG_OPEN) fprintf(stderr,"DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: WRITE ONLY: file_desc: %d\n ", (long long int)pclk_now(),tdp->td_target_number,tdp->td_queue_depth,tdp->td_file_desc);
+
+			if (xgp->global_options & GO_DEBUG_OPEN) {
+				fprintf(stderr, "DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: "
+					"WRITE ONLY: file_desc: %d\n ",
+					(long long int)pclk_now(),
+					tdp->td_target_number,
+					tdp->td_queue_depth,
+					tdp->td_file_desc);
+			}
 		}
 	} else if (tdp->td_rwratio == 1.0) { /* read only */
 		tdp->td_open_flags &= ~O_CREAT;
 		if (tdp->td_target_options & TO_SGIO) {
 			tdp->td_file_desc = open(tdp->td_target_full_pathname,tdp->td_open_flags|O_RDWR, 0777); /* Must open RDWR for SGIO  */
-if (xgp->global_options & GO_DEBUG_OPEN) fprintf(stderr,"DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: SGIO READ: file_desc: %d\n ", (long long int)pclk_now(),tdp->td_target_number,tdp->td_queue_depth,tdp->td_file_desc);
+
+			if (xgp->global_options & GO_DEBUG_OPEN) {
+				fprintf(stderr, "DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: "
+					"SGIO READ: file_desc: %d\n ",
+					(long long int)pclk_now(),
+					tdp->td_target_number,
+					tdp->td_queue_depth,
+					tdp->td_file_desc);
+			}
+
 			xdd_sg_set_reserved_size(tdp,tdp->td_file_desc);
 			xdd_sg_get_version(tdp,tdp->td_file_desc);
 		} else {
 			tdp->td_file_desc = open(tdp->td_target_full_pathname,tdp->td_open_flags|O_RDONLY, 0777); /* Read only */
-if (xgp->global_options & GO_DEBUG_OPEN) fprintf(stderr,"DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: READ ONLY: file_desc: %d\n ", (long long int)pclk_now(),tdp->td_target_number,tdp->td_queue_depth,tdp->td_file_desc);
+
+			if (xgp->global_options & GO_DEBUG_OPEN) {
+				fprintf(stderr, "DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: "
+					"READ ONLY: file_desc: %d\n ", 
+					(long long int)pclk_now(),
+					tdp->td_target_number,
+					tdp->td_queue_depth,
+					tdp->td_file_desc);
+			}
 		}
 	} else if ((tdp->td_rwratio > 0.0) && (tdp->td_rwratio < 1.0)) { /* read/write mix */
 		tdp->td_open_flags &= ~O_CREAT;
 		tdp->td_file_desc = open(tdp->td_target_full_pathname,tdp->td_open_flags|O_RDWR, 0666);
-if (xgp->global_options & GO_DEBUG_OPEN) fprintf(stderr,"DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: MIXED RW: file_desc: %d\n ", (long long int)pclk_now(),tdp->td_target_number,tdp->td_queue_depth,tdp->td_file_desc);
+
+		if (xgp->global_options & GO_DEBUG_OPEN) {
+			fprintf(stderr, "DEBUG_OPEN: %lld: xdd_target_open_for_os: Target: %d: Worker: %d: "
+				"MIXED RW: file_desc: %d\n ",
+				(long long int)pclk_now(),
+				tdp->td_target_number,
+				tdp->td_queue_depth,
+				tdp->td_file_desc);
+		}
 	}
 
 	return(0);
@@ -389,7 +436,8 @@ xdd_target_open_for_os(target_data_t *tdp) {
 	if (tdp->td_target_options & TO_DIO) {
 			/* make sure it is a regular file, otherwise fail */
 			if ( (statbuf.st_mode & S_IFMT) != S_IFREG) {
-				fprintf(xgp->errout,"%s: xdd_open_target<solaris>: ERROR: Target number %d name %s must be a regular file when used with the -dio flag\n",
+				fprintf(xgp->errout, "%s: xdd_open_target<solaris>: ERROR: Target number %d name %s "
+					"must be a regular file when used with the -dio flag\n",
 					xgp->progname,
 					tdp->td_target_number,
 					target_full_pathname);
@@ -398,10 +446,11 @@ xdd_target_open_for_os(target_data_t *tdp) {
 			}
 		i = directio(fd,DIRECTIO_ON);
 		if (i < 0) {
-			fprintf(xgp->errout,"%s: xdd_open_target<solaris>: ERROR: Could not set DIRECTIO flag for target number %d name %s\n",
-					xgp->progname,
-					tdp->td_target_number,
-					target_full_pathname);
+			fprintf(xgp->errout, "%s: xdd_open_target<solaris>: ERROR: Could not set DIRECTIO flag "
+				"for target number %d name %s\n",
+				xgp->progname,
+				tdp->td_target_number,
+				target_full_pathname);
 			fflush(xgp->errout);
 			perror("reason");
 			return(-1);
@@ -421,10 +470,11 @@ xdd_target_open_for_os(target_data_t *tdp) {
 	if (tdp->td_target_options & TO_DIO) {
 		status = directio(tdp->td_file_desc,DIRECTIO_ON);
 		if (status < 0) {
-			fprintf(xgp->errout,"%s: xdd_open_target<solaris>: ERROR: Could not set DIRECTIO flag for target number %d name %s\n",
-					xgp->progname,
-					tdp->td_target_number,
-					tdp->td_target_full_pathname);
+			fprintf(xgp->errout, "%s: xdd_open_target<solaris>: ERROR: Could not set DIRECTIO flag "
+				"for target number %d name %s\n",
+				xgp->progname,
+				tdp->td_target_number,
+				tdp->td_target_full_pathname);
 			fflush(xgp->errout);
 			perror("reason");
 			return(-1);
@@ -523,9 +573,11 @@ xdd_target_open_for_os(target_data_t *tdp) {
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL);
-		fprintf(xgp->errout,"%s: xdd_open_target: Could not open target for %s: %s\n",
-			xgp->progname,(p->rwratio < 1.0)?"write":"read",target_full_pathname);
-			fprintf(xgp->errout,"reason:%s",lpMsgBuf);
+			fprintf(xgp->errout, "%s: xdd_open_target: Could not open target for %s: %s\n",
+				xgp->progname,
+				(p->rwratio < 1.0) ? "write" : "read",
+				target_full_pathname);
+			fprintf(xgp->errout, "reason:%s", lpMsgBuf);
 			fflush(xgp->errout);
 			return((void *)-1);
 	}
