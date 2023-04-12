@@ -19,6 +19,7 @@ import sys
 # Python packages supplied and needed by xdd
 #
 import Pyro4
+import paramiko
 from xdd.core import XDDError
 from xdd.constants import XDD_PYRO_URI_DELIMITER, XDD_PYTHONPATH
 from xdd.flowbuilder import FlowBuilder
@@ -89,7 +90,7 @@ class FlowBuilderTransportForwardingHandler(socketserver.BaseRequestHandler):
         self.request.close()
         #print("SSH Channel closed:", srcAddr, ' -> ', destAddr)
             
-
+@Pyro4.expose
 class FlowBuilderTransport:
     """
     Paramiko client that creates a FlowBuilderServer
@@ -143,9 +144,10 @@ class FlowBuilderTransport:
             # object.  So the return from the RMI fails.  Which is not ideal, 
             # but its relatively safe since we are on our way out anyway.
             pass
-        self.forwardingServer.shutdown()
-        self.forwardingThread.join()
-        self.ssh.close()
+        finally:
+            self.forwardingServer.shutdown()
+            self.forwardingThread.join()
+            self.ssh.close()
 
     def createRemoteServer(self, host, hostname, user):
         """"Create the remote pyro server using paramiko"""
@@ -155,8 +157,8 @@ class FlowBuilderTransport:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             # First try to use host-based or default authentication 
-            hostkey = self._try_load_sshd_host_key()
-            ssh.connect(host, username=user, hostkey=hostkey)
+            #hostkey = self._try_load_sshd_host_key()
+            ssh.connect(host, username=user)
         except paramiko.AuthenticationException:
             import sys
             # Now give the user 2 tries with their password

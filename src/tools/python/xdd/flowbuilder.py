@@ -21,6 +21,7 @@ from xdd.constants import XDD_PROGRESS_FILENAME
 from xdd.flow import Flow
 from xdd.naming import PosixNamingStrategy
 
+@Pyro4.expose
 class FlowBuilder(object):
     """
     Helper class that can start flows, generate directory walks, create 
@@ -243,7 +244,7 @@ class FlowBuilder(object):
         # do not check file system support, because there is no way
         # the check could be correct
         return self.flow.hasPreallocate()
-
+@Pyro4.expose
 class RemoteFlowBuilder(FlowBuilder):
     """
     Pyro helper class that builds remote flows and dispatches messages to the 

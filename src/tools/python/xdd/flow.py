@@ -119,8 +119,11 @@ class XDDFlowStatus(FlowStatus):
 
     def cancel(self):
         """Cancel the underlying XDD process that does the work"""
-        print('Cancelling flow.')
+        #print('Cancelling flow.')
+        self.process.stdout.close()
+        self.process.stderr.close()
         self.process.kill()
+        self.process.wait()
 
     def poll(self):
         """@return True if the XDD process is still active, otherwise False"""
@@ -428,13 +431,14 @@ class Flow():
         try:
             rf = open(rfn, 'r')
             cookie = rf.readline();
-            rf.close()
             cl = cookie.split(' ')
             offset = int(cl[2])
         except IOError:
             self.reasons.append('Unable to open file ' + rfn)            
         except (ValueError, IndexError) as e:
             self.reasons.append('Corrupt restart cookie found ' + cookie)
+        finally:
+            rf.close()
         return offset
 
     def createCommandArgs(self):
@@ -531,7 +535,8 @@ class Flow():
                 try:
                     self.process = subprocess.Popen(args,
                                                     stdout=subprocess.PIPE,
-                                                    stderr=subprocess.PIPE)
+                                                    stderr=subprocess.PIPE,
+                                                    universal_newlines=True)
                     status = XDDFlowStatus(self.process, restartOffset)
                 except OSError as e:
                     self.reasons.append("OS Error executing: " + args[0])
@@ -544,13 +549,22 @@ class Flow():
             # Precondition failure
             status = FailedFlowStatus(self.reasons)
         return status
+
+    def cancel(self):
+        """Cancel the underlying XDD process that does the work"""
+        #print('Cancelling flow.')
+        self.process.stdout.close()
+        self.process.stderr.close()
+        self.process.kill()
+        self.process.wait()
+
             
     def hasPreallocate(self):
         """@return true if XDD is compiled with preallocation support"""
         # Just use nm (assume its in the path)
         cmd = ['nm', self.xddExe]
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        (stdoutdata, _) = p.communicate()
+        stdoutdata = subprocess.check_output(cmd, universal_newlines=True)
+        
         # If XDD has preallocate support it will have a special symbol
         lines = stdoutdata.split(os.linesep)
         for l in lines:
@@ -562,9 +576,9 @@ class Flow():
     def protocolVersion(self):
         """@return the XDD protocol version string"""
         cmd = [self.xddExe, '-version']
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        (stdoutdata, _) = p.communicate()
+        stdoutdata = subprocess.check_output(cmd, universal_newlines=True)
         temp = stdoutdata.split(':')
+
         if 2 == len(temp):
             proto = temp[1].strip()
             return proto

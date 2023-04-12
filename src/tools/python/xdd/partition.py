@@ -2,6 +2,7 @@
 # Python stuff to improve portability
 #
 from __future__ import print_function
+import math
 
 #
 # XDD functionality
@@ -23,7 +24,7 @@ class InvalidPartitionError(XDDError):
 class PartitionStrategy(object):
     def partBegin(self, part):
         """@return the first offset in the partition"""
-        return 0
+        return 0 
 
     def partEnd(self, part):
         """@return the last offset in the partition"""
@@ -31,7 +32,7 @@ class PartitionStrategy(object):
 
     def partSize(self, part):
         """@return the size of the partition, part"""
-        return self.partEnd(part) - self.partBegin(part) + 1
+        return math.floor(self.partEnd(part) - self.partBegin(part)) + 1
 
     def getPart(self, part):
         """
@@ -60,7 +61,7 @@ class SimplePartitionStrategy(PartitionStrategy):
 
     def partBegin(self, part):
         """@return the first offset in the partition"""
-        return (part * self.size) / self.parts
+        return math.floor((part * self.size) / self.parts)
  
     def partEnd(self, part):
         """@return the last offset in the partition"""
@@ -88,7 +89,7 @@ class AlignedPartitionStrategy(PartitionStrategy):
         # Handle the case where alignment will result in some empty
         # partitions
         if (requestedParts * granule) > size:
-            self.parts = size / granule
+            self.parts = math.ceil(size / granule)
         else:
             self.parts = requestedParts
 
@@ -98,12 +99,10 @@ class AlignedPartitionStrategy(PartitionStrategy):
 
     def partBegin(self, part):
         """@return the first offset in the partition"""
-        if part < self.parts:
-            granules = self.size / self.granule
-            beg = part * granules /  self.parts * self.granule
+        if (part * self.granule >= self.size):
+            return 0
         else:
-            beg = 0
-        return beg
+            return part * self.granule
 
     def partEnd(self, part):
         """@return the last offset in the partition"""
@@ -117,7 +116,7 @@ class AlignedPartitionStrategy(PartitionStrategy):
  
     def partSize(self, part):
         """@return the size of the partition, part"""
-        if 0 == self.parts:
+        if self.parts == 1:
             diff = self.size
         elif part < self.parts:
             diff = self.partEnd(part) - self.partBegin(part) + 1

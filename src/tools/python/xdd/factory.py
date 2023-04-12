@@ -76,9 +76,11 @@ class EndpointFactory:
         self.allBuilders = []
 
     def shutdown(self):
-        """Shutdown all transports"""
+        """Shutdown all transports and endpoints"""
         for trans in self.remoteTransports:
             trans.shutdown()
+        for endpoint in self.getEndpoints():
+            endpoint.cancelFlow()
         
     def getEndpoints(self):
         """Return all flows"""
@@ -125,6 +127,12 @@ class EndpointFactory:
                 flowIface = (iface, port, threads)
             flowIfaceList.append(flowIface)
         return flowIfaceList
+
+    def cleanEndpoints(self):
+        """Clean the endpoints for each source and sink"""
+        for flow in self.getEndpoints:
+            flow.cancel()
+        return
                 
     def createEndpoints(self):
         """Create the endpoints for each source and sink"""

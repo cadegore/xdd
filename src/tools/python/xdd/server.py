@@ -27,7 +27,7 @@ def ppidCheck(server):
             server.shutdown()
             break
         time.sleep(5)
-
+@Pyro4.expose
 def rpc_server():
     """Main to run an actual XDD Flow Server"""
 

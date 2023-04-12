@@ -24,7 +24,7 @@
 #
 # Build rules for contrib
 #
-contrib: 
+contrib: contrib/mpil 
 
 .PHONY: contrib
 	

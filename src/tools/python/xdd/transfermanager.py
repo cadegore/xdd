@@ -437,15 +437,15 @@ class TransferManager:
         rc = 0
         if self.factory:
             endpoints = self.factory.getEndpoints()
-            #for e in endpoints:
-            #    if True == e.pollFlow():
-            #        f.cancelFlow()
-            #        print('Cancelling Flow')
-            #        rc = 1
-            #    elif 0 != f.completionStatus():
-            #        print('Flow exited with code:', e.completionStatus())
-            #        print('Flow cmd:', e.executeString())
-            #        rc = 2
+            for e in endpoints:
+                if True == e.pollFlow():
+                    e.cancelFlow()
+                    print('Cancelling Flow')
+                    rc = 1
+                elif 0 != e.completionStatus():
+                    print('Flow exited with code:', e.completionStatus())
+                    print('Flow cmd:', e.executeString())
+                    rc = 2
 
             self.factory.shutdown()
             del self.factory
@@ -483,7 +483,7 @@ class TransferManager:
         # Get the width of the terminal
         cols = 80
         if sys.stdin.isatty():
-            stty_size = os.popen('stty size').read()
+            stty_size = subprocess.check_output(['stty','size'])
             if 0 != len(stty_size):
                 (r, c) = stty_size.split()
                 cols = int(c)

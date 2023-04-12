@@ -120,7 +120,7 @@ int xni_allocate_ib_control_block(const char *device_name, size_t num_buffers, x
   if (device_name == NULL)
     strcpy(tmp->device_name, "");
   else
-    strncpy(tmp->device_name, device_name, IBV_SYSFS_NAME_MAX);
+    strncpy(tmp->device_name, device_name, IBV_SYSFS_NAME_MAX - 1);
   tmp->num_buffers = num_buffers;
   *cb = tmp;
   return XNI_OK;
@@ -717,7 +717,7 @@ static int ib_connect(xni_context_t ctx_, struct xni_endpoint* remote, xni_conne
 	struct ib_credit_buffer **credit_buffers = NULL;
 	struct ibv_cq *sendcq=NULL, *recvcq=NULL;
 	struct ibv_qp *qp = NULL;
-	int server=-1, client=-1;
+	int server=-1;
 
 	// Ensure a registered buffer exists
 	if (ctx->num_registered < 1)
@@ -795,7 +795,7 @@ static int ib_connect(xni_context_t ctx_, struct xni_endpoint* remote, xni_conne
 	if (recv(server, msgbuf, 6, MSG_WAITALL) < 6)
 		goto error_out;
 	close(server);
-	client = -1;
+	//client = -1;
 
 	memcpy(&remote_qpnum, msgbuf, 4);
 	memcpy(&remote_lid, msgbuf+4, 2);
@@ -1055,9 +1055,7 @@ static int ib_release_target_buffer(xni_target_buffer_t *targetbuf_)
   *targetbuf = NULL;
   return XNI_OK;
 }
-
-
-static struct xni_protocol protocol_ib = {
+const struct xni_protocol protocol_ib = {
   .name = PROTOCOL_NAME,
   .context_create = ib_context_create,
   .context_destroy = ib_context_destroy,
