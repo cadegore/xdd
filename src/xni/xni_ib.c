@@ -242,7 +242,7 @@ static int ib_register_buffer(xni_context_t ctx_, void* buf, size_t nbytes, size
 	pthread_mutex_unlock(&ctx->target_buffers_mutex);
 
 	// Set the outbound target buffer
-	*xtb= (xni_target_buffer_t)&tb;
+	*xtb = (xni_target_buffer_t) (ctx->target_buffers + ctx->num_registered);
 	return XNI_OK;
 }
 

@@ -14,7 +14,7 @@ these python packages:
     have received XDD in this configuration already (e.g. if I knew for certain 
     that the recipient was a U.S. Citizen.)
 
-2.  Contact you system administrator and ask them to install PyCrypto on the 
+2.  Contact your system administrator and ask them to install PyCrypto on the 
     source and destination systems.  The following commands may work as root:
       pip install ecdsa
       pip install pycrypto

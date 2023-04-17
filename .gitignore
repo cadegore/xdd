@@ -20,6 +20,8 @@ src/tools/xddmcp/xddmcp-server
 src/tools/xddprof/xddprof
 tests/distcheck
 tests/test_config
+run.sh
+trimmed_files/
 *.DS_STORE
 *.tar.gz
 *.o

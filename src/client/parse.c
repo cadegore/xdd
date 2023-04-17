@@ -68,8 +68,9 @@ xdd_parse_args(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) {
         while (argi < argc && *(argv[argi]) != '-') { // command line options must be proceeded with a "-" or they are ignored
                 argi++;
         } 
-        if (argi >= argc || arg_count == 0)
-	    break; // Somehow we got to the end of the command line and did not find any valid options
+        if (argi >= argc || arg_count == 0) {
+	    	break; // Somehow we got to the end of the command line and did not find any valid options
+        }
         
 		// At this point argv[], uint32_t flags must be pointing to a reasonably legit option so
 		// set up to scan the xddfunc table for this option
@@ -85,7 +86,10 @@ xdd_parse_args(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) {
                 if (status == 0) {
                     invalid = 1;
                     break;
-                } else if (status == -1) exit(XDD_RETURN_VALUE_INVALID_OPTION);
+                } 
+                else if (status == -1) {
+                	exit(XDD_RETURN_VALUE_INVALID_OPTION);
+                }
                 argi += status;
                 arg_count -= status;
                 not_found = 0;
@@ -94,8 +98,10 @@ xdd_parse_args(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) {
             funci++;
         }
         // Check to see if things worked...
-        if (invalid) // Indicates a valid option but invalid arguments to the option most likely
+        if (invalid) { // Indicates a valid option but invalid arguments to the option most likely
+            xddfunc_invalid_option(argi+1, &(argv[argi]), flags);
             exit(XDD_RETURN_VALUE_INVALID_ARGUMENT);
+		}
 
         if (not_found) { // Indicates that the specified option was not found in the xddfunc table. 
             xddfunc_invalid_option(argi+1, &(argv[argi]), flags);

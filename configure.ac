@@ -382,51 +382,6 @@ AC_CHECK_HEADERS([linux/magic.h],
 
 
 dnl
-dnl Ensure that XDDCP required utilities are present
-dnl
-xddcp_disable="no"
-dirname_exists="no"
-AC_PATH_PROG([dirname_exists], [dirname], [no])
-if test "$dirname_exists" = "no" ; then
-    AC_MSG_WARN(Support for xddcp disabled.  No working dirname utility.)
-    xddcp_disable="yes"
-fi
-
-ssh_exists="no"
-AC_PATH_PROG([ssh_exists], [ssh], [no])
-if test "$ssh_exists" = "no" ; then
-    AC_MSG_WARN(Support for xddcp disabled.  No working ssh utility.)
-    xddcp_disable="yes"
-fi
-
-stat_exists="no"
-AC_PATH_PROG([stat_exists], [stat], [no])
-if test "$stat_exists" = "no" ; then
-    AC_MSG_WARN(Support for xddcp disabled.  No working stat utility.)
-    xddcp_disable="yes"
-fi
-
-tr_exists="no"
-AC_PATH_PROG([tr_exists], [tr], [no])
-if test "$tr_exists" = "no" ; then
-    AC_MSG_WARN(Support for xddcp disabled.  No working tr utility.)
-    xddcp_disable="yes"
-fi
-
-netstat_exists="no"
-AC_PATH_PROG([netstat_exists], [netstat], [no])
-if test "$netstat_exists" = "no" ; then
-    AC_MSG_WARN(Support for xddcp disabled.  No working netstat utility.)
-    xddcp_disable="yes"
-fi
-
-if  ! test "$xddcp_disable" = "yes" ; then
-   AC_SUBST(XDDCP_ENABLED, "true")
-else
-   AC_SUBST(XDDCP_ENABLED, "false")
-fi
-
-dnl
 dnl Search for the Google test framework to see if make check should be enabled
 dnl
 AC_CHECK_HEADERS([gtest/gtest.h], [], [], [/opt/local/includes])
@@ -441,159 +396,6 @@ dnl Check if the TCP_CONGESTION setsockopt is available
 dnl
 AC_CHECK_DECLS([TCP_CONGESTION], [], [], [[#include <netinet/tcp.h>]])
 
-dnl
-dnl Check for python
-dnl
-AX_PYTHON()
-
-dnl
-dnl Enable XFS support by default
-dnl
-AC_ARG_ENABLE([xddmcp],
-              AS_HELP_STRING([--enable-xfs], [Enable XFS preallocation support]),
-              [enable_xddmcp="$enableval"],
-              [enable_xddmcp=yes])
-
-dnl
-dnl Check for packages XDD requires directly
-dnl
-AX_PYTHON_MODULE([datetime], [missing Python module: datetime])
-AX_PYTHON_MODULE([fcntl], [missing Python module: fcntl])
-AX_PYTHON_MODULE([getpass], [missing Python module: getpass])
-AX_PYTHON_MODULE([optparse], [missing Python module: optparse])
-AX_PYTHON_MODULE([os], [missing Python module: os])
-AX_PYTHON_MODULE([platform], [missing Python module: platform])
-AX_PYTHON_MODULE([socketserver], [missing Python module: socketserver])
-AX_PYTHON_MODULE([select], [missing Python module: select])
-AX_PYTHON_MODULE([socket], [missing Python module: socket])
-AX_PYTHON_MODULE([subprocess], [missing Python module: subprocess])
-AX_PYTHON_MODULE([sys], [missing Python module: sys])
-AX_PYTHON_MODULE([threading], [missing Python module: threading])
-AX_PYTHON_MODULE([time], [missing Python module: time])
-AX_PYTHON_MODULE([unittest], [missing Python module: unittest])
-
-dnl
-dnl Check for pip tool 
-dnl 
-
-AX_PYTHON_MODULE([pip], [missing Python module: pip])
-
-dnl
-dnl Check for required dependencies
-dnl
-
-AX_PYTHON_MODULE_INSTALL([setuptools_rust], [missing Python module: setuptools_rust])
-AX_PYTHON_MODULE_INSTALL([paramiko], [missing Python module: paramiko])
-AX_PYTHON_MODULE_INSTALL([cryptography], [missing Python module: cryptography])
-AX_PYTHON_MODULE_INSTALL([Pyro4], [missing Python module: pyro4])
-AX_PYTHON_MODULE_INSTALL([serpent], [missing Python module: serpent])
-
-dnl
-dnl Check for packages Crypto requires
-dnl
-AX_PYTHON_MODULE([base64], [missing Python module: base64])
-AX_PYTHON_MODULE([binascii], [missing Python module: binascii])
-AX_PYTHON_MODULE([distutils], [missing Python module: distutils])
-AX_PYTHON_MODULE([errno], [missing Python module: errno])
-AX_PYTHON_MODULE([inspect], [missing Python module: inspect])
-AX_PYTHON_MODULE([math], [missing Python module: math])
-AX_PYTHON_MODULE([operator], [missing Python module: operator])
-AX_PYTHON_MODULE([os], [missing Python module: os])
-AX_PYTHON_MODULE([pprint], [missing Python module: pprint])
-AX_PYTHON_MODULE([stat], [missing Python module: stat])
-AX_PYTHON_MODULE([struct], [missing Python module: struct])
-AX_PYTHON_MODULE([sys], [missing Python module: sys])
-AX_PYTHON_MODULE([threading], [missing Python module: threading])
-AX_PYTHON_MODULE([time], [missing Python module: time])
-AX_PYTHON_MODULE([types], [missing Python module: types])
-AX_PYTHON_MODULE([unittest], [missing Python module: unittest])
-AX_PYTHON_MODULE([warnings], [missing Python module: warnings])
-#AX_PYTHON_MODULE([winrandom], [missing Python module: winrandom])
-
-dnl
-dnl Check for packages ecdsa requires
-dnl
-AX_PYTHON_MODULE([base64], [missing Python module: base64])
-AX_PYTHON_MODULE([binascii], [missing Python module: binascii])
-AX_PYTHON_MODULE([hashlib], [missing Python module: hashlib])
-AX_PYTHON_MODULE([hmac], [missing Python module: hmac])
-AX_PYTHON_MODULE([math], [missing Python module: math])
-AX_PYTHON_MODULE([operator], [missing Python module: operator])
-AX_PYTHON_MODULE([os], [missing Python module: os])
-AX_PYTHON_MODULE([random], [missing Python module: random])
-AX_PYTHON_MODULE([shutil], [missing Python module: shutil])
-AX_PYTHON_MODULE([subprocess], [missing Python module: subprocess])
-AX_PYTHON_MODULE([sys], [missing Python module: sys])
-AX_PYTHON_MODULE([time], [missing Python module: time])
-AX_PYTHON_MODULE([types], [missing Python module: types])
-AX_PYTHON_MODULE([unittest], [missing Python module: unittest])
-
-dnl
-dnl Check for packages paramiko requires
-dnl
-AX_PYTHON_MODULE([setuptools], [Python installation is incomplete.  Module setuptools is not installed for $PYTHON.])
-AX_PYTHON_MODULE([array], [missing Python module: array])
-AX_PYTHON_MODULE([atexit], [missing Python module: atexit])
-AX_PYTHON_MODULE([base64], [missing Python module: base64])
-AX_PYTHON_MODULE([binascii], [missing Python module: binascii])
-AX_PYTHON_MODULE([collections], [missing Python module: collections])
-AX_PYTHON_MODULE([ctypes], [missing Python module: ctypes])
-AX_PYTHON_MODULE([datetime], [missing Python module: datetime])
-AX_PYTHON_MODULE([errno], [missing Python module: errno])
-AX_PYTHON_MODULE([fnmatch], [missing Python module: fnmatch])
-AX_PYTHON_MODULE([getpass], [missing Python module: getpass])
-AX_PYTHON_MODULE([logging], [missing Python module: logging])
-AX_PYTHON_MODULE([os], [missing Python module: os])
-AX_PYTHON_MODULE([platform], [missing Python module: platform])
-AX_PYTHON_MODULE([select], [missing Python module: select])
-AX_PYTHON_MODULE([signal], [missing Python module: signal])
-AX_PYTHON_MODULE([socket], [missing Python module: socket])
-AX_PYTHON_MODULE([stat], [missing Python module: stat])
-AX_PYTHON_MODULE([struct], [missing Python module: struct])
-AX_PYTHON_MODULE([subprocess], [missing Python module: subprocess])
-AX_PYTHON_MODULE([sys], [missing Python module: sys])
-AX_PYTHON_MODULE([tempfile], [missing Python module: tempfile])
-AX_PYTHON_MODULE([threading], [missing Python module: threading])
-AX_PYTHON_MODULE([time], [missing Python module: time])
-AX_PYTHON_MODULE([traceback], [missing Python module: traceback])
-AX_PYTHON_MODULE([warnings], [missing Python module: warnings])
-AX_PYTHON_MODULE([weakref], [missing Python module: weakref])
-AX_PYTHON_MODULE([zlib], [missing Python module: zlib])
-
-dnl
-dnl Check for packages Pyro4 requires
-dnl
-AX_PYTHON_MODULE([code], [missing Python module: code])
-AX_PYTHON_MODULE([errno], [missing Python module: errno])
-AX_PYTHON_MODULE([functools], [missing Python module: functools])
-AX_PYTHON_MODULE([hashlib], [missing Python module: hashlib])
-AX_PYTHON_MODULE([hmac], [missing Python module: hmac])
-AX_PYTHON_MODULE([linecache], [missing Python module: linecache])
-AX_PYTHON_MODULE([logging], [missing Python module: logging])
-AX_PYTHON_MODULE([os], [missing Python module: os])
-AX_PYTHON_MODULE([platform], [missing Python module: platform])
-AX_PYTHON_MODULE([re], [missing Python module: re])
-AX_PYTHON_MODULE([select], [missing Python module: select])
-AX_PYTHON_MODULE([socket], [missing Python module: socket])
-AX_PYTHON_MODULE([struct], [missing Python module: struct])
-AX_PYTHON_MODULE([subprocess], [missing Python module: subprocess])
-AX_PYTHON_MODULE([sys], [missing Python module: sys])
-AX_PYTHON_MODULE([threading], [missing Python module: threading])
-AX_PYTHON_MODULE([time], [missing Python module: time])
-AX_PYTHON_MODULE([traceback], [missing Python module: traceback])
-AX_PYTHON_MODULE([types], [missing Python module: types])
-AX_PYTHON_MODULE([uuid], [missing Python module: uuid])
-AX_PYTHON_MODULE([zlib], [missing Python module: zlib])
-
-dnl
-dnl Check for packages Serpent requires
-dnl
-AX_PYTHON_MODULE([ast], [missing Python module: ast])
-AX_PYTHON_MODULE([base64], [missing Python module: base64])
-AX_PYTHON_MODULE([gc], [missing Python module: gc])
-AX_PYTHON_MODULE([os], [missing Python module: os])
-AX_PYTHON_MODULE([sys], [missing Python module: sys])
-AX_PYTHON_MODULE([types], [missing Python module: types])
 
 dnl
 dnl Determine options to preserve metadata while performing installs with cp
@@ -615,7 +417,7 @@ dnl
 dnl As a very last step, turn on options that improve debugging:
 dnl   make warnings trigger errors.  
 dnl
-dnl This has to be dnl done after all checks because it may cause
+dnl This has to be done after all checks because it may cause
 dnl autoconf checks to fail
 dnl
 AC_ARG_ENABLE([debug], [Enable options supporting debug (Default: no)],
@@ -642,9 +444,6 @@ AC_SUBST(CONFIG_LIBS, "$LIBS")
 dnl
 dnl Generate output
 dnl
-AC_CONFIG_FILES([src/tools/xddmcp/xddmcp], [chmod +x src/tools/xddmcp/xddmcp])
-AC_CONFIG_FILES([src/tools/xddmcp/xddmcp-server], [chmod +x src/tools/xddmcp/xddmcp-server])
-AC_CONFIG_FILES([src/tools/xddprof/xddprof], [chmod +x src/tools/xddprof/xddprof])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 

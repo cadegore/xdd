@@ -4288,8 +4288,14 @@ xddfunc_target(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	if (flags & XDD_PARSE_PHASE1) {
 		target_number = planp->number_of_targets; // This is the last target + 1 
 		tdp = xdd_get_target_datap(planp, target_number, argv[0]); 
-		if (tdp == NULL) return(-1);
-	
+		if (tdp == NULL) {
+			return(-1);
+		}
+		
+		if (argv[1] == NULL) {
+			//return(0);
+		}
+
 		tdp->td_target_basename = argv[1];
 		planp->number_of_targets++; 
 	}
