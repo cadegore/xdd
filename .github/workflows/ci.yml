@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: install dependencies
+      run: sudo apt get xfsprogs-devel
     - name: autoconf
       run: autoconf
     - name: configure
