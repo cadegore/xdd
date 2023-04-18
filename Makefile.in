@@ -213,6 +213,11 @@ install: all install_xdd
 
 .PHONY: install install_xdd
 
+check:
+	@echo hello world
+
+.PHONY: check
+
 #
 # Miscellaneous build rules
 #
@@ -289,7 +294,7 @@ DISTCHECK_DIR := $(PWD)/tests/distcheck
 CONFIG_FLAGS = $(shell grep "\-\-prefix" config.log | cut -f 5- -d ' ')
 
 xdd-$(XDDVERSION):
-	git archive --format=tar --prefix=$@/ master | $(TAR) xf -
+	git archive --format=tar --prefix=$@/ xdd-2.0 | $(TAR) xf -
 	$(FIND) $@ -name .gitignore -exec rm {} \;
 	cd $@ && $(AUTOCONF)
 
