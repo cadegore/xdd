@@ -17,7 +17,7 @@ if [ `uname` != "Linux" ]; then
 fi
 
 # pre-test set-up
-test_name=$(basename $0)
+test_name=$(basename -s sh $0)
 test_name="${test_name%.*}"
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
 mkdir -p $test_dir
@@ -40,8 +40,10 @@ max_passes=4
 for ((num_passes=$min_passes;num_passes<=$max_passes;num_passes++)); do
       xdd_cmd="$XDDTEST_XDD_EXE -op write -target $test_file -numreqs 10 -passes $num_passes -passdelay 1 -reopen $test_file"
        
-      sys_call_open=$(2>&1 strace -cfq -e trace=open $xdd_cmd |grep open| tail -1 | cut -b 32-40)
-      sys_call_close=$(2>&1 strace -cfq -e trace=close $xdd_cmd |grep close |cut -b 32-40)
+      #sys_call_open=$(2>&1 strace -cfq -e trace=open $xdd_cmd |grep open| tail -1 | cut -b 32-40)
+      sys_call_open=$(2>&1 strace -cfq -e trace=openat $xdd_cmd | grep openat| cut -b 32-40)
+      sys_call_close=$(2>&1 strace -cfq -e trace=close $xdd_cmd | grep close | cut -b 32-40)
+      #sys_call_close=$(2>&1 strace -cfq -e trace=close $xdd_cmd |grep close |cut -b 32-40)
 
       sys_open[$num_passes]=$sys_call_open
       sys_close[$num_passes]=$sys_call_close
@@ -63,8 +65,11 @@ done
 correct_count=$(($max_passes-$min_passes))
 correct_count=$(($correct_count*2))
 
-# verify output
+# Post-test cleanup
 
+rm -r $test_dir
+
+# verify output
 echo -n "Acceptance Test - $test_name : "
 if [ $pass_count -eq $correct_count ]; then
       echo "PASSED"

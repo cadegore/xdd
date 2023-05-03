@@ -108,7 +108,7 @@ xdd_status_after_io_op(worker_data_t *wdp) {
  */
 void
 xdd_dio_after_io_op(worker_data_t *wdp) {
-	int		status;
+	//int				status;
 	int             pagesize;
 	target_data_t	*tdp;
 
@@ -142,25 +142,10 @@ xdd_dio_after_io_op(worker_data_t *wdp) {
 	wdp->wd_task.task_file_desc = 0;
 
 	// Reopen the file descriptor for this Worker Thread
-#if (SOLARIS || WIN32)
-	// For this OS, we need to issue a full open to the target device/file.
-	status = xdd_target_open(tdp);
-#else // LINUX, AIX, DARWIN
-	// In this OS, we do not do an actual open because the Worker Threads share the File Descriptor
-	// with the Target Thread. Therefore, we issue a "shallow" open.
-	status = xdd_target_shallow_open(wdp);
-#endif
-	    
-	// Check to see if the open worked
-	if (status != 0 ) { // error openning target 
-	    fprintf(xgp->errout, "%s: xdd_dio_after_io_op: ERROR: Target %d Worker Thread %d: Reopen of target '%s' failed\n",
-		    xgp->progname,
-		    tdp->td_target_number,
-		    wdp->wd_worker_number,
-		    tdp->td_target_full_pathname);
-	    fflush(xgp->errout);
-	    xgp->canceled = 1;
-	}
+	xdd_target_reopen(tdp);
+
+	// Since the file was re-opened it has a new file descriptor
+	wdp->wd_task.task_file_desc = tdp->td_file_desc;
 } // End of xdd_dio_after_io_op()
 
 /*----------------------------------------------------------------------------*/

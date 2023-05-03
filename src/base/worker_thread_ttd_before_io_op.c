@@ -27,7 +27,7 @@
 void
 xdd_dio_before_io_op(worker_data_t *wdp) {
 	int		pagesize;
-	int		status;
+	// int		status;
 	target_data_t	*tdp;
 
 
@@ -51,29 +51,14 @@ xdd_dio_before_io_op(worker_data_t *wdp) {
 		return;
 	}
 
-	// Otherwise, it is necessary to open this target file with DirectIO disabaled
+	// Otherwise, it is necessary to open this target file with DirectIO disabled
 	tdp->td_target_options &= ~TO_DIO;
-#if (SOLARIS || WIN32)
-	// In this OS it is necessary to close the file descriptor before reopening in BUFFERED I/O Mode
-	close(wdp->wd_task.task_file_desc);
-	wdp->wd_task.task_file_desc = 0;
-#endif
-	status = xdd_target_open(tdp);
-	if (status != 0 ) { /* error opening target */
-		fprintf(xgp->errout, "%s: xdd_dio_before_io_op: ERROR: Target %d Worker Thread %d: "
-            "Reopen of target '%s' failed\n",
-			xgp->progname,
-			tdp->td_target_number,
-			wdp->wd_worker_number,
-			tdp->td_target_full_pathname);
-		fflush(xgp->errout);
-		xgp->canceled = 1;
-	}
+	xdd_target_reopen(tdp);
 
 	// Since the file was re-opened it has a new file descriptor
 	wdp->wd_task.task_file_desc = tdp->td_file_desc;
 
-	tdp->td_target_options |= TO_DIO;
+	//tdp->td_target_options |= TO_DIO;
 } // End of xdd_dio_before_io_op()
 
 /*----------------------------------------------------------------------------*/

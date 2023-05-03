@@ -8,12 +8,11 @@
 source ./test_config
 
 # Pre-test set-up
-test_name=$(basename $0)
+test_name=$(basename -s sh $0)
 test_name="${test_name%.*}"
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
 mkdir -p $test_dir
 
-rm $test_dir/*
 test_file=$test_dir/data1
 touch $test_file
 
@@ -31,6 +30,9 @@ if [ "$f_file" == "$file_name" ]; then
 else
     test_success=0
 fi
+
+# Post test cleanup 
+rm -r $test_dir
 
 # Verify output
 echo -n "Acceptance Test - $test_name : "

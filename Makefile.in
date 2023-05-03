@@ -214,7 +214,7 @@ install: all install_xdd
 .PHONY: install install_xdd
 
 check:
-	@echo hello world
+	./tests/run_tests.sh
 
 .PHONY: check
 

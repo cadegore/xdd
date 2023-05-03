@@ -11,8 +11,7 @@
 source ./test_config
 
 # Perform pre-test 
-echo "Beginning Runtime Acceptance Test  . . ."
-test_name=$(basename $0)
+test_name=$(basename -s sh $0)
 test_name="${test_name%.*}"
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
 rm -rf $test_dir
@@ -39,10 +38,10 @@ if [ $? -eq 0 ]; then
 fi
 
 # Perform post-test cleanup
-#rm -rf $test_dir
+rm -r $test_dir
 
 # Output test result
-echo "Acceptance Test - $test_name : \c"
+echo "Acceptance Test - $test_name :"
 if [ 1 -eq $test_passes ]; then
     echo "PASSED"
     exit 0

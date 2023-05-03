@@ -84,10 +84,12 @@ xdd_heartbeat(void *data) {
 			fprintf(xgp->errout,"\nHEARTBEAT: Abort\n");
 			return(0);
 		}
-		if (planp->heartbeat_flags & HEARTBEAT_HOLDOFF) 
+		if (planp->heartbeat_flags & HEARTBEAT_HOLDOFF) {
 			continue;
-		if (planp->heartbeat_flags & HEARTBEAT_EXIT) 
+		}
+		if (planp->heartbeat_flags & HEARTBEAT_EXIT) {
 			return(0);
+		}
 
 		// Display all the requested items for each target
 		for (i = 0; i < planp->number_of_targets; i++) {
@@ -100,8 +102,9 @@ xdd_heartbeat(void *data) {
 			// Display the "legend" string
 			// If the "scattered_output" is greater than 0 then display the legend for each target
 			// Otherwise just display it for target 0
-			if ((scattered_output)  || (i == 0))
+			if ((scattered_output)  || (i == 0)) {
 			    xdd_heartbeat_legend(planp, tdp);
+			}
 			total_bytes_xferred = 0;
 			earliest_start_time = NCLK_MAX;
 			total_ops_issued = 0;
@@ -113,9 +116,9 @@ xdd_heartbeat(void *data) {
 			total_bytes_xferred = tdp->td_counters.tc_accumulated_bytes_xfered;
 			total_ops_issued = tdp->td_counters.tc_accumulated_op_count;
 			// Determine if this is the earliest start time
-			if (earliest_start_time > tdp->td_counters.tc_pass_start_time) 
+			if (earliest_start_time > tdp->td_counters.tc_pass_start_time) {
 				earliest_start_time = tdp->td_counters.tc_pass_start_time;
-
+			}
 			// At this point we have the total number of bytes transferred for this target
 			// as well as the time the first Worker Thread started and the most recent op number issued.
 			// From that we can calculate the estimated BW for the target as a whole 
@@ -163,9 +166,12 @@ xdd_heartbeat_legend(xdd_plan_t* planp, target_data_t *tdp) {
 	int			len;
 
 
-	if (tdp->td_hb.hb_options & HB_LF)  
+	if (tdp->td_hb.hb_options & HB_LF) {
 		 fprintf(tdp->td_hb.hb_file_pointer,"\n"); // Put a LineFeed character at the end of this line
-	else fprintf(tdp->td_hb.hb_file_pointer,"\r"); // Otherwise just a carriage return
+	}
+	else {
+		fprintf(tdp->td_hb.hb_file_pointer,"\r"); // Otherwise just a carriage return
+	}
 
 	fprintf(tdp->td_hb.hb_file_pointer,"Pass,%04d,",tdp->td_counters.tc_pass_number);
 	if (tdp->td_hb.hb_options & HB_HOST)  // Display Current number of OPS performed 

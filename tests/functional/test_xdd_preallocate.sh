@@ -11,7 +11,7 @@
 source ./test_config
 
 # Pre-test create test directory and file
-test_name=$(basename $0)
+test_name=$(basename -s sh $0)
 test_name="${test_name%.*}"
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
 mkdir -p $test_dir
@@ -35,8 +35,7 @@ fi
 
 
 
-
-file_size=$($XDDTEST_XDD_GETFILESIZE_EXE $test_file | cut -f 1 -d " ")
+file_size=$(stat -c %s $test_file)
 
 # Only XFS supports preallocation, so test success based on xfs_pass 
 test_success=0
@@ -57,7 +56,8 @@ else
          echo "Non-XFS File size is $file_size, but request size was $(($req_size*1024))"
 fi
 
-
+# Post test clean up 
+rm -r $test_dir
 
 # Verify output
 echo -n "Acceptance test - $test_name : "

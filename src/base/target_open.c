@@ -81,19 +81,29 @@ xdd_target_reopen(target_data_t *tdp) {
 #if (WIN32)
 	CloseHandle(tdp->td_file_desc);
 #else
-	close(tdp->td_file_desc);
+	status = close(tdp->td_file_desc);
+	if (status != 0) { /* error opening target */
+		fprintf(xgp->errout, "%s: xdd_target_reopen: ERROR: Aborting I/O for target number %d "
+			"name %s due to close failure\n",
+			xgp->progname,
+			tdp->td_target_number,
+			tdp->td_target_full_pathname);
+		fflush(xgp->errout);
+		xgp->abort = 1;
+	}
 #endif
 
 	// If we need to "recreate" the file for each pass then we should delete it here before we re-open it 
-	if (tdp->td_target_options & TO_RECREATE)	
+	if (tdp->td_target_options & TO_RECREATE) {	
 #ifdef WIN32
 		DeleteFile(tdp->td_target_full_pathname);
 #else
 		unlink(tdp->td_target_full_pathname);
 #endif
+	}
 	/* open the old/new/recreated target file */
 	status = xdd_target_open(tdp);
-	if (status != 0) { /* error openning target */
+	if (status != 0) { /* error opening target */
 		fprintf(xgp->errout, "%s: xdd_target_reopen: ERROR: Aborting I/O for target number %d "
 			"name %s due to open failure\n",
 			xgp->progname,
@@ -107,8 +117,8 @@ xdd_target_reopen(target_data_t *tdp) {
 
 /*----------------------------------------------------------------------------*/
 /* xdd_target_shallow_open() - Do all necessary sanity checks, but instead of
- * doing the open, simply copy the file dscriptor from the target thread.
- * Only works for Worker Threads spwned from a target thread that has already
+ * doing the open, simply copy the file descriptor from the target thread.
+ * Only works for Worker Threads spawned from a target thread that has already
  * opened the file, and OS that support pread/pwrite.
  * Otherwise, a -1 returned to indicate there was an error. 
  */
@@ -118,7 +128,7 @@ xdd_target_shallow_open(worker_data_t *wdp) {
 
 	tdp = wdp->wd_tdp;
 	
-	// If this is a NULL target then don't bother openning it
+	// If this is a NULL target then don't bother opening it
 	if (tdp->td_target_options & TO_NULL_TARGET)
 		return(0);
 
@@ -127,6 +137,7 @@ xdd_target_shallow_open(worker_data_t *wdp) {
 
 	nclk_now(&tdp->td_open_start_time); // Record the starting time of the open
 
+	wdp->wd_task.task_file_desc = tdp->td_file_desc;
 
 	nclk_now(&tdp->td_open_end_time); // Record the ending time of the open
 
@@ -154,7 +165,7 @@ xdd_target_name(target_data_t *tdp) {
 	int			target_name_length;
 	char 		target_full_pathname[MAX_TARGET_NAME_LENGTH]; /* target directory + target name */
 
-	/* Set the extension to correspond with the current pass number only if hte operation is
+	/* Set the extension to correspond with the current pass number only if the operation is
 	 * not an e2e islocal operation. Else the output files will be updated with extensions */
 	if ((tdp->td_target_options & TO_CREATE_NEW_FILES) &&
 		!(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) { // Create a new file name for this target
@@ -163,9 +174,12 @@ xdd_target_name(target_data_t *tdp) {
 	
 	/* create the fully qualified target name */
 	memset(target_full_pathname,0,sizeof(target_full_pathname));
-	if (strlen(tdp->td_target_directory) > 0)
+	if (strlen(tdp->td_target_directory) > 0) {
 		sprintf(target_full_pathname, "%s%s", tdp->td_target_directory, tdp->td_target_basename);
-	else sprintf(target_full_pathname, "%s",tdp->td_target_basename);
+	}
+	else {
+		sprintf(target_full_pathname, "%s",tdp->td_target_basename);
+	}
 
 	if ((tdp->td_target_options & TO_CREATE_NEW_FILES) && 
 		!(tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL)) { // Add the target extension to the name

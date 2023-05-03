@@ -12,35 +12,32 @@
 source ./test_config
 
 # Pre-test create test directory and file
-test_name=$(basename $0)
+test_name=$(basename -s sh $0)
 test_name="${test_name%.*}"
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
-rm -rf $test_dir
 mkdir -p $test_dir
 
 test_file=$test_dir/data1
 
 # Preallocate test file
-pretruncate_size=4096
+pretruncate_blocks=4096
 req_size=1
+block_size=1024
+$XDDTEST_XDD_EXE -target $test_file -op write -reqsize $req_size -numreqs 1 -bs $block_size -pretruncate $pretruncate_blocks 
 
-$XDDTEST_XDD_EXE -target $test_file -op write -reqsize $req_size -numreqs 1 -pretruncate $pretruncate_size 
+pretruncate_size=$(($pretruncate_blocks * $block_size))
+file_size=$(stat -c %s $test_file)
 
-file_size=$($XDDTEST_XDD_GETFILESIZE_EXE $test_file | cut -f 1 -d " ")
-
-test_success=0
-if [ $file_size -eq $pretruncate_size ]; then
-     test_success=1
-else 
-     echo "File size is $file_size, but pretruncate size was $pretruncate_size"
-fi
+# Post test clean up
+rm -r $test_dir
 
 # Verify output
 echo -n "Acceptance test - $test_name : "
-if [ 1 -eq $test_success ]; then
+if [ "$file_size" -eq "$pretruncate_size" ]; then
     echo "PASSED"
     exit 0
 else
     echo "FAILED"
+     echo "File size is $file_size, but pretruncate size was $pretruncate_size"
     exit 1
 fi

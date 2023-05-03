@@ -8,14 +8,13 @@
 source ./test_config
 
 # pre-test set-up
-test_name=$(basename $0)
+test_name=$(basename -s sh $0)
 test_name="${test_name%.*}"
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
 mkdir -p $test_dir
 
 test_file=$test_dir/data1
 test_file2=$test_dir/data2
-rm -f $test_dir/*
 
 touch $test_file
 
@@ -85,6 +84,9 @@ done
 if [ $sum -eq 4 ]; then
       test_success=1
 fi
+
+# Post test clean up
+rm -r $test_dir
 
 # Verify output
 echo -n "Acceptance Test - $test_name : "

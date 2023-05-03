@@ -9,7 +9,7 @@
 source ./test_config
 
 # pre-test set-up
-test_name=$(basename $0)
+test_name=$(basename -s sh $0)
 test_name="${test_name%.*}"
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
 mkdir -p $test_dir
@@ -26,6 +26,9 @@ $XDDTEST_XDD_EXE -target $test_file -reqsize 1024 -numreqs 1024 -runtime $run_ti
 head -$lines $test_dir/data2.T0000.csv >> $test_dir/data3
 num_lines=`wc -l $test_dir/data3`
 match=$(echo $lines | cut -f 1 -d ' ')
+
+# Post test cleanup
+rm -r $test_dir
 
 
 # verify output

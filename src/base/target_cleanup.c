@@ -84,12 +84,12 @@ xdd_target_thread_cleanup(target_data_t *tdp) {
 		rc = close(tdp->td_file_desc);
 		// Check the status of the CLOSE operation to see if it worked
 		if (rc != 0) {
-			fprintf(xgp->errout,"%s: xdd_target_open: ERROR: Could not close target number %d name %s\n",
+			fprintf(xgp->errout,"%s: xdd_target_thread_cleanup: ERROR: Could not close target number %d name %s\n",
 				xgp->progname,
 				tdp->td_target_number,
-       		                tdp->td_target_full_pathname);
-                	fflush(xgp->errout);
-                	perror("reason");
+       		    tdp->td_target_full_pathname);
+            fflush(xgp->errout);
+            perror("reason");
 		}
 	}
     

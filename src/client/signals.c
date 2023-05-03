@@ -12,7 +12,7 @@
  */
 /*
  * This file contains the signal handler and the routine that initializes
- * the signal hanler call.
+ * the signal handler call.
  */
 #include "xint.h"
 
@@ -30,7 +30,7 @@ static xdd_plan_t *xdd_signal_planp = NULL;
 void
 xdd_signal_handler(int signum, siginfo_t *sip, void *ucp) {
 	int enter_debugger = 0;
-        
+       
 	fprintf(xgp->errout,"\n%s: xdd_signal_handler: Received signal %d: ", xgp->progname, signum);
 	switch (signum) {
 		case SIGINT:

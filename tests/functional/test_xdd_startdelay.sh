@@ -10,8 +10,7 @@
 source ./test_config
 
 # Pre-test set-up
-echo "Beginning startdelay function test."
-test_name=$(basename $0)
+test_name=$(basename -s sh $0)
 test_name="${test_name%.*}"
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
 mkdir -p $test_dir
@@ -32,6 +31,8 @@ elapsed_time=$(echo "$timed_pass_output" |grep '^real' |awk '{print $2}')
 # Truncate elapsed_time
 elapsed_time=$(echo $elapsed_time| cut -d '.' -f 1)
 
+# Post test clean up
+rm -r $test_dir
 
 # Verify output 
 echo -n "Acceptance Test - $test_name : "

@@ -10,7 +10,7 @@
 source ./test_config
 
 # Create the test location
-test_name=$(basename $0)
+test_name=$(basename -s .sh $0)
 test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
 mkdir -p $test_dir
 
@@ -21,12 +21,15 @@ $XDDTEST_XDD_EXE -targets 2 $test_dir/foo $test_dir/foo -op target 0 write -op t
 # Validate output
 test_passes=0
 correct_size=$((1024*1024*10))
-file_size=$($XDDTEST_XDD_PATH/xdd-getfilesize $test_dir/foo |cut -f 1 -d ' ')
+file_size=$(stat -c %s $test_dir/foo)
 if [ "$correct_size" == "$file_size" ]; then
     test_passes=1
 else
     echo "Incorrect file size.  Size is $file_size but should be $correct_size."
 fi
+
+# Post test cleanup 
+rm -r $test_dir
 
 # Output test result
 /bin/echo -n "Acceptance Test - $test_name: "
