@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #Setup functional tests 
-echo XDD_EXE_PATH=$HOME/Software/xdd/bin/xdd > ./test_config
-echo XDDTEST_XDD_EXE=$XDD_EXE_PATH >> ./test_config
+XDD_EXE_PATH=$HOME/Software/xdd/bin/xdd
+echo XDDTEST_XDD_EXE=$XDD_EXE_PATH > ./test_config
 echo XDDTEST_TESTS_DIR=. >> ./test_config
 echo XDDTEST_LOCAL_MOUNT=$HOME/test-dir >> ./test_config
 
