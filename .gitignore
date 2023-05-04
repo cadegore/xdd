@@ -5,6 +5,7 @@ config.status
 configure
 GNUmakefile
 Makefile
+test_config
 contrib/ecdsa-0.11.tar.gz
 contrib/pycrypto-2.6.1.tar.gz
 contrib/pycrypto
