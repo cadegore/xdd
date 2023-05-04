@@ -22,8 +22,8 @@ dnl
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
-AC_PREREQ(2.59)
-AC_INIT([xdd], [7.0.0.rc-ramses3], bug@xdd.org)
+AC_PREREQ([2.69])
+AC_INIT([xdd],[7.0.0.rc-ramses3],[bug@xdd.org])
 AC_CONFIG_HEADER([src/compat/config.h])
 
 dnl
@@ -77,7 +77,7 @@ dnl
 dnl Ensure compiler provides C
 dnl
 AC_PROG_CC([xlc_r clang gcc])
-AC_LANG_C
+AC_LANG([C])
 AC_SUBST(CC)
 
 dnl
@@ -214,10 +214,7 @@ AC_CHECK_HEADERS([sys/mount.h], [], [])
 dnl
 dnl Check for C standard library 
 dnl
-AC_TRY_LINK([#include <stdlib.h>],
-	    [atoi("0");],
-	    [],
-	    AC_MSG_ERROR([No suitable C library to link against]))
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdlib.h>]], [[atoi("0");]])],[],[AC_MSG_ERROR(No suitable C library to link against)])
 
 dnl
 dnl Check for pthreads libraries -- this depends on the compiler
@@ -231,26 +228,17 @@ elif test "$CC" = "clang"; then
 elif test "$CC" = "xlc_r"; then
    LIBS="$LIBS -lpthread"
 fi
-AC_TRY_LINK([#include <pthread.h>],
-	    [pthread_attr_init(NULL);],
-	    [],
-	    AC_MSG_ERROR([No suitable pthreads library to link against]))
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>]], [[pthread_attr_init(NULL);]])],[],[AC_MSG_ERROR(No suitable pthreads library to link against)])
 
 dnl
 dnl Check for pthread's pthread_barrier_t
 dnl 
-AC_TRY_COMPILE([#include <pthread.h>],
-            [pthread_barrier_t pb;],
-            AC_DEFINE(HAVE_PTHREAD_BARRIER_T,1,[Define if you have pthread_barrier_t type.]),
-            [])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>]], [[pthread_barrier_t pb;]])],[AC_DEFINE(HAVE_PTHREAD_BARRIER_T,1,Define if you have pthread_barrier_t type.)],[])
 
 dnl
 dnl Check for pthread's pthread_attr_setaffinity_np
 dnl
-AC_TRY_COMPILE([#include <pthread.h>],
-            [pthread_attr_setaffinity_np(0,0,0);],
-            AC_DEFINE(HAVE_PTHREAD_ATTR_SETAFFINITY_NP,1,[Define if you have pthread_]),
-            [])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>]], [[pthread_attr_setaffinity_np(0,0,0);]])],[AC_DEFINE(HAVE_PTHREAD_ATTR_SETAFFINITY_NP,1,Define if you have pthread_)],[])
 
 dnl
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -305,10 +293,7 @@ fi
 dnl
 dnl Check for Linux CPU_SET(3)
 dnl
-AC_TRY_COMPILE([#include <sched.h>],
-            [cpu_set_t pb;],
-            AC_DEFINE(HAVE_CPU_SET_T,1,[Define if you have the cpu_set_t type.]),
-            [])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sched.h>]], [[cpu_set_t pb;]])],[AC_DEFINE(HAVE_CPU_SET_T,1,Define if you have the cpu_set_t type.)],[])
 
 dnl
 dnl Check for block device IOCTLs
