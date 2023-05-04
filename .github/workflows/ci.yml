@@ -13,9 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: apt update
+      run: apt-get update
     - uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: xfsprogs gnuplot net-tools numactl libnuma-dev xfslibs-dev 
+        packages: xfsprogs gnuplot net-tools numactl libnuma-dev xfslibs-dev bc time strace 
         version: 1.0
     - name: autoconf
       run: autoconf

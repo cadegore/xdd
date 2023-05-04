@@ -10,8 +10,6 @@ echo XDDTEST_LOCAL_MOUNT=$HOME/test-dir >> ./test_config
 
 #Run functional tests
 set -e
-status=0
 for f in tests/functional/*.sh; do
   bash -x "$f"
-  status=$(($status + $?)) 
 done

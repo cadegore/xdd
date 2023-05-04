@@ -25,10 +25,10 @@ target=`grep -m1 tgt $test_dir/data3.T0000.csv`
 target_num=$(echo $target |cut -f 4 -d ',' | cut -c 4)
 
 target2=`grep -m1 tgt $test_dir/data3.T0001.csv`
-target_num2=$(echo $target2 |cut -f 4 -d ',' |cut -c 4)
+target_num2=$(echo $target2 |cut -f 4 -d ',' | cut -c 4)
 
 # Post test clean up
-rm -r $test_dir
+#rm -r $test_dir
 
 # Verify output
 echo -n "Acceptance Test - $test_name : "
