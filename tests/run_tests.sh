@@ -12,6 +12,6 @@ echo XDDTEST_LOCAL_MOUNT=$HOME/test-dir >> ./test_config
 set -e
 status=0
 for f in tests/functional/*.sh; do
-  bash "$f"
+  bash -x "$f"
   status=$(($status + $?)) 
 done
