@@ -21,11 +21,17 @@ touch $test_file2
 $XDDTEST_XDD_EXE -targets 2 $test_file $test_file2 -op target 0 write -op target 1 write -reqsize 1024 -numreqs 512 -hb 1 -hb tgt -hb output $test_dir/data3
 
 # get target numbers
+cat $test_dir/data3.T0000.csv ; echo
 target=`grep -m1 tgt $test_dir/data3.T0000.csv`
+echo $target
 target_num=$(echo $target |cut -f 4 -d ',' | cut -c 4)
+echo $target_num
 
+cat $test_dir/data3.T0001.csv ; echo
 target2=`grep -m1 tgt $test_dir/data3.T0001.csv`
+echo $target2
 target_num2=$(echo $target2 |cut -f 4 -d ',' | cut -c 4)
+echo $target_num2
 
 # Post test clean up
 #rm -r $test_dir

@@ -4293,7 +4293,7 @@ xddfunc_target(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		}
 		
 		if (argv[1] == NULL) {
-			//return(0);
+			return(0);
 		}
 
 		tdp->td_target_basename = argv[1];
@@ -4340,18 +4340,6 @@ xddfunc_targetdir(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 	}
 }
 /*----------------------------------------------------------------------------*/
- // -targetin 
-int
-xddfunc_targetin(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) 
-{
-	int args=0;
-
-	
-//	args = xddfunc_target_inout(argc, argv, flags | XDD_PARSE_TARGET_IN);
-
-    return(args);
-}
-/*----------------------------------------------------------------------------*/
 // Specify the starting offset into the device in blocks
 // Arguments: -targetoffset #
 // 
@@ -4363,7 +4351,7 @@ xddfunc_targetoffset(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t fla
 }
 /*----------------------------------------------------------------------------*/
 // Arguments to this function look like so:
-//     -targtets N t1 t2 t3 ... TN
+//     -targets N t1 t2 t3 ... TN
 // Where N is the number of targets
 //    and t1, t2, t3,... are the target names (i.e. /dev/sd0a)
 // The "-targets" option is additive. Each time it is used in a command line
@@ -4381,6 +4369,11 @@ xddfunc_targets(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
     int i,j,k;
 	int status;
 	target_data_t *tdp;
+
+	if (argv[1] == NULL) {
+		fprintf(xgp->errout,"%s ERROR: Target operand is NULL\n",xgp->progname);
+		return (-1);
+	}
 
 	if (flags & XDD_PARSE_PHASE1) {
 		k = planp->number_of_targets;  // Keep the current number of targets we have
@@ -4493,18 +4486,6 @@ xddfunc_targetstartdelay(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t
 		}
 		return(2);
 	}
-}
-/*----------------------------------------------------------------------------*/
-// -targetout 
-int
-xddfunc_targetout(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) 
-{
-	int args=0;
-
-	
-//	args = xddfunc_target_inout(argc, argv, flags | XDD_PARSE_TARGET_OUT);
-
-    return(args);
 }
 /*----------------------------------------------------------------------------*/
 // Specify the throttle type and associated throttle value 
@@ -5111,65 +5092,6 @@ xddfunc_currently_undefined_option(char *sp) {
 } // End of xddfunc_currently_undefined_option()
 
 /*----------------------------------------------------------------------------*/
-// xddfunc_target_inout_file
-// Called by xddfunc_target_inout() to process the "file" I/O Type.
-// This processes the I/O Type, suboptions, and arguments for that. 
-// 
-int
-xddfunc_target_inout_file(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) 
-{
-	int args=0;
-	// Suboptions include:
-	//   name:
-	//   dio:
-	//   ordering:   loose, serial, none
-	// 
-    return(args);
-}
-
-/*----------------------------------------------------------------------------*/
-// xddfunc_target_inout_network
-// Called by xddfunc_target_inout() to process the "network" I/O Type.
-// This processes the I/O Type, suboptions, and arguments for that. 
-// 
-int
-xddfunc_target_inout_network(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) 
-{
-	int args=0;
-	// Suboptions include:
-	//   hostname:   hostname|IP:port#,#ports
-	//   protocol:   TCP or UDP
-	//   ordering:   loose, serial, none
-	// 
-
-    return(args);
-}
-/*----------------------------------------------------------------------------*/
-// xddfunc_target_inout
-// Called by xddfunc_targetin() and xddfunc_targetout() option functions.
-// This processes the I/O Type, suboptions, and arguments for that. 
-// 
-int
-xddfunc_target_inout(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) 
-{
-	int args=0;
-// Process the I/O Type 
-// Within each I/O Type process the suboptions
-// Within each suboption process the arguments
-//    File
-//    Network
-//    
-//	if (flags & XDD_PARSE_TARGET_FILE) {
-//		args = xddfunc_target_inout_file(argc, argv, flags);
-//	} else if (flags & XDD_PARSE_TARGET_NETWORK) {
-//		args = xddfunc_target_inout_network(argc, argv, flags);
-//	} else { 
-//		fprintf(xgp->errout, "%s: xddfunc_target_inout: Invalid I/O Type\n",
-//			xgp->progname);
-//	}
-    return(args);
-}
-
 int
 xddfunc_xni(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 {
