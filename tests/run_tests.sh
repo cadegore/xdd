@@ -11,5 +11,5 @@ echo XDDTEST_LOCAL_MOUNT=$HOME/test-dir >> ./test_config
 #Run functional tests
 set -e
 for f in tests/functional/*.sh; do
-  bash -x "$f"
+  bash "$f"
 done
