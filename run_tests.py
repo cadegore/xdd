@@ -21,7 +21,8 @@ def setup():
 
     #location of xdd github repo
     global xdd_repo_location
-    xdd_repo_location = Path.home() / 'Repos' / 'xdd'
+    xdd_repo_location = Path.cwd()
+    print(xdd_repo_location)
     
     #location of config file for running functional tests
     global xdd_test_config_location
