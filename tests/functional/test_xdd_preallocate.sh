@@ -9,11 +9,11 @@
 # Source the test configuration environment
 #
 source ./test_config
+source ./common.sh
 
 # Pre-test create test directory and file
-test_name=$(basename -s sh $0)
-test_name="${test_name%.*}"
-test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
+initialize_test
+test_dir=$XDDTEST_LOCAL_MOUNT/$TESTNAME
 mkdir -p $test_dir
 
 test_file=$test_dir/data1
@@ -32,44 +32,37 @@ if [ $test_file != ${test_file#$xfs} ]; then
    is_xfs=1
 fi
 
-
-
-
 file_size=$(stat -c %s $test_file)
 
 # Only XFS supports preallocation, so test success based on xfs_pass 
 test_success=0
 test_skip=0
 if [ $is_xfs -eq 1 ]; then
-   if [ $file_size -eq $preallocate_size ]; then
-         test_success=1
-   else 
-         echo "XFS File size is $file_size, but preallocate size was $preallocate_size"
-   fi  
+  if [ $file_size -eq $preallocate_size ]; then
+    test_success=1
+  else 
+    echo "XFS File size is $file_size, but preallocate size was $preallocate_size"
+  fi  
 # Test file is not XFS
 elif [ $file_size -eq $((req_size*1024)) ]; then 
-         test_success=1
-         test_skip=1
-         echo "File is not XFS type"
+   test_success=1
+   test_skip=1
+   echo "File is not XFS type"
 # Test file is not XFS or correct size
 else
-         echo "Non-XFS File size is $file_size, but request size was $(($req_size*1024))"
+  echo "Non-XFS File size is $file_size, but request size was $(($req_size*1024))"
 fi
 
-# Post test clean up 
-rm -r $test_dir
-
 # Verify output
-echo -n "Acceptance test - $test_name : "
 if [ 1 -eq $test_success ]; then
     if [ 0 -eq $test_skip ]; then
-      echo "PASSED"
-      exit 0
+      # test passed 
+      finalize_test 0
     else 
-      echo "SKIPPED"
-      exit 0  
+      # test skipped
+      finalize_test -1
     fi
 else
-      echo "FAILED"
-      exit 1
+  # test failed  
+  finalize_test 1
 fi

@@ -6,13 +6,13 @@
 # Verify heartbeat elapsed time options works
 #
 source ./test_config
+source ./common.sh
 
 # Pre-test set-up
-test_name=$(basename -s .sh $0)
-test_name="${test_name%.*}"
-test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
+initialize_test
+test_file=$XDDTEST_LOCAL_MOUNT/$TESTNAME/test
+test_dir=$XDDTEST_LOCAL_MOUNT/$TESTNAME
 
-mkdir -p $test_dir
 
 test_file=$test_dir/data1
 touch $test_file
@@ -36,14 +36,12 @@ pass_count=0
 if (( $(echo "$percent_error < $error_bound" | bc -l) )); then
   pass_count=1
 fi
-# Post test cleanup
-rm -r $test_dir
 
 if [[ $pass_count -eq 1 ]]; then
-  echo "Heartbeat elapsed test PASSED"
-  exit 0
+  # test passed 
+  finalize_test 0
+else 
+  # test failed  
+  finalize_test 1
 fi
-
-echo "Heartbeat elapsed test FAILED"
-exit 1
 

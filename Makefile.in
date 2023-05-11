@@ -213,10 +213,10 @@ install: all install_xdd
 
 .PHONY: install install_xdd
 
-check:
-	./tests/run_tests.sh
-
-.PHONY: check
+# check:
+# 	./tests/run_tests.sh
+#
+# .PHONY: check
 
 #
 # Miscellaneous build rules

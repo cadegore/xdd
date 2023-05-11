@@ -31,16 +31,6 @@ initialize_test() {
         echo "Unable to create $XDDTEST_LOCAL_MOUNT/$TESTNAME"
         finalize_test 2
     fi
-    ssh $XDDTEST_E2E_SOURCE "\mkdir -p $XDDTEST_SOURCE_MOUNT/$TESTNAME"
-    if [ 0 -ne $? ]; then
-        echo "Unable to create $XDDTEST_SOURCE_MOUNT/$TESTNAME"
-        finalize_test 2
-    fi
-    ssh $XDDTEST_E2E_DEST "\mkdir -p $XDDTEST_DEST_MOUNT/$TESTNAME"
-    if [ 0 -ne $? ]; then
-        echo "Unable to create $XDDTEST_DEST_MOUNT/$TESTNAME"
-        finalize_test 2
-    fi
 
     # Create the log directory
     \mkdir -p $XDDTEST_OUTPUT_DIR
@@ -87,28 +77,6 @@ generate_local_filename() {
 }
 
 #
-# Generate a source filename
-#
-generate_source_filename() {
-    local varname="$1"
-    local name="$XDDTEST_SOURCE_MOUNT/$TESTNAME/file${common_next_file}.tdt"
-    eval "$varname=$name"
-    common_next_file=$((common_next_file + 1))
-    return 0
-}
-
-#
-# Generate a destination filename
-#
-generate_dest_filename() {
-    local varname="$1"
-    local name="$XDDTEST_DEST_MOUNT/$TESTNAME/file${common_next_file}.tdt"
-    eval "$varname=$name"
-    common_next_file=$((common_next_file + 1))
-    return 0
-}
-
-#
 # Create local test file of size n, outputs filename
 #
 generate_local_file() {
@@ -144,89 +112,11 @@ generate_local_file() {
 }
 
 #
-# Create source-side test file of size n,
-#
-generate_source_file() {
-    local varname="$1"
-    local size="$2"
-
-    if [ -z "$size" ]; then
-        echo "No test file data size specified."
-        finalize_test 2
-    fi
-
-    local fname=""
-    generate_source_filename fname
-    ssh $XDDTEST_E2E_SOURCE "$XDDTEST_E2E_SOURCE_XDD_PATH/xdd -op write -target $fname -reqsize 1 -blocksize $((1024*1024)) -bytes $size -datapattern random >/dev/null 2>&1"
-
-    # Ensure the file size is correct
-    local asize=$(ssh $XDDTEST_E2E_SOURCE "$XDDTEST_E2E_SOURCE_XDD_PATH/xdd-getfilesize $fname")
-    if [ "$asize" != "$size" ]; then
-        echo "Unable to generate test file data of size: $size"
-        finalize_test 2
-    fi
-
-    # Ensure the file isn't all zeros
-    read -r -n 4 < /dev/zero
-    local zeroes=$REPLY
-    local data=$(ssh $XDDTEST_E2E_SOURCE "read -r -n 4 < $fname; echo \$REPLY")
-    if [ 0 -ne $? -o "$data" = "$zeroes" ]; then
-        echo "Unable to generate random test file data"
-        finalize_test 2
-    fi
-    eval "$varname=$fname"
-    return 0
-}
-
-#
-# Returns 0 is the md5's match, 1 if they don't
-#
-compare_source_dest_md5() {
-    local sfile="$1"
-    local dfile="$2"
-    # Make sure the names are valid
-    if [ -z $sfile ]; then
-        echo "No source file name provided"
-        finalize_test 2
-    fi
-    if [ -z $dfile ]; then
-        echo "No destination file name provided"
-        finalize_test 2
-    fi
-
-    local ssumcmd="if [ -z \$(which md5 2>/dev/null) ]; then md5sum $sfile; else md5 -r $sfile; fi"
-    local ssum=$(ssh $XDDTEST_E2E_SOURCE "$ssumcmd")
-    if [ 0 -ne $? -o -z "$ssum" ]; then
-        echo "Unable to md5sum $sfile: $ssum"
-        finalize_test 2
-    fi
-
-    local dsumcmd="if [ -z \$(which md5 2>/dev/null) ]; then md5sum $dfile; else md5 -r $dfile; fi"
-    local dsum=$(ssh $XDDTEST_E2E_DEST "$dsumcmd")
-    if [ 0 -ne $? -o -z "$dsum" ]; then
-        echo "Unable to md5sum $dfile: $dsum"
-        finalize_test 2
-    fi
-
-    ssum=$(echo $ssum |cut -f 1 -d ' ')
-    dsum=$(echo $dsum |cut -f 1 -d ' ')
-    if [ -z "$ssum" -o -z "$dsum" -o "$ssum" != "$dsum" ]; then
-        echo "Mismatched checksums: $ssum $dsum"
-        return 1
-    else
-        return 0
-    fi
-}
-
-#
 # Remove any generated test data
 #
 cleanup_test_data() {
-
     # Remove files associated with local tests
-    \rm -rf $XDDTEST_LOCAL_MOUNT/$TESTNAME
-    ssh $XDDTEST_E2E_SOURCE "\rm -rf $XDDTEST_LOCAL_MOUNT/$TESTNAME"
-    ssh $XDDTEST_E2E_DEST "\rm -rf $XDDTEST_DEST_MOUNT/$TESTNAME"
+    rm -r $XDDTEST_LOCAL_MOUNT/$TESTNAME
 }
 
 #

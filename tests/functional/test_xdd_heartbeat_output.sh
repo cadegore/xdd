@@ -6,12 +6,11 @@
 #
 # Source test environment
 source ./test_config
+source ./common.sh
 
 # Pre-test set-up
-test_name=$(basename -s sh $0)
-test_name="${test_name%.*}"
-test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
-mkdir -p $test_dir
+initialize_test
+test_dir=$XDDTEST_LOCAL_MOUNT/$TESTNAME
 
 test_file=$test_dir/data1
 touch $test_file
@@ -31,16 +30,13 @@ else
     test_success=0
 fi
 
-# Post test cleanup 
-rm -r $test_dir
 
 # Verify output
-echo -n "Acceptance Test - $test_name : "
 if [ $test_success -ge 1 ]; then
-    echo "PASSED"
-    exit 0
-else    
-    echo "FAILED"   
-    exit 1
-fi 
+  # test passed 
+  finalize_test 0
+else
+  # test failed  
+  finalize_test 1
+fi
 

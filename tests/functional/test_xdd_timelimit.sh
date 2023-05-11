@@ -9,15 +9,11 @@
 # Source the test configuration environment
 #
 source ./test_config
-
-test_name=$(basename -s sh $0)
-test_name="${test_name%.*}" 
+source ./common.sh 
 
 # Perform pre-test 
-echo "Beginning xdd timelimit test . . ."
-test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
-rm -rf $test_dir
-mkdir -p $test_dir || exit_error
+initialize_test
+test_dir=$XDDTEST_LOCAL_MOUNT/$TESTNAME
 
 # ReqSize 4096, Bytes 1GB, Targets 1, QueueDepth 4, Passes 1
 data_file=$test_dir/test
@@ -41,15 +37,11 @@ fi
 
 # wait $pid
 
-# Perform post-test cleanup
-rm -rf $test_dir
-
 # Output test result
-echo -n "Acceptance Test - $test_name : "
 if [ 1 -eq $test_passes ]; then
-  echo "PASSED."
-  exit 0
+  # test passed 
+  finalize_test 0
 else
-  echo "FAILED" 
-  exit 1  
+  # test failed  
+  finalize_test 1
 fi

@@ -7,13 +7,11 @@
 # Source the test configuration environment
 #
 source ./test_config
+source ./common.sh
 
 # pre-test set-up
-test_name=$(basename -s sh $0)
-test_name="${test_name%.*}"
-test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
-mkdir -p $test_dir
-rm $test_dir/*
+initialize_test
+test_dir=$XDDTEST_LOCAL_MOUNT/$TESTNAME
 test_file=$test_dir/data1
 touch $test_file
 
@@ -27,16 +25,11 @@ head -$lines $test_dir/data2.T0000.csv >> $test_dir/data3
 num_lines=`wc -l $test_dir/data3`
 match=$(echo $lines | cut -f 1 -d ' ')
 
-# Post test cleanup
-rm -r $test_dir
-
-
 # verify output
-echo -n "Acceptance Test - $test_name : "
 if [ $match -eq $lines ]; then
-    echo "PASSED"
-    exit 0
+  # test passed 
+  finalize_test 0
 else
-    echo "FAILED" 
-    exit 1
+  # test failed  
+  finalize_test 1
 fi

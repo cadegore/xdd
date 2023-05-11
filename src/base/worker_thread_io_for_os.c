@@ -49,9 +49,11 @@ xdd_io_for_os(worker_data_t *wdp) {
 
 		if (tdp->td_target_options & TO_NULL_TARGET) { // If this is a NULL target then we fake the I/O
 			wdp->wd_task.task_io_status = wdp->wd_task.task_xfer_size;
-		} else { // Issue the actual operation
-			if ((tdp->td_target_options & TO_SGIO)) 
+		} 
+		else { // Issue the actual operation
+			if ((tdp->td_target_options & TO_SGIO)) {
 			 	wdp->wd_task.task_io_status = xdd_sg_io(wdp,'w'); // Issue the SGIO operation 
+			}
 			else if (!(tdp->td_target_options & TO_NULL_TARGET)) {
 
 				if (xgp->global_options & GO_DEBUG_IO) {
@@ -72,7 +74,8 @@ xdd_io_for_os(worker_data_t *wdp) {
                                                         wdp->wd_task.task_datap,
                                                         wdp->wd_task.task_xfer_size,
                                                    		wdp->wd_task.task_byte_offset); // Issue a positioned write operation
-			} else { 
+			} 
+			else { 
 				wdp->wd_task.task_io_status = write(wdp->wd_task.task_file_desc, wdp->wd_task.task_datap, wdp->wd_task.task_xfer_size); // Issue a normal write() op
 			}
 

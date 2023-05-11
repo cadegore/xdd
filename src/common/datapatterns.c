@@ -19,7 +19,7 @@
 #include "xint.h"
 #include <sys/sysinfo.h>
 
-#define WHOLEFILE_MAX_SIZE_RAM 0.5 // Currntly only allow for 50% of RAM
+#define WHOLEFILE_MAX_SIZE_RAM 0.5 // Currently only allow for 50% of RAM
 
 int xdd_data_pattern_init(xint_data_pattern_t* xdp)
 {

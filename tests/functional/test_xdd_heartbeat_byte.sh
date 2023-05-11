@@ -7,14 +7,13 @@
 # Source the test configuration environment
 #
 source ./test_config
+source ./common.sh
 
 # Pre-test set-up
 
-test_name=$(basename -s .sh $0)
-test_name="${test_name%.*}"
-test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
-mkdir -p $test_dir
-test_file=$test_dir/data1
+initialize_test
+test_file=$XDDTEST_LOCAL_MOUNT/$TESTNAME/data1
+test_dir=$XDDTEST_LOCAL_MOUNT/$TESTNAME
 
 
 os=`uname`
@@ -29,12 +28,10 @@ times_test=0
 # rerun the test if xdd_getfilesize pulls 7 or less sizes from the target file
 while [ $times_test -le 7 ]; do  
 
-    rm -r $test_dir/*
       
     $XDDTEST_XDD_EXE -target $test_file -op write -reqsize $req_size -numreqs $num_reqs -blocksize $block_size $xdd_byte_cmd -hb lf -hb output $test_dir/data2 -throttle bw 100&
     pid=$!
 
-    echo $pid
     num_ele=0
     process=1
     if [ "$os" == "Darwin" ]; then
@@ -115,17 +112,15 @@ while [ $times_test -le 7 ]; do
         fi 
     done
 
-# Post test cleanup
-rm -r $test_dir
-
 done #while times_test
 
       echo "results count: $times_test outlier count: $outlier_count"
 
       if [ $outlier_count -le $outlier_bound ]; then
-        echo "PASSED"
-        exit 0
+          # test passed 
+          finalize_test 0
       fi
 
-      exit 1
+      # test failed
+      finalize_test 1
 

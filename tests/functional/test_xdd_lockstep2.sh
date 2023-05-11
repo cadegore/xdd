@@ -8,11 +8,11 @@
 # Source the test configuration environment
 #
 source ./test_config
+source ./common.sh
 
 # Create the test location
-test_name=$(basename -s .sh $0)
-test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
-mkdir -p $test_dir
+initialize_test
+test_dir=$XDDTEST_LOCAL_MOUNT/$TESTNAME
 
 # A super simple lockstep
 $XDDTEST_XDD_EXE -targets 2 $test_dir/foo $test_dir/foo -op target 0 write -op target 1 read \
@@ -28,15 +28,11 @@ else
     echo "Incorrect file size.  Size is $file_size but should be $correct_size."
 fi
 
-# Post test cleanup 
-rm -r $test_dir
-
 # Output test result
-/bin/echo -n "Acceptance Test - $test_name: "
 if [ "1" == "$test_passes" ]; then
-  echo "PASSED."
-  exit 0
+  # test passed 
+  finalize_test 0
 else
-  echo "FAILED."
-  exit 1
+  # test failed  
+  finalize_test 1
 fi

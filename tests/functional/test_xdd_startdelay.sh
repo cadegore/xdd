@@ -8,17 +8,14 @@
 # Source the test configuration environment
 #
 source ./test_config
+source ./common.sh
 
 # Pre-test set-up
-test_name=$(basename -s sh $0)
-test_name="${test_name%.*}"
-test_dir=$XDDTEST_LOCAL_MOUNT/$test_name
-mkdir -p $test_dir
+initialize_test
+test_dir=$XDDTEST_LOCAL_MOUNT/$TESTNAME
 
 test_file=$test_dir/data1
 touch $test_file
-
-
 
 # Determine correct and elapsed time
 num_passes=2
@@ -31,15 +28,11 @@ elapsed_time=$(echo "$timed_pass_output" |grep '^real' |awk '{print $2}')
 # Truncate elapsed_time
 elapsed_time=$(echo $elapsed_time| cut -d '.' -f 1)
 
-# Post test clean up
-rm -r $test_dir
-
 # Verify output 
-echo -n "Acceptance Test - $test_name : "
 if [ "$elapsed_time" -ge "$correct_time" ]; then
-	echo "PASSED"
-	exit 0
-else	
-	echo "FAILED"	
-	exit 1
-fi 
+  # test passed 
+  finalize_test 0
+else
+  # test failed  
+  finalize_test 1
+fi

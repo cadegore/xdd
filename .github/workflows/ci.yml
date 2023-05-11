@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: build
 
     runs-on: ubuntu-latest
 
@@ -27,6 +28,13 @@ jobs:
       run: make
     - name: make install
       run: make install
-    - name: make check
-      run: make check
+  tests:
+    name: tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+    - run: python $GITHUB_WORKSPACE/tests/run_tests.py
+    
 
