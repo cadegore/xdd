@@ -31,6 +31,8 @@ def setup():
     # create test-dir 
     if not os.path.exists(Path.home() / 'test-dir'):
         os.makedirs(Path.home() / 'test-dir')
+        os.makedirs(Path.home() / 'test-dir' / 'logs')
+        os.makedirs(Path.home() / 'test-dir' / 'tests')
     
     #location of where functional tests will run
     global xdd_test_localmount_location
