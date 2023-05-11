@@ -27,6 +27,10 @@ def setup():
     #location of config file for running functional tests
     global xdd_test_config_location
     xdd_test_config_location = xdd_repo_location / 'tests' / 'functional'
+
+    # create test-dir 
+    if not os.path.exists(Path.home() / 'test-dir'):
+        os.makedirs(Path.home() / 'test-dir')
     
     #location of where functional tests will run
     global xdd_test_localmount_location
