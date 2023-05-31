@@ -17,12 +17,17 @@ def main():
 
 def setup():
     global xdd_exe_location
-    xdd_exe_location = subprocess.run(['which','xdd'], universal_newlines=True, stdout=subprocess.PIPE).stdout.strip('\n')
+    
+    default_xdd_location = Path(Path.home() / 'Software' / 'xdd' / 'bin' / 'xdd')
+    if not default_xdd_location.is_file():
+        xdd_exe_location = subprocess.run(['which','xdd'], universal_newlines=True, stdout=subprocess.PIPE).stdout.strip('\n')
+        if (not xdd_exe_location):
+            print("xdd executable could not be found")
+            exit(1)
 
     #location of xdd github repo
     global xdd_repo_location
     xdd_repo_location = Path.cwd()
-    print(xdd_repo_location)
     
     #location of config file for running functional tests
     global xdd_test_config_location
@@ -56,9 +61,10 @@ def run_functional_tests():
     #run each test in functional folder, recording the return value and time it took to execute
     for test in list_of_tests:
         test_log_filename = test.strip('.sh')
+        print(test_log_filename)
         test_log_filename_file = open(xdd_test_output_dir / test_log_filename, 'w')
         start = time.time()
-        rc = subprocess.run(['bash',test], universal_newlines=True,stderr=subprocess.STDOUT,stdout=test_log_filename_file).returncode
+        rc = subprocess.run(['bash','-xf',test], universal_newlines=True,stderr=subprocess.STDOUT,stdout=test_log_filename_file).returncode
         end = time.time()
         test_log_filename_file.close()
         test_results[test] = [rc, round((end - start),2)]

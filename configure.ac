@@ -22,9 +22,9 @@ dnl
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
-AC_PREREQ([2.69])
+AC_PREREQ([2.71])
 AC_INIT([xdd],[7.0.0.rc-ramses3],[bug@xdd.org])
-AC_CONFIG_HEADER([src/compat/config.h])
+AC_CONFIG_HEADERS([src/compat/config.h])
 
 dnl
 dnl Include useful macros
@@ -167,7 +167,15 @@ AC_SUBST(PATCH)
 dnl 
 dnl Check for Standard C headers
 dnl
-AC_HEADER_STDC
+m4_warn([obsolete],
+[The preprocessor macro `STDC_HEADERS' is obsolete.
+  Except in unusual embedded environments, you can safely include all
+  ISO C90 headers unconditionally.])dnl
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 
 dnl
 dnl Ensure required POSIX headers are supplied

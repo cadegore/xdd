@@ -59,9 +59,7 @@ finalize_test() {
       fail
   fi
 
-  if [ 0 -eq $rc ]; then
-      cleanup_test_data
-  fi
+  cleanup_test_data
   exit $rc
 }
 
