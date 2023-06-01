@@ -18,12 +18,10 @@ def main():
 def setup():
     global xdd_exe_location
     
-    default_xdd_location = Path(Path.home() / 'Software' / 'xdd' / 'bin' / 'xdd')
-    if not default_xdd_location.is_file():
-        xdd_exe_location = subprocess.run(['which','xdd'], universal_newlines=True, stdout=subprocess.PIPE).stdout.strip('\n')
-        if (not xdd_exe_location):
-            print("xdd executable could not be found")
-            exit(1)
+    xdd_exe_location = subprocess.run(['which','xdd'], universal_newlines=True, stdout=subprocess.PIPE).stdout.strip('\n')
+    if (not xdd_exe_location):
+        print("xdd executable could not be found")
+        exit(1)
 
     #location of xdd github repo
     global xdd_repo_location
