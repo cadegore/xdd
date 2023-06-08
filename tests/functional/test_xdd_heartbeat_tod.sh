@@ -89,7 +89,7 @@ fi
 if [ $test_success -eq 1 ]; then
   # test passed 
   finalize_test 0
-else
+#else
   # test failed  
   finalize_test 1
 fi

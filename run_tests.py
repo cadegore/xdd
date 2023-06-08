@@ -18,7 +18,7 @@ def main():
 def setup():
     global xdd_exe_location
    
-    default_xdd_location = Path('/bin/xdd')
+    default_xdd_location = Path(Path.home() / 'xdd' / 'bin' / 'xdd')
     if not default_xdd_location.is_file():
         xdd_exe_location = subprocess.run(['which','xdd'], universal_newlines=True, stdout=subprocess.PIPE).stdout.strip('\n')
         if (not xdd_exe_location):

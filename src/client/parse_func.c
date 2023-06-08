@@ -4293,7 +4293,7 @@ xddfunc_target(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		}
 		
 		if (argv[1] == NULL) {
-			return(0);
+			//return(0);
 		}
 
 		tdp->td_target_basename = argv[1];
