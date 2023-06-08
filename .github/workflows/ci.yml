@@ -23,7 +23,7 @@ jobs:
     - name: autoconf
       run: autoconf
     - name: configure
-      run: ./configure
+      run: ./configure --prefix=$HOME/xdd
     - name: make
       run: make
     - name: make install

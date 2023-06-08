@@ -267,7 +267,7 @@ do
 	exit 1
       fi
       dstdir=$dst
-      dst=$dstdir/`basename "$src"`
+      dst=$dstdir/$(basename $src)
       dstdir_status=0
     else
       # Prefer dirname, but fall back on a substitute if dirname fails.

@@ -18,7 +18,8 @@ def main():
 def setup():
     global xdd_exe_location
    
-    default_xdd_location = Path('/bin/xdd')
+    default_xdd_location = Path(Path.home() / 'xdd' / 'bin' / 'xdd')
+    print(f"default xdd location exists: {default_xdd_location.is_file()}")
     if not default_xdd_location.is_file():
         xdd_exe_location = subprocess.run(['which','xdd'], universal_newlines=True, stdout=subprocess.PIPE).stdout.strip('\n')
         if (not xdd_exe_location):
@@ -26,6 +27,8 @@ def setup():
             exit(1)
     else: 
         xdd_exe_location = default_xdd_location
+
+    print("xdd location is {xdd_exe_location}")
 
     #location of xdd github repo
     global xdd_repo_location
