@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: XDD CI
 
 on:
   push:
@@ -7,13 +7,16 @@ on:
     branches: [ "xdd-2.0" ]
 
 jobs:
-  build:
+  test:
     name: build
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with: 
+      python-version: '3.10'
     - name: apt update
       run: sudo apt-get update
     - uses: awalsh128/cache-apt-pkgs-action@latest
@@ -23,18 +26,12 @@ jobs:
     - name: autoconf
       run: autoconf
     - name: configure
-      run: ./configure --prefix=$HOME/xdd
+      run: ./configure
     - name: make
       run: make
     - name: make install
       run: sudo make install
-  tests:
-    name: tests
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-    - run: python ./run_tests.py
+    - name: run tests 
+      run: python ./run_tests.py
     
 

@@ -207,7 +207,7 @@ fastinstall: all
 	cp bin/xdd /sbin
 
 install_xdd:
-	$(INSTALL) -c -m 755 bin/xdd $(INSTALL_DIR)/bin/xdd
+	$(INSTALL) -m 755 bin/xdd $(INSTALL_DIR)/bin/xdd
 
 install: all install_xdd 
 
@@ -225,7 +225,7 @@ XDDVERSION := $(VERSION)
 baseversion:
 	echo "#define XDD_BASE_VERSION $(XDDVERSION)" > $(BASE_DIR)/xdd_base_version.h
 
-TARPATH := $(shell basename ${PWD})
+TARPATH := $(basename $(PWD))
 TARFILE := xdd-$(shell date +%s).tgz
 TARFLAGS := --exclude \*.o --exclude \*~ --exclude .DS_STORE --exclude .git
 tarball:
