@@ -28,4 +28,4 @@ jobs:
     - name: make install
       run: sudo make -C ${{github.workspace}}/build install
     - name: run tests
-      run: python ./run_tests.py
+      run: ${{github.workspace}}/build/run_tests.py
