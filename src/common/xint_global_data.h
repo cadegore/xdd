@@ -18,7 +18,7 @@
 #include <pthread.h>
 #include "barrier.h"
 
-// Bit field definitions for the xdd_global_options - The "GO_XXXX" definitions are specifically for the Global Options 
+// Bit field definitions for the xdd_global_options - The "GO_XXXX" definitions are specifically for the Global Options
 
 #define GO_SYNCIO              	0x0000000000000001ULL  /* Sync every nth I/O operation */
 #define GO_NOBARRIER           	0x0000000000000002ULL  /* Do not use a barrier */
@@ -60,8 +60,8 @@ struct xdd_global_data {
 	char			*progname;              			/* Program name from argv[0] */
     	int32_t			argc;                   			/* The original arg count */
 	char			**argv;                 			/* The original *argv[]  */
-	FILE			*output;                			/* Output file pointer*/ 
-	FILE			*errout;                			/* Error Output file pointer*/ 
+	FILE			*output;                			/* Output file pointer*/
+	FILE			*errout;                			/* Error Output file pointer*/
 	FILE			*csvoutput;             			/* Comma Separated Values output file */
 	FILE			*combined_output;       			/* Combined output file */
 	char			*output_filename;       			/* name of the output file */
@@ -71,10 +71,10 @@ struct xdd_global_data {
 	char			*id;                    			/* ID string pointer */
 	uint64_t			max_errors;             			/* max number of errors to tollerate */
 	uint64_t			max_errors_to_print;    			/* Maximum number of compare errors to print */
-	uint32_t			number_of_processors;   			/* Number of processors */    
+	uint32_t			number_of_processors;   			/* Number of processors */
 	int32_t			clock_tick;							/* Number of clock ticks per second */
 	nclk_t			debug_base_time;					/* The "t=0" time used by DEBUG operation time stamps */
-    
+
 // Indicators that are used to control exit conditions and the like
 	char			id_firsttime;           			/* ID first time through flag */
 	char			run_time_expired;  					/* The alarm that goes off when the total run time has been exceeded */
@@ -82,11 +82,11 @@ struct xdd_global_data {
 	char			run_complete;   					/* Set to a 1 to indicate that all passes have completed */
 	char			abort;       						/* Abort the run due to some catastrophic failure */
 	char			canceled;       					/* Program canceled by user */
-	char                    random_initialized;                             /* Random number generator has been initialized */    
+	char                    random_initialized;                             /* Random number generator has been initialized */
 	char                    random_init_state[256];                         /* Random number generator state initalizer array */
 	unsigned int            random_init_seed;                               /* Random number generator state seed value */
 	struct sigaction sa;								/* Used by the signal handlers to determine what to do */
-    
+
 // PThread structures for the main threads
 	pthread_t 		XDDMain_Thread;						// PThread struct for the XDD main thread
 	pthread_t 		Results_Thread;						// PThread struct for results manager
@@ -106,12 +106,12 @@ struct xdd_global_data {
 #define	XDD_RETURN_VALUE_IOERROR				6		// Run ended due to an I/O error
 
 // Inject a symbol into the namespace if xfs support is configured
-#ifdef HAVE_ENABLE_XFS
+#if HAVE_ENABLE_XFS
 extern int xgp_xfs_enabled;
 #endif
 
 typedef	struct 		xdd_global_data 	xdd_global_data_t;
 
-extern  xdd_global_data_t   *xgp;						// pointer to the xdd global data that all routines use 
+extern  xdd_global_data_t   *xgp;						// pointer to the xdd global data that all routines use
 
 #endif

@@ -11,7 +11,7 @@
  *
  */
 /*
- * This file contains the subroutines that perform an "open" operation 
+ * This file contains the subroutines that perform an "open" operation
  * on the target device/file.
  */
 #include "xint.h"
@@ -27,16 +27,16 @@
  */
 int32_t
 xint_target_preallocate_for_os(target_data_t *tdp) {
-	
-#ifdef HAVE_ENABLE_XFS
+
+#if HAVE_ENABLE_XFS
 	int32_t 	status;		// Status of various system calls
 	struct statfs 	sfs;		// File System Information struct
 	xfs_flock64_t 	xfs_flock;	// Used to pass preallocation information to xfsctl()
-	
+
 	// Determine the file system type
 	status = fstatfs(tdp->td_file_desc, &sfs);
 	if (0 != status) {
-		fprintf(xgp->errout, 
+		fprintf(xgp->errout,
 				"%s: xdd_target_preallocatefor_os<LINUX>: ERROR: Target %d name %s: cannot get file system information via statfs\n",
 				xgp->progname,
 				tdp->td_target_number,
@@ -45,16 +45,16 @@ xint_target_preallocate_for_os(target_data_t *tdp) {
 		fflush(xgp->errout);
 		return(1);
 	}
-	
-	/* Support preallocate on XFS */ 
+
+	/* Support preallocate on XFS */
 	if (XFS_SUPER_MAGIC == sfs.f_type) {
 		/* On non 64-bit systems, preallocate may only work 4GB at a time */
 		if (8 == sizeof(int*)) {
 			/* Always set whence to 0, for now */
 			xfs_flock.l_whence = 0;
-				
+
 			/* Allocate the entire file */
-			xfs_flock.l_start = 0; 
+			xfs_flock.l_start = 0;
 			xfs_flock.l_len = tdp->td_preallocate * tdp->td_block_size;
 			status = xfsctl(tdp->td_target_full_pathname,
 							tdp->td_file_desc,
@@ -68,16 +68,16 @@ xint_target_preallocate_for_os(target_data_t *tdp) {
 			while (rem > 0) {
 				/* Always set whence to 0, for now */
 				xfs_flock.l_whence = 0;
-				
+
 				/* Allocate the next 4GB */
-				xfs_flock.l_start = pos; 
+				xfs_flock.l_start = pos;
 				xfs_flock.l_len = (rem <= max_bytes) ? rem : max_bytes;
 				status = xfsctl(tdp->td_target_full_pathname,
 								tdp->td_file_desc,
 								XFS_IOC_RESVSP64, &xfs_flock);
-			
+
 				/* Check preallocate status */
-				if (status) { 
+				if (status) {
 					break;
 				}
 				pos += max_bytes;
@@ -85,7 +85,7 @@ xint_target_preallocate_for_os(target_data_t *tdp) {
 			}
 		}
 		if (status) {
-			fprintf(xgp->errout, 
+			fprintf(xgp->errout,
 					"%s: xdd_target_preallocatefor_os<LINUX>: ERROR: Target %d name %s: xfsctl call for preallocation failed\n",
 					xgp->progname,
 					tdp->td_target_number,
@@ -95,9 +95,9 @@ xint_target_preallocate_for_os(target_data_t *tdp) {
 			return(1);
 		}
 	}
-		
+
 	// Everything must have worked :)
-	return(0); 
+	return(0);
 #else // XFS is not ENABLED
 	fprintf(xgp->errout,
 		"%s: xdd_target_preallocate_for_os<LINUX>: ERROR: This program was not compiled with XFS_ENABLED - no preallocation possible\n",
@@ -124,10 +124,10 @@ xint_target_preallocate_for_os(target_data_t *tdp) {
 		tdp->td_target_full_pathname);
 	fflush(xgp->errout);
 	return(-1);
-	
+
 } // End of AIX xint_target_preallocate()
 
-#else 
+#else
 
 /*----------------------------------------------------------------------------*/
 /* xdd_target_preallocate() - The default Preallocate routine for all other OS
@@ -142,9 +142,9 @@ xint_target_preallocate_for_os(target_data_t *tdp) {
 		tdp->td_target_full_pathname);
 	fflush(xgp->errout);
 	return(-1);
-	
+
 } // End of default xint_target_preallocate()
- 
+
 #endif
 
 /*----------------------------------------------------------------------------*/
@@ -165,7 +165,7 @@ xint_target_preallocate(target_data_t *tdp){
 		return(0);
 
 	// Check to see if a preallocation amount was specified - if not, just return
-	if (tdp->td_preallocate <= 0) 
+	if (tdp->td_preallocate <= 0)
 		return(0);
 
 	status = xint_target_preallocate_for_os(tdp);

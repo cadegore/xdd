@@ -13,7 +13,7 @@
 #include "xint.h"
 #include "xni.h"
 
-#ifdef HAVE_SCHED_H
+#if HAVE_SCHED_H
 #include <sched.h>
 #endif
 
@@ -29,13 +29,13 @@ xdd_worker_thread_init(worker_data_t *wdp) {
     char			tmpname[XDD_BARRIER_MAX_NAME_LENGTH];	// Used to create unique names for the barriers
 	unsigned char	*bufp;		// Generic Buffer pointer
 
-#if defined(HAVE_CPUSET_T) && defined(HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
+#if HAVE_CPU_SET_T && HAVE_PTHREAD_ATTR_SETAFFINITY_NP
     // BWS Print the cpuset
     int i;
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     pthread_getaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
-    printf("Thread %d bound to NUMA node", pthread_self());
+    printf("Thread %ld bound to NUMA node", (long int) pthread_self());
     for (i = 0; i< 48; i++)
         if (CPU_ISSET(i, &cpuset))
             printf(" %d", i);
@@ -57,7 +57,7 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 	status = pthread_mutex_init(&tdp->td_current_state_mutex, 0);
 	if (status) {
 		fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: ERROR: Cannot init my_current_state_mutex \n",
-			xgp->progname, 
+			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number);
 		fflush(xgp->errout);
@@ -67,7 +67,7 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 	status = pthread_mutex_init(&wdp->wd_worker_thread_target_sync_mutex, 0);
 	if (status) {
 		fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: ERROR: Cannot init worker_thread_target_sync_mutex\n",
-			xgp->progname, 
+			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number);
 		fflush(xgp->errout);
@@ -90,8 +90,8 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 			tdp->td_target_full_pathname);
 		return(-1);
 	}
-	
-	// Initialize the tot_wait structure 
+
+	// Initialize the tot_wait structure
 	status = pthread_cond_init(&wdp->wd_tot_wait.totw_condition, 0);
 	if (0 != status) {
 		fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: ERROR: Failed to initialize tot condition variable\n",
@@ -132,7 +132,7 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 				xgp->progname);
 			return(-1);
 		}
-	} else {	
+	} else {
 		bufp = xdd_init_io_buffers(wdp);
 		if (bufp == NULL) {
 			fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: ERROR: Failed to allocate I/O buffer.\n",
@@ -151,8 +151,8 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 	//	|     |<-Header->|   data buffer                                       |
 	//	+-----*----------*-----------------------------------------------------+
 	//	      ^          ^
-	//	      ^          +-e2e_datap 
-	//	      +-e2e_hdrp 
+	//	      ^          +-e2e_datap
+	//	      +-e2e_hdrp
 	//
 	if (tdp->td_target_options & TO_ENDTOEND) {
 
@@ -180,20 +180,20 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 
 	// Set proper data pattern in Data buffer
 	xdd_datapattern_buffer_init(wdp);
-	
+
 	// Init the WorkerThread-TargetPass WAIT Barrier for this WorkerThread
 	sprintf(tmpname,"T%04d:W%04d>worker_thread_targetpass_wait_barrier",tdp->td_target_number,wdp->wd_worker_number);
 	status = xdd_init_barrier(tdp->td_planp, &wdp->wd_thread_targetpass_wait_for_task_barrier, 2, tmpname);
 	if (status) {
 		fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: ERROR: Cannot initialize WorkerThread TargetPass WAIT barrier.\n",
-			xgp->progname, 
+			xgp->progname,
 			tdp->td_target_number,
 			wdp->wd_worker_number);
 		fflush(xgp->errout);
 		return(-1);
 	}
 
-	// Initialize the worker_thread ordering 
+	// Initialize the worker_thread ordering
 	status = pthread_cond_init(&wdp->wd_this_worker_thread_is_available_condition, 0);
 	if (status) {
 		fprintf(xgp->errout,"%s: xdd_worker_thread_init: Target %d WorkerThread %d: WARNING: Bad status from pthread_cond_init on wd_this_worker_thread_is_available_condition : status=%d, errno=%d\n",
@@ -249,7 +249,7 @@ xdd_worker_thread_init(worker_data_t *wdp) {
 	return(0);
 
 } // End of xdd_worker_thread_init()
- 
+
 /*
  * Local variables:
  *  indent-tabs-mode: t

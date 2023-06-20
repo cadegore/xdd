@@ -18,11 +18,11 @@
 #include "xint.h"
 #include "parse.h"
 
-#ifdef HAVE_NUMA_H
+#if HAVE_NUMA_H
 #include <numa.h>
 #endif
 
-#ifdef HAVE_SCHED_H
+#if HAVE_SCHED_H
 #include <sched.h>
 #endif
 
@@ -37,19 +37,19 @@ extern xdd_func_t xdd_func[];
  * This routine will take a given command line option, strip off the preceeding "-",
  * scan the xddfunc_xxxx() table for this specific option (or its alternate), and call
  * the specified xddfunc_xxxx() subroutine to process the commandline option and
- * any arguments to that option. 
+ * any arguments to that option.
  * For example, for the "-op write" command line option, this routine will scan the
  * xddfunc table for the "op" command line option and subsequently call the routine
  * specified in the table entry for "op" to handle this option. The routines in the
  * table that handle the options are called xddfunc_xxxx() where xxxx is generally
  * the name of the function. Thus, for this example, the xddfunc_operation() routine
  * will be invoked to do whatever is necessary for the -op command line option. It is
- * worth noting that the "-op" is an alternate for the actual option name which is 
- * "-operation" but I am lazy so there you have it. 
+ * worth noting that the "-op" is an alternate for the actual option name which is
+ * "-operation" but I am lazy so there you have it.
  *
  * NOTE: There are other characters that look like a "-" (dash or minus sign - 0x2D)
- * but are the 16-bit equivalent and this subroutine does not recognize them. 
- * Hence it is possible that the parse_args subroutine will go right off the edge 
+ * but are the 16-bit equivalent and this subroutine does not recognize them.
+ * Hence it is possible that the parse_args subroutine will go right off the edge
  * and core dump if the weird dashes are used.
  */
 void
@@ -67,18 +67,18 @@ xdd_parse_args(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) {
     while (arg_count) { // Ok, here we go - through all the argurments in the command line...
         while (argi < argc && *(argv[argi]) != '-') { // command line options must be proceeded with a "-" or they are ignored
                 argi++;
-        } 
+        }
         if (argi >= argc || arg_count == 0) {
 	    	break; // Somehow we got to the end of the command line and did not find any valid options
         }
-        
+
 		// At this point argv[], uint32_t flags must be pointing to a reasonably legit option so
 		// set up to scan the xddfunc table for this option
         funci = 0;
         not_found = 1;
         invalid = 0;
         while (xdd_func[funci].func_name) { // The last entry in the xddfunc table is 0 which will kick us out of this loop.
-            if ((strcmp(xdd_func[funci].func_name, (char *)((argv[argi])+1)) == 0) || 
+            if ((strcmp(xdd_func[funci].func_name, (char *)((argv[argi])+1)) == 0) ||
                 (strcmp(xdd_func[funci].func_alt, (char *)((argv[argi])+1)) == 0)) {
                 argvp = &(argv[argi]);
                 status = (int)xdd_func[funci].func_ptr(planp, arg_count, argvp, flags);
@@ -86,7 +86,7 @@ xdd_parse_args(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) {
                 if (status == 0) {
                     invalid = 1;
                     break;
-                } 
+                }
                 else if (status == -1) {
                 	exit(XDD_RETURN_VALUE_INVALID_OPTION);
                 }
@@ -103,10 +103,10 @@ xdd_parse_args(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) {
             exit(XDD_RETURN_VALUE_INVALID_ARGUMENT);
 		}
 
-        if (not_found) { // Indicates that the specified option was not found in the xddfunc table. 
+        if (not_found) { // Indicates that the specified option was not found in the xddfunc table.
             xddfunc_invalid_option(argi+1, &(argv[argi]), flags);
             exit(XDD_RETURN_VALUE_INVALID_OPTION);
-        }      
+        }
     } // End of WHILE loop that processes all arguments on the command line
 } /* End of xdd_parse_args() */
 
@@ -116,7 +116,7 @@ xdd_parse_args(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags) {
 void
 xdd_parse(xdd_plan_t *planp, int32_t argc, char *argv[]) {
 
-	
+
 	if (argc < 1) { // Ooopppsss - nothing specified...
 		fprintf(stderr,"Error: No command line options specified\n");
 		xdd_usage(0);
@@ -177,11 +177,11 @@ xdd_check_option(char *op) {
 		fprintf(stderr,"xdd_check_option: no option specified to check for\n");
 		return(-1);
 	}
-	
+
     i = 0;
     while(xdd_func[i].func_name) {
-		if ((strcmp(xdd_func[i].func_name, op) == 0) || 
-			(strcmp(xdd_func[i].func_alt, op) == 0)) { 
+		if ((strcmp(xdd_func[i].func_name, op) == 0) ||
+			(strcmp(xdd_func[i].func_alt, op) == 0)) {
 			return(1);
         }
         i++;
@@ -189,7 +189,7 @@ xdd_check_option(char *op) {
     return(0);
 }
 /*----------------------------------------------------------------------------*/
-/* xdd_process_paramfile() - process the parameter file. 
+/* xdd_process_paramfile() - process the parameter file.
  */
 int32_t
 xdd_process_paramfile(xdd_plan_t *planp, char *fnp) {
@@ -248,7 +248,7 @@ xdd_process_paramfile(xdd_plan_t *planp, char *fnp) {
 	cp = parambuf;
 	i = 0;
 	if ((*cp == ' ') || (*cp == '\t') || (*cp == '\n')) {
-		while (((*cp == ' ') || (*cp == '\t') || (*cp != '\n')) && 
+		while (((*cp == ' ') || (*cp == '\t') || (*cp != '\n')) &&
 			(i < bytesread)) {
 			cp++;
 			i++;
@@ -272,7 +272,7 @@ xdd_process_paramfile(xdd_plan_t *planp, char *fnp) {
 		argc++;
 		argv[argc] = cp;
 		/* skip over the token */
-		while ((*cp != ' ') && (*cp != '\t') && (*cp != '\n') && 
+		while ((*cp != ' ') && (*cp != '\t') && (*cp != '\n') &&
 			(i < newsize)) {
 			cp++;
 			i++;
@@ -281,7 +281,7 @@ xdd_process_paramfile(xdd_plan_t *planp, char *fnp) {
 		if (i >= newsize) break;
 		cp++;
 		/* skip over blanks looking for start of next token */
-		while (((*cp == ' ') || (*cp == '\t') || (*cp == '\n')) && 
+		while (((*cp == ' ') || (*cp == '\t') || (*cp == '\n')) &&
 			(i < newsize)) {
 			cp++;
 			i++;
@@ -297,37 +297,37 @@ xdd_process_paramfile(xdd_plan_t *planp, char *fnp) {
 /*----------------------------------------------------------------------------*/
 /* xdd_parse_target_number() - return the target number for this option.
  * The calling routine passes in the number of arguments left in the command
- * line. If the number of arguments remaining is 0 then we will not check 
+ * line. If the number of arguments remaining is 0 then we will not check
  * to see if there are any other suboptions beacuse this would cause a segv.
  * In this case, we just set the target number to -1 (all targets) and return 0.
  *
  * The calling routine passes in a pointer to the first argument of the option.
- * For example, if the option is 
- *       -reqsize  target   3        1024 
+ * For example, if the option is
+ *       -reqsize  target   3        1024
  * then  ^argv[0]  ^argv[1] ^argv[2] ^argv[3]
  *
  * The calling routine also passes a pointer to the place to return the target
  * number. This routine will set the target number to the correct value and
- * return the number of arguments that were processed. 
- * 
+ * return the number of arguments that were processed.
+ *
  * If the "target" suboption is specified for this option then put the specified
- * target number into the location pointed to by *target_number. In the example 
+ * target number into the location pointed to by *target_number. In the example
  * above  *target_number=3 and a value of 2 will be returned since two arguments
- * were processed ( "target" and "3" ). 
+ * were processed ( "target" and "3" ).
  *
  * If the "previous" or "prev" or "p" suboption is specified then return
  * the number of the last target specified by the "-targets 1" option.
  * For example, "-reqsize prev 1024" will set "target_number" to the
  * current number of targets that have been specified minus 1 and return 1.
  *
- * If there is no "target" or "previous" suboption then return a -1 as 
+ * If there is no "target" or "previous" suboption then return a -1 as
  * the target number. For example, if the option "-reqsize 1024" is specified
  * then "target_number" is set to -1 and a value of 0 will be returned.
  *
  */
 int
 xdd_parse_target_number(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags, int *target_number) {
-	int32_t tn; // Temporary target number 
+	int32_t tn; // Temporary target number
 	target_data_t	*tdp; // Pointer to a target_data for the specified target number
 
 
@@ -336,7 +336,7 @@ xdd_parse_target_number(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t 
         return(0);
     }
 	if (strcmp(argv[1], "target") == 0) {
-        if (argc < 3) { // Not enough arguments in this line to specify a valid target number 
+        if (argc < 3) { // Not enough arguments in this line to specify a valid target number
             fprintf(xgp->errout,"%s: ERROR: No target number specified for option %s\n",xgp->progname, argv[0]);
             return(-1);
 		} else { // The next argument specifies a target number as an integer
@@ -368,21 +368,21 @@ xdd_parse_target_number(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t 
 		    *target_number = -1;
 		    return(0);
 		}
-	} 
+	}
 }/* end of xdd_parse_target_number() */
 
 
 /*----------------------------------------------------------------------------*/
 /* xdd_set_target_cpu_mask() - parses the numa node comma seperated list and set the cpumask in the target
  */
-#if defined(HAVE_CPU_SET_T)
+#if HAVE_CPU_SET_T
 void xdd_set_target_cpu_mask(target_data_t *tdp, char *numa_nodes)
 {
 	CPU_ZERO(&tdp->cpumask);
 	int node_list_offset = 0;
 	tdp->numa_node_list[node_list_offset] = '\0';
 
-#if defined(HAVE_NUMA_NODE_TO_CPUS) && defined(HAVE_NUMA_ALLOCATE_CPUMASK)
+#if HAVE_NUMA_NODE_TO_CPUS && HAVE_NUMA_ALLOCATE_CPUMASK
 	int numa_node_no = -1;
 	struct bitmask* numa_mask = NULL;
 	char *cmdline = strdup(numa_nodes);
@@ -421,7 +421,7 @@ void xdd_set_target_cpu_mask(target_data_t *tdp, char *numa_nodes)
 /*----------------------------------------------------------------------------*/
 /* xdd_get_target_datap() - return a pointer to the Target Data Struct for the specified target
  */
-target_data_t * 
+target_data_t *
 xdd_get_target_datap(xdd_plan_t *planp, int32_t target_number, char *op) {
     target_data_t *tdp;
 
@@ -444,10 +444,10 @@ xdd_get_target_datap(xdd_plan_t *planp, int32_t target_number, char *op) {
 	    	return(NULL);
 		}
 		xdd_data_pattern_init(tdp->td_dpp);
-	
-		if (xgp->global_options & GO_EXTENDED_STATS) 
+
+		if (xgp->global_options & GO_EXTENDED_STATS)
 	    	xdd_get_esp(tdp);
-	
+
 		if (planp->plan_options & PLAN_ENDTOEND) {
 			if (NULL == tdp->td_e2ep) { // If there is no e2e struct then allocate one.
 	    		tdp->td_e2ep = xdd_get_e2ep();
@@ -458,7 +458,7 @@ xdd_get_target_datap(xdd_plan_t *planp, int32_t target_number, char *op) {
 				}
 			}
 		}
-	
+
 		// Initialize the new Target Data Struct and lets rock and roll!
 		xdd_init_new_target_data(tdp, target_number);
 		planp->target_average_resultsp[target_number] = malloc(sizeof(results_t));
@@ -472,12 +472,12 @@ xdd_get_target_datap(xdd_plan_t *planp, int32_t target_number, char *op) {
 } /* End of xdd_get_target_datap() */
 
 /*----------------------------------------------------------------------------*/
-/* xdd_get_restartp() - return a pointer to the RESTART structure 
+/* xdd_get_restartp() - return a pointer to the RESTART structure
  * for the specified target
  */
 xint_restart_t *
 xdd_get_restartp(target_data_t *tdp) {
-	
+
 	if (tdp->td_restartp == 0) { // Since there is no existing Restart Structure, allocate a new one for this target, initialize it, and move on...
 		tdp->td_restartp = malloc(sizeof(xint_restart_t));
 		if (tdp->td_restartp == NULL) {
@@ -491,12 +491,12 @@ xdd_get_restartp(target_data_t *tdp) {
 } /* End of xdd_get_restartp() */
 
 /*----------------------------------------------------------------------------*/
-/* xdd_get_rawp() - return a pointer to the ReadAfterWrite Data Structure 
+/* xdd_get_rawp() - return a pointer to the ReadAfterWrite Data Structure
  * for the specified target
  */
 xint_raw_t *
 xdd_get_rawp(target_data_t *tdp) {
-	
+
 	if (tdp->td_rawp == 0) { // Since there is no existing RAW structure, allocate a new one for this target, initialize it, and move on...
 		tdp->td_rawp = malloc(sizeof(xint_raw_t));
 		if (tdp->td_rawp == NULL) {
@@ -509,12 +509,12 @@ xdd_get_rawp(target_data_t *tdp) {
 } /* End of xdd_get_rawp() */
 
 /*----------------------------------------------------------------------------*/
-/* xdd_get_trigp() - return a pointer to the Triggers Data Structure 
+/* xdd_get_trigp() - return a pointer to the Triggers Data Structure
  * for the specified target
  */
 xint_triggers_t *
 xdd_get_trigp(target_data_t *tdp) {
-	
+
 	if (tdp->td_trigp == 0) { // Since there is no existing triggers structure, allocate a new one for this target, initialize it, and move on...
 		tdp->td_trigp = malloc(sizeof(xint_triggers_t));
 		if (tdp->td_trigp == NULL) {
@@ -527,12 +527,12 @@ xdd_get_trigp(target_data_t *tdp) {
 } /* End of xdd_get_trigp() */
 
 /*----------------------------------------------------------------------------*/
-/* xdd_get_esp() - return a pointer to the Extended Stats Data Structure 
+/* xdd_get_esp() - return a pointer to the Extended Stats Data Structure
  * for the specified target
  */
 xint_extended_stats_t *
 xdd_get_esp(target_data_t *tdp) {
-	
+
 	if (tdp->td_esp == 0) { // Since there is no existing Extended Stats structure, allocate a new one for this target, initialize it, and move on...
 		tdp->td_esp = malloc(sizeof(xint_extended_stats_t));
 		if (tdp->td_esp == NULL) {
@@ -545,12 +545,12 @@ xdd_get_esp(target_data_t *tdp) {
 } /* End of xdd_get_esp() */
 
 /*----------------------------------------------------------------------------*/
-/* xdd_get_throtp() - return a pointer to the XDD Throttle Data Structure 
+/* xdd_get_throtp() - return a pointer to the XDD Throttle Data Structure
  */
 xint_throttle_t *
 xdd_get_throtp(target_data_t *tdp) {
 
-	if (tdp->td_throtp == 0) { // If there is no existing Time Stamp structure, allocate a new one 
+	if (tdp->td_throtp == 0) { // If there is no existing Time Stamp structure, allocate a new one
 		tdp->td_throtp = malloc(sizeof(xint_throttle_t));
 		if (tdp->td_throtp == NULL) {
 			fprintf(xgp->errout,"%s: ERROR: Cannot allocate %d bytes of memory for THROTTLE variables for target %d\n",
@@ -573,7 +573,7 @@ xdd_get_throtp(target_data_t *tdp) {
 //xint_timestamp_t *
 //xdd_get_tsp(target_data_t *tdp) {
 
-	//if (tdp->td_tsp == 0) { // If there is no existing Time Stamp structure, allocate a new one 
+	//if (tdp->td_tsp == 0) { // If there is no existing Time Stamp structure, allocate a new one
 		//tdp->td_tsp = malloc(sizeof(xint_timestamp_t));
 		//if (tdp->td_tsp == NULL) {
 			//fprintf(xgp->errout,"%s: ERROR: Cannot allocate %d bytes of memory for TIMESTAMP variables for target %d\n",
@@ -622,7 +622,7 @@ xdd_cpu_count(void) {
 	cpus = 1;
 	fprintf(xgp->errout,"%s: WARNING: Multiple processors not supported in this release\n",xgp->progname);
 #elif (SOLARIS || AIX)
-	/* SOLARIS or AIX */ 
+	/* SOLARIS or AIX */
 	cpus = sysconf(_SC_NPROCESSORS_ONLN);
 #elif (IRIX || WIN32)
 	/* IRIX */
@@ -639,8 +639,8 @@ xdd_cpu_count(void) {
  * zeros. If there are an odd number of ascii digits then add leading zeros.
  * The way this routine works is to copy the incoming ASCII string into a temp
  * buffer and perform the conversions from that buffer into the  buffer
- * pointed to by "destp". That way the actual hex data is where it should be 
- * when we are finished. The source buffer is not touched. This routine 
+ * pointed to by "destp". That way the actual hex data is where it should be
+ * when we are finished. The source buffer is not touched. This routine
  * returns the length of the hex data destination buffer in 4-bit nibbles.
  */
 int32_t
@@ -657,15 +657,15 @@ xdd_atohex(unsigned char *destp, char *sourcep) {
 	nibbles = strlen(sourcep);
 	tmpp = (char *)malloc((size_t)nibbles+2);
 	memset(tmpp, '\0', (size_t)nibbles+2);
-	if (nibbles % 2) 
+	if (nibbles % 2)
 		 strcpy(tmpp,"0"); // Odd length so start with zero
 	else strcpy(tmpp,""); // terminate with a null character
 	strcat(tmpp,sourcep); // put the string in the tmp area
-	length = strlen(tmpp); // Get the real length of the string 
+	length = strlen(tmpp); // Get the real length of the string
 	memset(destp, '\0', length); // clear out the destination area
 
 	hi = 1; // Indicates we are on the high-order nibble of the byte
-	ucp = (unsigned char *)destp; // moving pointer to destination 
+	ucp = (unsigned char *)destp; // moving pointer to destination
 	for (i=0, cp=tmpp; i < length; i++, cp++) {
 		switch(*cp) {
 			case '0':
@@ -743,7 +743,7 @@ xdd_atohex(unsigned char *destp, char *sourcep) {
 	free(tmpp);
 	return(nibbles); // The length is the number of nibbles
 
-} /* end of xdd_atohex() */ 
+} /* end of xdd_atohex() */
 
 /*
  * Local variables:

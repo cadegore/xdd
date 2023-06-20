@@ -19,7 +19,7 @@
 #define MAX_WAIT_TIME 3 // Three seconds
 #define WAIT_INTERVAL 1 // One second
 
-static inline void 
+static inline void
 timeval_to_timespec(struct timespec *now_ts, struct timeval *now_tv)
 {
 	now_ts->tv_sec = now_tv->tv_sec;
@@ -27,7 +27,7 @@ timeval_to_timespec(struct timespec *now_ts, struct timeval *now_tv)
 }
 
 static inline struct timespec time_plus_interval(void) {
-#if defined(HAVE_CLOCK_GETTIME)
+#if HAVE_CLOCK_GETTIME
 	struct timespec now = {0, 0};
 	struct timespec now_ts;
 	clock_gettime(CLOCK_REALTIME, &now);
@@ -79,19 +79,19 @@ xdd_worker_thread_io(worker_data_t *wdp) {
 		xgp->canceled = 1; // Need to terminate early
 	}
 
-	// If this is the Destination Side of an E2E operation and this is an End-of-File Packet 
+	// If this is the Destination Side of an E2E operation and this is an End-of-File Packet
 	// there is no data to write to the storage so just set the "EOF_RECEIVED" bit in the
 	// wd_worker_thread_target_sync flags so that the Target Thread knows that this Worker Thread is
 	// done receiving data from the Source Side.
 	// If there is Loose or Serial Ordering in effect then we need to release the Next Worker Thread
 	// before returning.
-	if ((tdp->td_target_options & TO_E2E_DESTINATION) && (wdp->wd_e2ep->e2e_hdrp->e2eh_magic == XDD_E2E_EOF)) { 
+	if ((tdp->td_target_options & TO_E2E_DESTINATION) && (wdp->wd_e2ep->e2e_hdrp->e2eh_magic == XDD_E2E_EOF)) {
 		// Indicate that this Worker Thread has received its EOF Packet
 		pthread_mutex_lock(&wdp->wd_worker_thread_target_sync_mutex);
 		wdp->wd_worker_thread_target_sync |= WTSYNC_EOF_RECEIVED;
 		pthread_mutex_unlock(&wdp->wd_worker_thread_target_sync_mutex);
 
-		// Release the next Worker Thread I/O 
+		// Release the next Worker Thread I/O
 		if (tdp->td_target_options & (TO_ORDERING_STORAGE_SERIAL | TO_ORDERING_STORAGE_LOOSE)) {
 			xdd_worker_thread_release_next_io(wdp);
 		}
@@ -102,27 +102,27 @@ xdd_worker_thread_io(worker_data_t *wdp) {
 	// Wait for the Previous I/O to release this Worker Thread if Serial or Loose Ordering is in effect.
 	// It is important to note that for Serial Ordering, when we get released by the Worker Thread that performed
 	// the previous I/O operation and we are gauranteed that the previous I/O operation has completed.
-	// However, for Loose Ordering, we get released just *before* the previous Worker Thread actually performs its I/O 
-	// operation. Therefore, in order to ensure that the previous Worker Thread's I/O operation actually completes [properly], 
-	// we need to wait again *after* we have completed our I/O operation for the previous Worker Thread to 
-	// release us *after* it completes its operation. 
+	// However, for Loose Ordering, we get released just *before* the previous Worker Thread actually performs its I/O
+	// operation. Therefore, in order to ensure that the previous Worker Thread's I/O operation actually completes [properly],
+	// we need to wait again *after* we have completed our I/O operation for the previous Worker Thread to
+	// release us *after* it completes its operation.
 	// Man I hope this works...
 	if (tdp->td_target_options & (TO_ORDERING_STORAGE_SERIAL | TO_ORDERING_STORAGE_LOOSE)) {
 		xdd_worker_thread_wait_for_previous_io(wdp);
 	}
-	
+
 	// Check to see if we have been canceled - if so, then we need to release the next Worker Thread
 	// if there is any ordering involved.
 	// Subsequent Worker Threads will do the same...
 	if ((xgp->canceled)  || (xgp->abort) || (tdp->td_abort)) {
 		// Release the Next Worker Thread I/O if requested
-		if (tdp->td_target_options & (TO_ORDERING_STORAGE_SERIAL | TO_ORDERING_STORAGE_LOOSE)) 
+		if (tdp->td_target_options & (TO_ORDERING_STORAGE_SERIAL | TO_ORDERING_STORAGE_LOOSE))
 			 xdd_worker_thread_release_next_io(wdp);
 		return;
 	}
 
 	// If Loose Ordering is in effect then release the Next Worker Thread so that it can start
-	if (tdp->td_target_options & TO_ORDERING_STORAGE_LOOSE) 
+	if (tdp->td_target_options & TO_ORDERING_STORAGE_LOOSE)
 		xdd_worker_thread_release_next_io(wdp);
 
 	// Call the OS-appropriate IO routine to perform the I/O
@@ -139,15 +139,15 @@ xdd_worker_thread_io(worker_data_t *wdp) {
 	// If Loose or Serial Ordering is in effect then we need to release the Next Worker Thread.
 	// For Loose Ordering, the Next Worker Thread has issued its I/O operation and it may have completed
 	// in which case the Next Worker Thread is waiting for us to release it so that it can continue.
-	// For Serial Ordering, the Next Worker Thread has not issued its I/O operation yet because it is 
+	// For Serial Ordering, the Next Worker Thread has not issued its I/O operation yet because it is
 	// waiting for us to release it.
-	if (tdp->td_target_options & (TO_ORDERING_STORAGE_SERIAL | TO_ORDERING_STORAGE_LOOSE)) 
+	if (tdp->td_target_options & (TO_ORDERING_STORAGE_SERIAL | TO_ORDERING_STORAGE_LOOSE))
 		xdd_worker_thread_release_next_io(wdp);
 
 	// Check I/O operation completion
 	// If this is the Source Side of an End-to-End (E2E) operation, the xdd_worker_thread_ttd_after_io_op()
 	// subroutine will perform the "sendto()" operation to send the data that was just read from storage
-	// over to the Destination Side of the E2E operation. 
+	// over to the Destination Side of the E2E operation.
 	xdd_worker_thread_ttd_after_io_op(wdp);
 
 } // End of xdd_worker_thread_io()
@@ -181,9 +181,9 @@ xdd_worker_thread_wait_for_previous_io(worker_data_t *wdp) {
 			tot_offset);
 	}
 
-	if (tot_offset < 0) 
+	if (tot_offset < 0)
 		tot_offset = tdp->td_totp->tot_entries - 1; // The last TOT_ENTRY
-	
+
 //	if (tdp->td_target_options & TO_E2E_DESTINATION) {
 //		if (tdp->td_counters.tc_current_op_number == 0)
 	if (wdp->wd_task.task_op_number == 0)
@@ -217,11 +217,11 @@ xdd_worker_thread_wait_for_previous_io(worker_data_t *wdp) {
 
 	totwp = &wdp->wd_tot_wait;
 	if (TOT_ENTRY_UNAVAILABLE == tep->tot_status) {
-		if (tep->tot_waitp == 0) 
+		if (tep->tot_waitp == 0)
 			tep->tot_waitp = totwp;
 		else { // Put this worker thread at the end of the chain
 			tmpwp = tep->tot_waitp;
-			while (tmpwp->totw_nextp != 0) 
+			while (tmpwp->totw_nextp != 0)
 				tmpwp = tmpwp->totw_nextp;
 			tmpwp->totw_nextp = totwp;
 		}
@@ -252,7 +252,7 @@ xdd_worker_thread_wait_for_previous_io(worker_data_t *wdp) {
 				pthread_cond_wait(&totwp->totw_condition, &tep->tot_mutex);
 			}
 		}
-		totwp->totw_is_released = 0; 
+		totwp->totw_is_released = 0;
 	}
 	wdp->wd_current_state &= ~WORKER_CURRENT_STATE_WT_WAITING_FOR_PREVIOUS_IO;
 	tep->tot_status = TOT_ENTRY_UNAVAILABLE;
@@ -274,8 +274,8 @@ xdd_worker_thread_wait_for_previous_io(worker_data_t *wdp) {
 /*----------------------------------------------------------------------------*/
 /* xdd_worker_thread_release_next_io() - This subroutine will check to
  * see if we need to release the next Worker Thread that might be waiting for
- * this Worker Thread to complete. 
- * 
+ * this Worker Thread to complete.
+ *
  * Return value of 0 is good, -1 indicates there was an error
  */
 int32_t
@@ -332,7 +332,7 @@ xdd_worker_thread_release_next_io(worker_data_t *wdp) {
 		tep->tot_waitp = totwp->totw_nextp;
 	}
 	pthread_mutex_unlock(&tep->tot_mutex); //TMR
-	if (totwp) { 
+	if (totwp) {
 		totwp->totw_is_released = 1;
 		totwp->totw_nextp = 0;
 		// If another Worker is waiting for the tot entry we will signal them the tot is available
@@ -374,23 +374,23 @@ xdd_worker_thread_release_next_io(worker_data_t *wdp) {
  * Data counters and timers in this Worker Thread's Data
  *
  * The worker_thread_io_for_os() subroutine issues an I/O operation and sets the
- * "td_counters.tc_current_io_status" 
+ * "td_counters.tc_current_io_status"
  * member of this Worker Thread's Worker Data equal to whatever the
  * read/write system call returned. Under normal conditions the return value
  * from the read/write system call (or equivalent) should be the number of
  * bytes transferred. If there was an error during the transfer then the
  * return value should be -1 and "errno" for this Worker Thread will be set to
- * indicate roughly what happened (i.e. EIO). If the return value is zero 
- * then the read/write hit an end-of-file condition. A return value of 
- * anything between 1 and the number of bytes that were supposed to be 
- * transferred (minus 1) is considered an error. 
- * 
+ * indicate roughly what happened (i.e. EIO). If the return value is zero
+ * then the read/write hit an end-of-file condition. A return value of
+ * anything between 1 and the number of bytes that were supposed to be
+ * transferred (minus 1) is considered an error.
+ *
  * If the operation completed normally then the various counters in this
- * Worker Thread's Worker Data are updated appropriately. 
- * Otherwise, an error message is displayed with relevant information 
+ * Worker Thread's Worker Data are updated appropriately.
+ * Otherwise, an error message is displayed with relevant information
  * as to the time and location of the error. The my_current_error_count is
  * set to 1 to indicate an error condition to the Worker Thread and subsequently
- * the Target Thread so that they can take appropriate action. 
+ * the Target Thread so that they can take appropriate action.
  */
 void
 xdd_worker_thread_update_local_counters(worker_data_t *wdp) {
@@ -423,18 +423,18 @@ xdd_worker_thread_update_local_counters(worker_data_t *wdp) {
 		wdp->wd_counters.tc_accumulated_bytes_xfered += wdp->wd_counters.tc_current_bytes_xfered_this_op;
 		wdp->wd_counters.tc_accumulated_op_count++;
 		// Operation-specific counters
-		switch (wdp->wd_task.task_op_type) { 
-			case TASK_OP_TYPE_READ: 
+		switch (wdp->wd_task.task_op_type) {
+			case TASK_OP_TYPE_READ:
 				wdp->wd_counters.tc_accumulated_read_op_time += wdp->wd_counters.tc_current_op_elapsed_time;
 				wdp->wd_counters.tc_accumulated_bytes_read += wdp->wd_counters.tc_current_bytes_xfered_this_op;
 				wdp->wd_counters.tc_accumulated_read_op_count++;
 				break;
-			case TASK_OP_TYPE_WRITE: 
+			case TASK_OP_TYPE_WRITE:
 				wdp->wd_counters.tc_accumulated_write_op_time += wdp->wd_counters.tc_current_op_elapsed_time;
 				wdp->wd_counters.tc_accumulated_bytes_written += wdp->wd_counters.tc_current_bytes_xfered_this_op;
 				wdp->wd_counters.tc_accumulated_write_op_count++;
 				break;
-			case TASK_OP_TYPE_NOOP: 
+			case TASK_OP_TYPE_NOOP:
 				wdp->wd_counters.tc_accumulated_noop_op_time += wdp->wd_counters.tc_current_op_elapsed_time;
 				wdp->wd_counters.tc_accumulated_bytes_noop += wdp->wd_counters.tc_current_bytes_xfered_this_op;
 				wdp->wd_counters.tc_accumulated_noop_op_count++;
@@ -474,7 +474,7 @@ xdd_worker_thread_update_local_counters(worker_data_t *wdp) {
 
 /*----------------------------------------------------------------------------*/
 /* xdd_worker_thread_update_target_counters() - This subroutine will update the Target
- * Data counters and timers 
+ * Data counters and timers
  * NOTE: This routine locks the Target Data so that no other Worker Threads can be
  * making simultaneous updates. The lock is only held in this routine.
  */
@@ -485,8 +485,8 @@ xdd_worker_thread_update_target_counters(worker_data_t *wdp) {
 	// Get the pointer to the Target's Data
 	tdp = wdp->wd_tdp;
 
-	///////////////////////////////////////////////////////////////////////////////////	
-	// The following section gets the "counter_mutex" of the Target Data 
+	///////////////////////////////////////////////////////////////////////////////////
+	// The following section gets the "counter_mutex" of the Target Data
 	// in order to update the various counters and timers.
 	//
 	// LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK LOCK
@@ -500,18 +500,18 @@ xdd_worker_thread_update_target_counters(worker_data_t *wdp) {
 		if (tdp->td_e2ep && wdp->wd_e2ep)
 			tdp->td_e2ep->e2e_sr_time += wdp->wd_e2ep->e2e_sr_time; // E2E Send/Receive Time
 		// Operation-specific counters
-		switch (wdp->wd_task.task_op_type) { 
-			case TASK_OP_TYPE_READ: 
+		switch (wdp->wd_task.task_op_type) {
+			case TASK_OP_TYPE_READ:
 				tdp->td_counters.tc_accumulated_read_op_time += wdp->wd_counters.tc_current_op_elapsed_time;
 				tdp->td_counters.tc_accumulated_bytes_read += wdp->wd_task.task_xfer_size;
 				tdp->td_counters.tc_accumulated_read_op_count++;
 				break;
-			case TASK_OP_TYPE_WRITE: 
+			case TASK_OP_TYPE_WRITE:
 				tdp->td_counters.tc_accumulated_write_op_time += wdp->wd_counters.tc_current_op_elapsed_time;
 				tdp->td_counters.tc_accumulated_bytes_written += wdp->wd_task.task_xfer_size;
 				tdp->td_counters.tc_accumulated_write_op_count++;
 				break;
-			case TASK_OP_TYPE_NOOP: 
+			case TASK_OP_TYPE_NOOP:
 				tdp->td_counters.tc_accumulated_noop_op_time += wdp->wd_counters.tc_current_op_elapsed_time;
 				tdp->td_counters.tc_accumulated_bytes_noop += wdp->wd_task.task_xfer_size;
 				tdp->td_counters.tc_accumulated_noop_op_count++;
@@ -528,8 +528,8 @@ xdd_worker_thread_update_target_counters(worker_data_t *wdp) {
 	// UNLOCKED UNLOCKED UNLOCKED UNLOCKED UNLOCKED UNLOCKED UNLOCKED UNLOCKED UNLOCKED
 
 	// If this Worker Thread got an I/O error then we do not want to update the TOT
-	if (tdp->td_counters.tc_current_error_count) 
-		return; 
+	if (tdp->td_counters.tc_current_error_count)
+		return;
 
 	// Update the TOT entry for this last I/O if ordering is NONE
 	// Only do it in the no ordering case, because the TOT is now updated

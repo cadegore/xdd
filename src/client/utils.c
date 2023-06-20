@@ -11,7 +11,7 @@
  *
  */
 /*
- * This file contains a variety of utility functions used by any of the other 
+ * This file contains a variety of utility functions used by any of the other
  * functions within xdd.
  */
 #include "xint.h"
@@ -33,17 +33,17 @@ xdd_getnexttoken(char *tp) {
 int
 xdd_tokenize(char *cp) {
 	int		tokens;		// Current number of tokens
-	int		len;		// Length of the line 
+	int		len;		// Length of the line
 	int		tokenlen;	// length of a token
 
 	len = strlen(cp);
-	if (len < 1) 
+	if (len < 1)
 		return(0);
 
 	tokens = 0;
 	while (len > 0) {
 		tokenlen = 0;
-		// Skip past any leading white space 
+		// Skip past any leading white space
 		while ((*cp == TAB) || (*cp == SPACE)) {
 			len--;
 			cp++;
@@ -69,15 +69,15 @@ xdd_tokenize(char *cp) {
  */
 int
 xdd_random_int(void) {
-    
-#ifdef HAVE_INITSTATE
+
+#if HAVE_INITSTATE
     if (xgp->random_initialized == 0) {
 	initstate(xgp->random_init_seed, xgp->random_init_state, 256);
 	xgp->random_initialized = 1;
     }
 #endif
 
-#ifdef HAVE_RANDOM
+#if HAVE_RANDOM
     return random();
 #elif HAVE_RAND
     return rand();
@@ -91,7 +91,7 @@ double xdd_random_float(void) {
     double rm;
     double recip;
     double rval;
-    
+
 #ifdef HAVE_INITSTATE
     if (xgp->random_initialized == 0) {
 		initstate(xgp->random_init_seed, xgp->random_init_state, 256);
@@ -111,7 +111,7 @@ double xdd_random_float(void) {
 #endif
     return(rval);
 } /* end of xdd_random_float() */
- 
+
 /*
  * Local variables:
  *  indent-tabs-mode: t

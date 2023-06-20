@@ -35,19 +35,19 @@ static bool     nclk_initialized = false;
  * Initialize the clock used to record time stamps for timers.  Returns
  * the resolution of the clock (nanoseconds per tick)
  * In some operating systems there is an actual "initialization" routine that
- * needs to be called but most of those have gone away so the initialization 
- * function is simply returning the resolution of the clock to the caller. 
+ * needs to be called but most of those have gone away so the initialization
+ * function is simply returning the resolution of the clock to the caller.
  *
  */
 void
 nclk_initialize(nclk_t *nclkp) {
 
 #if (LINUX)
-	// Since we use the "nanosecond" clocks in Linux, 
+	// Since we use the "nanosecond" clocks in Linux,
 	// the number of nanoseconds per nanosecond "tick" is 1
     *nclkp =  ONE;
 #elif (SOLARIS || AIX || DARWIN || FREEBSD )
-	// Since we use the "gettimeofday" clocks in this OS, 
+	// Since we use the "gettimeofday" clocks in this OS,
 	// the number of nanoseconds per microsecond "tick" is 1,000
     *nclkp =  THOUSAND;
 #endif
@@ -62,7 +62,7 @@ nclk_initialize(nclk_t *nclkp) {
  */
 void
 nclk_shutdown(void) {
-    if (nclk_initialized) 
+    if (nclk_initialized)
 		nclk_initialized = false;
 }
 
@@ -88,7 +88,7 @@ nclk_now(nclk_t *nclkp) {
 void
 nclk_now(nclk_t *nclkp) {
 
-#ifdef _POSIX_TIMERS
+#if _POSIX_TIMERS
         struct timespec current_time;
         clock_gettime(CLOCK_REALTIME, &current_time);
         *nclkp =  (nclk_t)(((nclk_t)current_time.tv_sec * BILLION) +

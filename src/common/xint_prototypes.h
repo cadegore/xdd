@@ -155,7 +155,7 @@ void					xdd_usage(int32_t fullhelp);
 int 					xdd_check_option(char *op);
 int32_t					xdd_process_paramfile(xdd_plan_t* planp, char *fnp);
 int 					xdd_parse_target_number(xdd_plan_t* planp, int32_t argc, char *argv[], uint32_t flags, int *target_number);
-#if defined(HAVE_CPU_SET_T)
+#if HAVE_CPU_SET_T
 void                    xdd_set_target_cpu_mask(target_data_t *tdp, char *numa_nodes);
 #endif
 target_data_t 		*xdd_get_target_datap(xdd_plan_t* planp, int32_t target_number, char *op);
@@ -379,7 +379,7 @@ void	xdd_init_worker_data_before_pass(worker_data_t *wdp);
 int32_t	xdd_target_ttd_before_pass(target_data_t *tdp);
 
 // timestamp.c
-void	xdd_ts_overhead(struct xdd_ts_header *ts_hdrp); 
+void	xdd_ts_overhead(struct xdd_ts_header *ts_hdrp);
 void	xdd_ts_setup(target_data_t *p);
 void	xdd_ts_write(target_data_t *p);
 void	xdd_ts_cleanup(struct xdd_ts_header *ts_hdrp);

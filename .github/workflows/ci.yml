@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "xdd-2.0" ]
   pull_request:
-    branches: [ "xdd-2.0" ]
+    branches: [ "*" ]
 
 jobs:
   test:
@@ -19,17 +19,13 @@ jobs:
       run: sudo apt-get update
     - uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: xfsprogs gnuplot net-tools numactl libnuma-dev xfslibs-dev bc time strace 
+        packages: xfsprogs gnuplot net-tools numactl libnuma-dev xfslibs-dev bc time strace
         version: 1.0
-    - name: autoconf
-      run: autoconf
     - name: configure
-      run: ./configure
+      run: cmake -B ${{github.workspace}}/build
     - name: make
-      run: make
+      run: make -C ${{github.workspace}}/build
     - name: make install
-      run: sudo make install
-    - name: run tests 
+      run: sudo make -C ${{github.workspace}}/build install
+    - name: run tests
       run: python ./run_tests.py
-    
-

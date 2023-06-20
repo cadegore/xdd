@@ -12,7 +12,7 @@
  */
 #include "xint.h"
 
-#ifdef HAVE_ENABLE_XFS
+#if HAVE_ENABLE_XFS
 int xgp_xfs_enabled;
 #endif
 
@@ -40,11 +40,11 @@ xint_global_data_initialization(char* progname) {
 	xgp->output = stdout;
 	xgp->errout = stderr;
 	xgp->csvoutput = NULL;
-	xgp->combined_output = NULL;      
+	xgp->combined_output = NULL;
 	xgp->output_filename = "stdout";
 	xgp->errout_filename = "stderr";
 	xgp->csvoutput_filename = "";
-	xgp->combined_output_filename = ""; 
+	xgp->combined_output_filename = "";
 
 	xgp->id = (char *)malloc(MAX_IDLEN); // Allocate a suitable buffer for the run ID ASCII string
 	if (xgp->id == NULL) {
@@ -55,12 +55,12 @@ xint_global_data_initialization(char* progname) {
 		strcpy(xgp->id,DEFAULT_ID);
 
 	xgp->max_errors = 0; /* set to total_ops later when we know what it is */
-	xgp->max_errors_to_print = DEFAULT_MAX_ERRORS_TO_PRINT;  /* max number of errors to print information about */ 
-	xgp->number_of_processors = 0;   /* Number of processors */ 
+	xgp->max_errors_to_print = DEFAULT_MAX_ERRORS_TO_PRINT;  /* max number of errors to print information about */
+	xgp->number_of_processors = 0;   /* Number of processors */
 	xgp->id_firsttime = 1;
 	xgp->run_time_expired = 0;       /* The alarm that goes off when the total run time has been exceeded */
 	xgp->run_error_count_exceeded = 0;       /* The alarm that goes off when the number of errors for this run has been exceeded */
-	xgp->run_complete = 0; 
+	xgp->run_complete = 0;
 	xgp->abort = 0;       /* abort the run due to some catastrophic failure */
 	xgp->canceled = 0;       /* abort the run due to some catastrophic failure */
 	xgp->random_initialized = 0;     /* Random number generator has not been initialized  */
@@ -69,4 +69,3 @@ xint_global_data_initialization(char* progname) {
 	return(xgp);
 
 } /* end of xdd_init_globals() */
-

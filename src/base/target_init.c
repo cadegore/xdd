@@ -17,18 +17,18 @@
 
 /*----------------------------------------------------------------------------*/
 /* xint_target_init() - Initialize a Target Thread
- * This subroutine will open the target file and perform some initial sanity 
- * checks. 
- * 
+ * This subroutine will open the target file and perform some initial sanity
+ * checks.
+ *
  * It will then start all WorkerThreads that are responsible for doing the actual I/O.
  *
  * It is important to note that upon entering this subroutine, the Worker Data substructure
- * has already been built. This routine will simply create each WorkerThread and 
+ * has already been built. This routine will simply create each WorkerThread and
  * pass it the address of the Worker Data that is unique to each WorkerThread.
  * The Worker Data Struct that each WorkerThread receives has its WorkerThread number.
- * 
+ *
  * Return Values: 0 is good, -1 indicates an error.
- * 
+ *
  */
 int32_t
 xint_target_init(target_data_t *tdp) {
@@ -36,7 +36,7 @@ xint_target_init(target_data_t *tdp) {
 //	nclk_t		CurrentLocalTime;	// Used the init the Global Clock
 //	nclk_t		TimeDelta;		// Used the init the Global Clock
 //	uint32_t	sleepseconds;
-	
+
 
 #if (AIX)
 	tdp->td_thread_id = thread_self();
@@ -51,19 +51,19 @@ xint_target_init(target_data_t *tdp) {
 
 	// Check to see that the target is valid and can be opened properly
 	status = xdd_target_open(tdp);
-	if (status) 
+	if (status)
 		return(-1);
 
 	/* Perform preallocation if needed */
 	xint_target_preallocate(tdp);
-        
+
 	/* Perform pretruncation if needed */
 	xint_target_pretruncate(tdp);
 
 	// The Seek List
 	// There is one Seek List per target.
 	// This list contains all the locations in a implied order that need to be accessed
-	// during a single pass. 
+	// during a single pass.
 	// It is this list that is used by xdd_issue() to assign I/O tasks to the WorkerThreads.
 	//
 	tdp->td_seekhdr.seek_total_ops = tdp->td_target_ops;
@@ -81,10 +81,10 @@ xint_target_init(target_data_t *tdp) {
 	xdd_init_seek_list(tdp);
 
 	// Set up the timestamp table - Note: This must be done *after* the seek list is initialized
-	xdd_ts_setup(tdp); 
+	xdd_ts_setup(tdp);
 
-	// Set up for the big loop 
-	if (xgp->max_errors == 0) 
+	// Set up for the big loop
+	if (xgp->max_errors == 0)
 		xgp->max_errors = tdp->td_target_ops;
 
 	/* If we are synchronizing to a Global Clock, let's synchronize
@@ -108,22 +108,22 @@ xint_target_init(target_data_t *tdp) {
 	}
 
 	/* This section will initialize the slave side of the lock step mutex and barriers */
-	status = xdd_lockstep_init(tdp); 
+	status = xdd_lockstep_init(tdp);
 	if (status != XDD_RC_GOOD)
 		return(status);
-	
+
 	// Initialize the barriers and mutex
 	status = xint_target_init_barriers(tdp);
-	if (status) 
+	if (status)
 	    return(-1);
-	
+
 	// Initialize the Target Offset Table
 	tdp->td_totp = 0;
 	status = tot_init(&(tdp->td_totp), tdp->td_queue_depth, tdp->td_target_ops);
 	if (status) {
 	    return(-1);
 	}
-	
+
 	// Special setup for an End-to-End operation
 	if (tdp->td_target_options & TO_ENDTOEND) {
 		status = xdd_e2e_target_init(tdp);
@@ -133,14 +133,14 @@ xint_target_init(target_data_t *tdp) {
 
 	// Start the WorkerThreads
 	status = xint_target_init_start_worker_threads(tdp);
-	if (status) 
+	if (status)
 		return(-1);
 
 	// If this is XNI, perform the connection here
 	xdd_plan_t *planp = tdp->td_planp;
 	if (PLAN_ENABLE_XNI & planp->plan_options) {
 		/* Perform the XNI accept/connect */
-		if (tdp->td_target_options & TO_E2E_DESTINATION) { 
+		if (tdp->td_target_options & TO_E2E_DESTINATION) {
 			status = xint_e2e_dest_connect(tdp);
 		} else {
 			status = xint_e2e_src_connect(tdp);
@@ -162,7 +162,7 @@ xint_target_init(target_data_t *tdp) {
 /*----------------------------------------------------------------------------*/
 /* xint_target_init_barriers() - Initialize the barriers and mutex
  * managed by the Target Thread.
- * Barrier Naming Convention: 
+ * Barrier Naming Convention:
  *    (1) The first part of the name is the barrier "owner" or thread that initializes the barrier
  *    (2) The second part of the name is the other [dependant] thread that will use this barrier
  *    (3) The third part of the name is a descriptive word about the function of this barrier
@@ -183,7 +183,7 @@ xint_target_init_barriers(target_data_t *tdp) {
 	// The following initialization calls are all done with accumulated status for ease of coding.
 	// Normal/good status from xdd_init_barrier() is zero so if everything initializes properly then
 	// the accumulated status should be zero. Any barrier that is not properly initialized is cause
-	// for exiting XDD altogether. 
+	// for exiting XDD altogether.
 	status = 0;
 
 	// The Target_WorkerThread Initialization barrier
@@ -200,7 +200,7 @@ xint_target_init_barriers(target_data_t *tdp) {
 		status += xdd_init_barrier(tdp->td_planp, &tdp->td_targetpass_worker_thread_eofcomplete_barrier,2,tmpname);
 	}
 
-	// The Target Start Trigger barrier 
+	// The Target Start Trigger barrier
 	if (tdp->td_target_options & TO_WAITFORSTART) { // If we are expecting a Start Trigger then we need to init the starttrigger barrier
 		sprintf(tmpname,"T%04d>target_target_starttrigger_barrier",tdp->td_target_number);
 		status += xdd_init_barrier(tdp->td_planp, &tdp->td_trigp->target_target_starttrigger_barrier,2,tmpname);
@@ -211,7 +211,7 @@ xint_target_init_barriers(target_data_t *tdp) {
 
 	if (status) {
 		fprintf(xgp->errout,"%s: xdd_target_init_barriers: ERROR: Cannot create td_counters_mutex for target number %d name '%s'\n",
-			xgp->progname, 
+			xgp->progname,
 			tdp->td_target_number,
 			tdp->td_target_full_pathname);
 		fflush(xgp->errout);
@@ -224,7 +224,7 @@ xint_target_init_barriers(target_data_t *tdp) {
 	status = pthread_cond_init(&tdp->td_any_worker_thread_available_condition, NULL);
 	if (status) {
 		fprintf(xgp->errout,"%s: xdd_target_init_barriers: Target %d: ERROR: Cannot initialize any_worker_thread_available condvar.\n",
-			xgp->progname, 
+			xgp->progname,
 			tdp->td_target_number);
 		fflush(xgp->errout);
 		return(-1);
@@ -234,9 +234,9 @@ xint_target_init_barriers(target_data_t *tdp) {
 } // End of xdd_target_init_barriers()
 
 /*----------------------------------------------------------------------------*/
-/* xint_target_thread_init_start_worker_threads() - Start up all WorkerThreads 
+/* xint_target_thread_init_start_worker_threads() - Start up all WorkerThreads
  *
- * The actual WorkerThread routine called xdd_worker_thread() is located in worker_thread.c 
+ * The actual WorkerThread routine called xdd_worker_thread() is located in worker_thread.c
  *
  * Return value is 0 if everything succeeded or -1 if there was a failure.
  */
@@ -248,7 +248,7 @@ xint_target_init_start_worker_threads(target_data_t *tdp) {
 	int32_t			e2e_addr_index;			// index into the e2e address table
 	int32_t			e2e_addr_port;			// Port number in the e2e address table
 
-	
+
 	// Now let's start up all the WorkerThreads for this target
 	wdp = tdp->td_next_wdp; // This is the first WorkerThread
 	e2e_addr_index = 0;
@@ -258,7 +258,7 @@ xint_target_init_start_worker_threads(target_data_t *tdp) {
 
 	    // Initialize the attributes
 	    pthread_attr_init(&worker_thread_attr);
-	    
+
 	    // Start a WorkerThread and wait for it to initialize
 	    wdp->wd_worker_number = q;
 	    if (tdp->td_target_options & TO_ENDTOEND) {
@@ -268,12 +268,12 @@ xint_target_init_start_worker_threads(target_data_t *tdp) {
 				e2e_addr_index++;
 			}
 			//assert(e2e_addr_index < p->e2ep->e2e_address_table->number_of_entries);
-		
+
 			wdp->wd_e2ep->e2e_dest_hostname = tdp->td_e2ep->e2e_address_table[e2e_addr_index].hostname;
 			wdp->wd_e2ep->e2e_dest_port = tdp->td_e2ep->e2e_address_table[e2e_addr_index].base_port + e2e_addr_port;
-		
+
 			// Set the WorkerThread Numa node if possible
-#if defined(HAVE_CPU_SET_T) && defined(HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
+#if HAVE_CPU_SET_T && HAVE_PTHREAD_ATTR_SETAFFINITY_NP
 			status = pthread_attr_setaffinity_np(&worker_thread_attr,
 							     sizeof(tdp->td_e2ep->e2e_address_table[e2e_addr_index].cpu_set),
 							     &tdp->td_e2ep->e2e_address_table[e2e_addr_index].cpu_set);
@@ -289,7 +289,7 @@ xint_target_init_start_worker_threads(target_data_t *tdp) {
 					tdp->td_target_number, wdp->wd_e2ep->e2e_dest_hostname,
 					wdp->wd_e2ep->e2e_dest_port, wdp->wd_worker_number);
 	    }
-#if defined(HAVE_CPU_SET_T) && defined(HAVE_PTHREAD_ATTR_SETAFFINITY_NP)
+#if HAVE_CPU_SET_T && HAVE_PTHREAD_ATTR_SETAFFINITY_NP
 		else {
 			cpu_set_t zero_mask;
 			CPU_ZERO(&zero_mask);
@@ -297,14 +297,14 @@ xint_target_init_start_worker_threads(target_data_t *tdp) {
 				status = pthread_attr_setaffinity_np(&worker_thread_attr,
 									sizeof(tdp->cpumask),
 									&tdp->cpumask);
-			} 
+			}
 		}
 #endif
-	    
+
 	    status = pthread_create(&wdp->wd_thread, &worker_thread_attr, xdd_worker_thread, wdp);
 	    if (status) {
 		fprintf(xgp->errout,"%s: xdd_target_init_start_worker_threads: ERROR: Cannot create worker_thread %d for target number %d name '%s' - Error number %d\n",
-			xgp->progname, 
+			xgp->progname,
 			q,
 			tdp->td_target_number,
 			tdp->td_target_full_pathname,
@@ -326,7 +326,7 @@ xint_target_init_start_worker_threads(target_data_t *tdp) {
 	    }
 
 	    // If the WorkerThread initialization fails, then everything needs to stop right now.
-	    if (xgp->abort == 1) { 
+	    if (xgp->abort == 1) {
 		fprintf(xgp->errout,"%s: xdd_target_init_start_worker_threads: ERROR: Target thread aborting due to previous initialization failure for target number %d name '%s'\n",
 			xgp->progname,
 			tdp->td_target_number,
