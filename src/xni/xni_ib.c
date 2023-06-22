@@ -64,10 +64,10 @@ struct ib_connection {
 
 	// locks
 	pthread_mutex_t send_state_mutex;
-	pthread_mutex_t credit_mutex;  
+	pthread_mutex_t credit_mutex;
 
 	int destination;  // 0 = source, otherwise destination
-	
+
 	struct ibv_cq *send_cq;
 	struct ibv_cq *receive_cq;
 	struct ibv_qp *queue_pair;
@@ -160,7 +160,7 @@ static int ib_context_create(xni_protocol_t proto_, xni_control_block_t cb_, xni
     ibv_free_device_list(devlist);
     return XNI_ERR;
   }
-  
+
   struct ibv_context *verbsctx = ibv_open_device(*deviceptr);
   ibv_free_device_list(devlist);
   if (verbsctx == NULL) {
@@ -321,7 +321,7 @@ static struct ibv_qp *create_queue_pair(struct ib_context *ctx, struct ibv_cq *s
 static int move_qp_to_init(struct ibv_qp *qp)
 {
 	struct ibv_qp_attr attr;
-	memset(&attr, 0, sizeof(attr)); 
+	memset(&attr, 0, sizeof(attr));
 	attr.qp_state = IBV_QPS_INIT;
 	attr.pkey_index = 0;
 	attr.port_num = 1;
@@ -334,7 +334,7 @@ static int move_qp_to_init(struct ibv_qp *qp)
 static int move_qp_to_rtr(struct ibv_qp *qp, uint32_t remote_qpnum, uint16_t remote_lid, int nbuf)
 {
 	struct ibv_qp_attr attr;
-	memset(&attr, 0, sizeof(attr)); 
+	memset(&attr, 0, sizeof(attr));
 	attr.qp_state = IBV_QPS_RTR;
 	attr.ah_attr.dlid = remote_lid;
 	attr.ah_attr.sl = 0;
@@ -355,7 +355,7 @@ static int move_qp_to_rtr(struct ibv_qp *qp, uint32_t remote_qpnum, uint16_t rem
 static int move_qp_to_rts(struct ibv_qp *qp, int nbuf)
 {
 	struct ibv_qp_attr attr;
-	memset(&attr, 0, sizeof(attr)); 
+	memset(&attr, 0, sizeof(attr));
 	attr.qp_state = IBV_QPS_RTS;
 	attr.sq_psn = 1;
 	attr.max_rd_atomic = nbuf;
@@ -372,18 +372,18 @@ static int move_qp_to_rts(struct ibv_qp *qp, int nbuf)
 static int post_receive(struct ibv_qp *qp, struct ibv_mr *mr, void *buf, int bufsiz, uint64_t id)
 {
 	struct ibv_sge sge;
-	memset(&sge, 0, sizeof(sge)); 
+	memset(&sge, 0, sizeof(sge));
 	sge.addr = (uintptr_t)buf;
 	sge.length = bufsiz;
 	sge.lkey = mr->lkey;
 
 	struct ibv_recv_wr wr, *badwr;
-	memset(&wr, 0, sizeof(wr)); 
+	memset(&wr, 0, sizeof(wr));
 	wr.wr_id = id;
 	wr.next = NULL;
 	wr.sg_list = &sge;
 	wr.num_sge = 1;
-  
+
 	return ibv_post_recv(qp, &wr, &badwr);
 }
 
@@ -397,7 +397,7 @@ static int send_credits(struct ib_connection *conn, int ncredits)
 #ifdef XNI_TRACE
 	puts("Searching for credit.");
 #endif
-	
+
 	pthread_mutex_lock(&conn->credit_mutex);
 	while (cb == NULL) {
 		// first try to find a free one
@@ -428,7 +428,7 @@ static int send_credits(struct ib_connection *conn, int ncredits)
 #ifdef XNI_TRACE
 	puts("Found a credit");
 #endif
-	
+
 	//
 	// encode and send the credit message
 	//
@@ -438,13 +438,13 @@ static int send_credits(struct ib_connection *conn, int ncredits)
 	memcpy(cb->msgbuf+TAG_LENGTH, &tmp32, 4);
 
 	struct ibv_sge sge;
-	memset(&sge, 0, sizeof(sge)); 
+	memset(&sge, 0, sizeof(sge));
 	sge.addr = (uintptr_t)cb->msgbuf;
 	sge.length = IB_CREDIT_MESSAGE_SIZE;
 	sge.lkey = cb->memory_region->lkey;
 
 	struct ibv_send_wr wr, *badwr;
-	memset(&wr, 0, sizeof(wr)); 
+	memset(&wr, 0, sizeof(wr));
 	wr.wr_id = (uintptr_t)cb;
 	wr.next = NULL;
 	wr.sg_list = &sge;
@@ -455,7 +455,7 @@ static int send_credits(struct ib_connection *conn, int ncredits)
 #ifdef XNI_TRACE
 	puts("Sending credit.");
 #endif
-	
+
 
 	if (ibv_post_send(conn->queue_pair, &wr, &badwr)) {
 		pthread_mutex_lock(&conn->credit_mutex);
@@ -480,7 +480,7 @@ static int consume_credit(struct ib_connection *conn)
   pthread_mutex_lock(&conn->credit_mutex);
   while (conn->credits < 1) {
     struct ibv_wc wc;
-    memset(&wc, 0, sizeof(wc)); 
+    memset(&wc, 0, sizeof(wc));
     int completed = ibv_poll_cq(conn->receive_cq, 1, &wc);
     if (completed < 0 || wc.status != IBV_WC_SUCCESS) {
       pthread_mutex_unlock(&conn->credit_mutex);
@@ -514,13 +514,13 @@ static int send_eof(struct ib_connection *conn)
 
   // send the message
   struct ibv_sge sge;
-  memset(&sge, 0, sizeof(sge)); 
+  memset(&sge, 0, sizeof(sge));
   sge.addr = (uintptr_t)tb->header;
   sge.length = TAG_LENGTH;
   sge.lkey = tb->memory_region->lkey;
 
   struct ibv_send_wr wr, *badwr;
-  memset(&wr, 0, sizeof(wr)); 
+  memset(&wr, 0, sizeof(wr));
   wr.wr_id = (uintptr_t)tb;
   wr.next = NULL;
   wr.sg_list = &sge;
@@ -534,7 +534,7 @@ static int send_eof(struct ib_connection *conn)
 
   // wait for send completion
   struct ibv_wc wc;
-  memset(&wc, 0, sizeof(wc)); 
+  memset(&wc, 0, sizeof(wc));
   int completed = 0;
   do {
     completed = ibv_poll_cq(conn->send_cq, 1, &wc);
@@ -565,7 +565,7 @@ static int ib_accept_connection(xni_context_t ctx_, struct xni_endpoint* local, 
 
 	tmpconn = calloc(1, sizeof(*tmpconn));
 	tmpconn->context = ctx;
-	
+
 	credit_buffers = allocate_credit_buffers(ctx, ctx->num_registered);
 	if (credit_buffers == NULL)
 		goto error_out;
@@ -574,10 +574,10 @@ static int ib_accept_connection(xni_context_t ctx_, struct xni_endpoint* local, 
 		goto error_out;
 	if ((recvcq = ibv_create_cq(ctx->verbs_context, ctx->num_registered, NULL, NULL, 0)) == NULL)
 		goto error_out;
-	
+
 	if ((qp = create_queue_pair(ctx, sendcq, recvcq, ctx->num_registered)) == NULL)
 		goto error_out;
-  
+
 	// start listening for a client
 	server = socket(AF_INET, SOCK_STREAM, 0);
 	if (server == -1) {
@@ -589,7 +589,7 @@ static int ib_accept_connection(xni_context_t ctx_, struct xni_endpoint* local, 
 	setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
 	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr)); 
+	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((uint16_t)local->port);
 	addr.sin_addr.s_addr = inet_addr(local->host);
@@ -632,7 +632,7 @@ static int ib_accept_connection(xni_context_t ctx_, struct xni_endpoint* local, 
 	uint32_t tmp32 = qp->qp_num;
 	memcpy(msgbuf, &tmp32, 4);
 	struct ibv_port_attr portattr;
-	memset(&portattr, 0, sizeof(portattr)); 
+	memset(&portattr, 0, sizeof(portattr));
 	if (ibv_query_port(ctx->verbs_context, 1, &portattr))
 		goto error_out;
 	uint16_t tmp16 = portattr.lid;
@@ -687,11 +687,11 @@ static int ib_accept_connection(xni_context_t ctx_, struct xni_endpoint* local, 
 
 	*conn = tmpconn;
 	return XNI_OK;
-	
+
   error_out:
 	if (client != -1)
 		close(client);
-	
+
 	if (server != -1)
 		close(server);
 
@@ -751,7 +751,7 @@ static int ib_connect(xni_context_t ctx_, struct xni_endpoint* remote, xni_conne
 #ifdef XNI_TRACE
 	puts("Create qps");
 #endif  // XNI_TRACE
-  
+
 	// connect to the server
 	server = socket(AF_INET, SOCK_STREAM, 0);
 	if (server == -1) {
@@ -760,7 +760,7 @@ static int ib_connect(xni_context_t ctx_, struct xni_endpoint* remote, xni_conne
 	}
 
 	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr)); 
+	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((uint16_t)remote->port);
 	addr.sin_addr.s_addr = inet_addr(remote->host);
@@ -777,7 +777,7 @@ static int ib_connect(xni_context_t ctx_, struct xni_endpoint* remote, xni_conne
 	uint32_t tmp32 = qp->qp_num;
 	memcpy(msgbuf, &tmp32, 4);
 	struct ibv_port_attr portattr;
-	memset(&portattr, 0, sizeof(portattr)); 
+	memset(&portattr, 0, sizeof(portattr));
 	if (ibv_query_port(ctx->verbs_context, 1, &portattr))
 		goto error_out;
 	uint16_t tmp16 = portattr.lid;
@@ -809,12 +809,12 @@ static int ib_connect(xni_context_t ctx_, struct xni_endpoint* remote, xni_conne
 	// prepare the QP for sending
 	if (move_qp_to_init(qp))
 		goto error_out;
-	
+
 	for (struct ib_credit_buffer **cbptr = credit_buffers; *cbptr != NULL; cbptr++)
 		if (post_receive(qp, (*cbptr)->memory_region, (*cbptr)->msgbuf,
 						 IB_CREDIT_MESSAGE_SIZE, (uintptr_t)*cbptr))
 			goto error_out;
-  
+
 	if (move_qp_to_rtr(qp, remote_qpnum, remote_lid, ctx->num_registered) ||
 		move_qp_to_rts(qp, ctx->num_registered))
 		goto error_out;
@@ -834,14 +834,14 @@ static int ib_connect(xni_context_t ctx_, struct xni_endpoint* remote, xni_conne
 	// Add the connection to the registered buffers
 	for (size_t i = 0; i < ctx->num_registered; i++)
 		ctx->target_buffers[i].connection = tmpconn;
-	
+
 #ifdef XNI_TRACE
 	puts("Connected.");
 #endif  // XNI_TRACE
 
 	*conn = tmpconn;
   return XNI_OK;
-  
+
  error_out:
   if (server != -1)
 	  close(server);
@@ -907,7 +907,7 @@ static int ib_request_target_buffer(xni_context_t ctx_, xni_target_buffer_t *tar
 							  &ctx->busy_flag_mutex);
 	}
 	pthread_mutex_unlock(&ctx->busy_flag_mutex);
-    
+
 	*targetbuf = tb;
 	return XNI_OK;
 }
@@ -921,7 +921,7 @@ static int ib_send_target_buffer(xni_connection_t conn_, xni_target_buffer_t *ta
 	struct ib_target_buffer *tb = *targetbuf;
 
 	int return_code = XNI_ERR;
-	
+
 	if (conn->destination || tb->data_length < 1)
 		goto free_out;
 
@@ -933,13 +933,13 @@ static int ib_send_target_buffer(xni_connection_t conn_, xni_target_buffer_t *ta
 
 	// send the message
 	struct ibv_sge sge;
-	memset(&sge, 0, sizeof(sge)); 
+	memset(&sge, 0, sizeof(sge));
 	sge.addr = (uintptr_t)tb->header;
 	sge.length = (int)((char*)tb->data - (char*)tb->header) + tb->data_length;
 	sge.lkey = tb->memory_region->lkey;
 
 	struct ibv_send_wr wr, *badwr;
-	memset(&wr, 0, sizeof(wr)); 
+	memset(&wr, 0, sizeof(wr));
 	wr.wr_id = (uintptr_t)tb;
 	wr.next = NULL;
 	wr.sg_list = &sge;
@@ -976,14 +976,14 @@ static int ib_send_target_buffer(xni_connection_t conn_, xni_target_buffer_t *ta
 	return_code = (tb->send_state == SENT
 				   ? XNI_OK
 				   : XNI_ERR);
-    
+
   free_out:
 	// mark the buffer as free
 	pthread_mutex_lock(&conn->context->busy_flag_mutex);
 	tb->busy = 0;
 	pthread_cond_signal(&conn->context->busy_flag_cond);
 	pthread_mutex_unlock(&conn->context->busy_flag_mutex);
-	
+
 	return return_code;
 }
 
@@ -999,7 +999,7 @@ static int ib_receive_target_buffer(xni_connection_t conn_, xni_target_buffer_t 
   struct ib_target_buffer *tb = NULL;
   while (tb == NULL && !conn->eof) {
     struct ibv_wc wc;
-    memset(&wc, 0, sizeof(wc)); 
+    memset(&wc, 0, sizeof(wc));
     int completions = ibv_poll_cq(conn->receive_cq, 1, &wc);
     if (completions < 0)
       return XNI_ERR;
@@ -1071,7 +1071,7 @@ const struct xni_protocol protocol_ib = {
 };
 #endif
 
-#ifdef HAVE_ENABLE_IB
+#if HAVE_ENABLE_IB
 struct xni_protocol *xni_protocol_ib = &protocol_ib;
 #else
 struct xni_protocol *xni_protocol_ib = NULL;

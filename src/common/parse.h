@@ -13,7 +13,7 @@
 
 #include "xint_plan.h"
 
-#define XDD_PARSE_PHASE1			0x00000001 // Preprocess phase - phase 1 
+#define XDD_PARSE_PHASE1			0x00000001 // Preprocess phase - phase 1
 #define XDD_PARSE_PHASE2			0x00000002 // Parse Phase 2 occurs after we know how many targets there really are
 #define XDD_PARSE_TARGET_IN			0x00000004 // Target In
 #define XDD_PARSE_TARGET_OUT		0x00000008 // Target Out
@@ -32,7 +32,7 @@ struct xdd_func {
     char    *help;          /* help string */
     char    *ext_help[XDD_EXT_HELP_LINES];   /* Extented help strings */
 	uint32_t flags;			/* Flags for various parsing functions */
-}; 
+};
 typedef struct xdd_func xdd_func_t;
 
 #define	XDD_FUNC_INVISIBLE	0x00000001	// When this flag is present then this command will not be displayed with "usage"
@@ -76,7 +76,7 @@ int xddfunc_nobarrier(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t fl
 int xddfunc_nomemlock(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_noordering(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_noproclock(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
-#if defined(HAVE_CPU_SET_T)
+#if HAVE_CPU_SET_T
 int xddfunc_numactl(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 #endif
 int xddfunc_numreqs(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
@@ -110,7 +110,7 @@ int xddfunc_seek(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_setup(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_sgio(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_sharedmemory(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
-int xddfunc_singleproc(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags); 
+int xddfunc_singleproc(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_startdelay(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_startoffset(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_starttime(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
@@ -134,8 +134,8 @@ int xddfunc_throttle(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t fla
 int xddfunc_timelimit(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_timerinfo(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_timeserver(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
-int xddfunc_timestamp(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags); 
-int xddfunc_verify(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags); 
+int xddfunc_timestamp(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
+int xddfunc_verify(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_unverbose(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_verbose(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_version(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
@@ -143,7 +143,7 @@ int xddfunc_xni(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_ibdevice(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags);
 int xddfunc_invalid_option(int32_t argc, char *argv[], uint32_t flags);
 void xddfunc_currently_undefined_option(char *sp);
- 
+
 /*
  * Local variables:
  *  indent-tabs-mode: t

@@ -1,4 +1,4 @@
-#!/bin/python3 
+#!@PYTHON@
 import subprocess
 import os
 import time
@@ -17,7 +17,7 @@ def main():
 
 def setup():
     global xdd_exe_location
-   
+
     xdd_exe_location = subprocess.run(['which','xdd'], universal_newlines=True, stdout=subprocess.PIPE).stdout.strip('\n')
     if (not xdd_exe_location):
         print("xdd executable could not be found")
@@ -26,17 +26,17 @@ def setup():
     #location of xdd github repo
     global xdd_repo_location
     xdd_repo_location = Path.cwd()
-    
+
     #location of config file for running functional tests
     global xdd_test_config_location
     xdd_test_config_location = xdd_repo_location / 'tests' / 'functional'
 
-    # create test-dir 
+    # create test-dir
     if not os.path.exists(Path.home() / 'test-dir'):
         os.makedirs(Path.home() / 'test-dir')
         os.makedirs(Path.home() / 'test-dir' / 'logs')
         os.makedirs(Path.home() / 'test-dir' / 'tests')
-    
+
     #location of where functional tests will run
     global xdd_test_localmount_location
     xdd_test_localmount_location = Path.home() / 'test-dir' / 'tests'
@@ -72,7 +72,7 @@ def run_functional_tests():
     for test in test_results:
         print(f"{test} ------ {rc_values[test_results[test][0]]} ------ {test_results[test][1]} seconds")
         rc = test_results[test][0]
-        
+
         if (rc == 0 ):
             summary[0] += 1
         elif (rc == 1):
@@ -85,6 +85,6 @@ def run_functional_tests():
     print(f"Skipped: {summary[2]}")
 
 
-    
+
 if __name__ == "__main__":
     main()

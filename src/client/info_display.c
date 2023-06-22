@@ -101,7 +101,7 @@ xdd_system_info(xdd_plan_t* planp, FILE *out) {
 	setinvent();
 	inventp = getinvent();
 	while (inventp) {
-		if ((inventp->inv_class == INV_MEMORY) && 
+		if ((inventp->inv_class == INV_MEMORY) &&
 			(inventp->inv_type == INV_MAIN_MB)) {
 			mem_size = inventp->inv_state;
 			mem_size *= (1024 * 1024);
@@ -132,10 +132,10 @@ xdd_system_info(xdd_plan_t* planp, FILE *out) {
 	GetSystemInfo(&system_info);
 	osversion_info.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 	i = GetVersionEx((LPOSVERSIONINFOA)&osversion_info);
-	if (i == 0) { 
-			FormatMessage( 
-				FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-				FORMAT_MESSAGE_FROM_SYSTEM | 
+	if (i == 0) {
+			FormatMessage(
+				FORMAT_MESSAGE_ALLOCATE_BUFFER |
+				FORMAT_MESSAGE_FROM_SYSTEM |
 				FORMAT_MESSAGE_IGNORE_INSERTS,
 				NULL,
 				GetLastError(),
@@ -170,7 +170,7 @@ xdd_system_info(xdd_plan_t* planp, FILE *out) {
  */
 void
 xdd_options_info(xdd_plan_t* planp, FILE *out) {
-	char *c; 
+	char *c;
 
 
 	fprintf(out,"IOIOIOIOIOIOIOIOIOIOI XDD version %s based on %s IOIOIOIOIOIOIOIOIOIOIOI\n",
@@ -183,7 +183,7 @@ xdd_options_info(xdd_plan_t* planp, FILE *out) {
 	fprintf(out,"ID for this run, '%s'\n", xgp->id);
 	fprintf(out,"Maximum Process Priority, %s", (xgp->global_options & GO_MAXPRI)?"enabled\n":"disabled\n");
 	fprintf(out, "Passes, %d\n", planp->passes);
-	fprintf(out, "Pass Delay in seconds, %f\n", planp->pass_delay); 
+	fprintf(out, "Pass Delay in seconds, %f\n", planp->pass_delay);
 	fprintf(out, "Maximum Error Threshold, %lld\n", (long long)xgp->max_errors);
 	fprintf(out, "Target Offset, %lld\n",(long long)planp->target_offset);
 	fprintf(out, "I/O Synchronization, %d\n", planp->syncio);
@@ -226,31 +226,31 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 	fprintf(out,"\t\tTarget directory, %s\n",(strlen(tdp->td_target_directory)==0)?"\"./\"":tdp->td_target_directory);
 	fprintf(out,"\t\tProcess ID, %d\n",tdp->td_pid);
 	fprintf(out,"\t\tThread ID, %d\n",tdp->td_thread_id);
-#if defined(HAVE_CPU_SET_T)
+#if HAVE_CPU_SET_T
     if (strlen(tdp->numa_node_list) > 0) {
 		fprintf(out, "\t\tWorker threads pinned in NUMA domains, ");
 		for (j = 0; j < strlen(tdp->numa_node_list); j++) {
-			if (j != strlen(tdp->numa_node_list) - 1) 
+			if (j != strlen(tdp->numa_node_list) - 1)
 				fprintf(out, "%c, ", tdp->numa_node_list[j]);
-			else 
+			else
 				fprintf(out, "%c\n", tdp->numa_node_list[j]);
 		}
 	} else
 #endif
-	if (tdp->td_processor == -1) 
+	if (tdp->td_processor == -1)
 		    fprintf(out,"\t\tProcessor, all/any\n");
 	else fprintf(out,"\t\tProcessor, %d\n",tdp->td_processor);
 	fprintf(out,"\t\tRead/write ratio, %5.2f READ, %5.2f WRITE\n",tdp->td_rwratio*100.0,(1.0-tdp->td_rwratio)*100.0);
 	fprintf(out,"\t\tNetwork Operation Ordering is,");
-	if (tdp->td_target_options & TO_ORDERING_NETWORK_SERIAL) 
+	if (tdp->td_target_options & TO_ORDERING_NETWORK_SERIAL)
 		fprintf(out,"serial\n");
-	else if (tdp->td_target_options & TO_ORDERING_NETWORK_LOOSE) 
+	else if (tdp->td_target_options & TO_ORDERING_NETWORK_LOOSE)
 		fprintf(out,"loose\n");
 	else fprintf(out,"none\n");
 	fprintf(out,"\t\tStorage Operation Ordering is,");
-	if (tdp->td_target_options & TO_ORDERING_STORAGE_SERIAL) 
+	if (tdp->td_target_options & TO_ORDERING_STORAGE_SERIAL)
 		fprintf(out,"serial\n");
-	else if (tdp->td_target_options & TO_ORDERING_STORAGE_LOOSE) 
+	else if (tdp->td_target_options & TO_ORDERING_STORAGE_LOOSE)
 		fprintf(out,"loose\n");
 	else fprintf(out,"none\n");
 	if (tdp->td_throtp) {
@@ -284,10 +284,10 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 		xdd_display_kmgt(out, tdp->td_seekhdr.seek_range*tdp->td_block_size, tdp->td_block_size);
 	}
 	fprintf(out, "\t\tSeek pattern, %s\n", tdp->td_seekhdr.seek_pattern);
-	if (tdp->td_seekhdr.seek_stride > tdp->td_reqsize) 
+	if (tdp->td_seekhdr.seek_stride > tdp->td_reqsize)
 		fprintf(out, "\t\tSeek Stride, %d, %d-byte blocks, %d, bytes\n",tdp->td_seekhdr.seek_stride,tdp->td_block_size,tdp->td_seekhdr.seek_stride*tdp->td_block_size);
 	fprintf(out, "\t\tFlushwrite interval, %lld\n", (long long)tdp->td_flushwrite);
-	fprintf(out,"\t\tI/O memory buffer is %s\n", 
+	fprintf(out,"\t\tI/O memory buffer is %s\n",
 		(tdp->td_target_options & TO_SHARED_MEMORY)?"a shared memory segment":"a normal memory buffer");
 	fprintf(out,"\t\tI/O memory buffer alignment in bytes, %d\n", tdp->td_mem_align);
 	if (tdp->td_dpp) {
@@ -306,18 +306,18 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 				dpp->data_pattern_filename, (int)dpp->data_pattern_length);
 			if (dpp->data_pattern_options & DP_HEX_PATTERN) {
 				fprintf(out,",HEX: 0x");
-				for (i=0; i<dpp->data_pattern_length; i++) 
+				for (i=0; i<dpp->data_pattern_length; i++)
 					fprintf(out,"%02x",dpp->data_pattern[i]);
 				fprintf(out, " <%d bytes>, %s\n",
 					(int)dpp->data_pattern_length, (dpp->data_pattern_options & DP_REPLICATE_PATTERN)?"Replicated":"Not Replicated");
 			}
 			if (dpp->data_pattern_options & DP_PATTERN_PREFIX)  {
 				fprintf(out,",PREFIX: 0x");
-				for (i=0; i<dpp->data_pattern_prefix_length; i+=2) 
+				for (i=0; i<dpp->data_pattern_prefix_length; i+=2)
 					fprintf(out,"%02x",dpp->data_pattern_prefix[i]);
 				fprintf(out, " <%d nibbles>\n", (int)dpp->data_pattern_prefix_length);
 			}
-		} else { // Just display the one-byte hex pattern 
+		} else { // Just display the one-byte hex pattern
 			fprintf(out,",0x%02x\n",dpp->data_pattern[0]);
 		}
 	}
@@ -334,7 +334,7 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 	/* Timestamp options */
 	if (tdp->td_ts_table.ts_options & TS_ON) {
                 fprintf(out, "\t\tTimestamping, enabled with options, %s %s %s %s %s %s\n",
-                   ( tdp->td_ts_table.ts_options & TS_DETAILED   )?"DETAILED":"", 
+                   ( tdp->td_ts_table.ts_options & TS_DETAILED   )?"DETAILED":"",
                    ( tdp->td_ts_table.ts_options & TS_SUMMARY    )?"SUMMARY":"",
                    ( tdp->td_ts_table.ts_options & TS_NORMALIZE  )?"NORMALIZE":"",
                    ( tdp->td_ts_table.ts_options & TS_APPEND     )?"APPEND":"",
@@ -357,21 +357,21 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 			fprintf(out,"/HOSTNAME");
 		if (tdp->td_hb.hb_options & HB_TARGET)  	// Display the target number of this info
 			fprintf(out,"/Target#");
-		if (tdp->td_hb.hb_options & HB_OPS)  	// Display current number of OPS performed 
+		if (tdp->td_hb.hb_options & HB_OPS)  	// Display current number of OPS performed
 			fprintf(out,"/Ops");
-		if (tdp->td_hb.hb_options & HB_BYTES)  	// Display current number of BYTES transferred 
+		if (tdp->td_hb.hb_options & HB_BYTES)  	// Display current number of BYTES transferred
 			fprintf(out,"/Bytes");
-		if (tdp->td_hb.hb_options & HB_KBYTES)  	// Display current number of KILOBYTES transferred 
+		if (tdp->td_hb.hb_options & HB_KBYTES)  	// Display current number of KILOBYTES transferred
 			fprintf(out,"/KBytes");
-		if (tdp->td_hb.hb_options & HB_MBYTES)  	// Display current number of MEGABYTES transferred 
+		if (tdp->td_hb.hb_options & HB_MBYTES)  	// Display current number of MEGABYTES transferred
 			fprintf(out,"/MBytes");
-		if (tdp->td_hb.hb_options & HB_GBYTES)  	// Display current number of GIGABYTES transferred 
+		if (tdp->td_hb.hb_options & HB_GBYTES)  	// Display current number of GIGABYTES transferred
 			fprintf(out,"/GBytes");
-		if (tdp->td_hb.hb_options & HB_BANDWIDTH)// Display current Aggregate BANDWIDTH 
+		if (tdp->td_hb.hb_options & HB_BANDWIDTH)// Display current Aggregate BANDWIDTH
 			fprintf(out,"/Bandwidth");
-		if (tdp->td_hb.hb_options & HB_IOPS)  	// Display current Aggregate IOPS 
+		if (tdp->td_hb.hb_options & HB_IOPS)  	// Display current Aggregate IOPS
 			fprintf(out,"/IOPS");
-		if (tdp->td_hb.hb_options & HB_PERCENT)  // Display Percent Complete 
+		if (tdp->td_hb.hb_options & HB_PERCENT)  // Display Percent Complete
 			fprintf(out,"/PercentComplete");
 		if (tdp->td_hb.hb_options & HB_ET)  		// Display Estimated Time to Completion
 			fprintf(out,"/EstimatedTimeLeft");
@@ -409,7 +409,7 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 //		}
 //	}
 
-	// Display information about any End-to-End operations for this target 
+	// Display information about any End-to-End operations for this target
 	// Only worker thread 0 displays the inforamtion
 	if (tdp->td_target_options & TO_ENDTOEND) { // This target is part of an end-to-end operation
 		if (tdp->td_planp->plan_options & PLAN_ENDTOEND_LOCAL) {
@@ -438,21 +438,21 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 			}
 		}
 		// Check for RESTART and setup restart structure if required
-		if (tdp->td_target_options & TO_RESTART_ENABLE) { 
+		if (tdp->td_target_options & TO_RESTART_ENABLE) {
 			// Set up the restart structure in this Data Struct
 			if (tdp->td_restartp == NULL) {
 				fprintf(out,"\t\tRESTART - Internal Error - no restart structure assigned to this target!\n");
 				tdp->td_target_options &= ~TO_RESTART_ENABLE; // turn off restart
 				return;
-			} 
+			}
 			// ok - we have a good restart structure
-			tdp->td_restartp->source_host = tdp->td_e2ep->e2e_src_hostname; 		// Name of the Source machine 
-			tdp->td_restartp->destination_host = tdp->td_e2ep->e2e_dest_hostname; 	// Name of the Destination machine 
+			tdp->td_restartp->source_host = tdp->td_e2ep->e2e_src_hostname; 		// Name of the Source machine
+			tdp->td_restartp->destination_host = tdp->td_e2ep->e2e_dest_hostname; 	// Name of the Destination machine
 			if (tdp->td_restartp->flags & RESTART_FLAG_ISSOURCE) { // This is the SOURCE sside of the biz
 				 tdp->td_restartp->source_filename = tdp->td_target_full_pathname; 		// The source_filename is the name of the file being copied on the source side
 				 tdp->td_restartp->destination_filename = NULL;		// The destination_filename is the name of the file being copied on the destination side
 				if (tdp->td_restartp->flags & RESTART_FLAG_RESUME_COPY) { // Indicate that this is the resumption of a previous copy from source file XXXXX
-						fprintf(out,"\t\tRESTART: RESUMING COPY: Source File, %s, on source host name, %s\n", 
+						fprintf(out,"\t\tRESTART: RESUMING COPY: Source File, %s, on source host name, %s\n",
 								tdp->td_restartp->source_filename,
 								tdp->td_restartp->source_host);
 				}
@@ -460,7 +460,7 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 				 tdp->td_restartp->source_filename = NULL; 		// The source_filename is the name of the file being copied on the source side
 				 tdp->td_restartp->destination_filename = tdp->td_target_full_pathname;		// The destination_filename is the name of the file being copied on the destination side
 				if (tdp->td_restartp->flags & RESTART_FLAG_RESUME_COPY) {  // Indicate that this is the resumption of a previous copy from source file XXXXX
-						fprintf(out,"\t\tRESTART: RESUMING COPY: Destination File, %s, on destination host name, %s\n", 
+						fprintf(out,"\t\tRESTART: RESUMING COPY: Destination File, %s, on destination host name, %s\n",
 								tdp->td_restartp->destination_filename,
 								tdp->td_restartp->destination_host);
 				}
@@ -479,7 +479,7 @@ xdd_target_info(FILE *out, target_data_t *tdp) {
 					(double)(tdp->td_target_bytes_to_xfer_per_pass/FLOAT_MEGABYTE),
 					(double)(tdp->td_target_bytes_to_xfer_per_pass/FLOAT_GIGABYTE),
 					(double)(tdp->td_target_bytes_to_xfer_per_pass/FLOAT_TERABYTE));
-			}	
+			}
 		}
 	}
 	fflush(out);
