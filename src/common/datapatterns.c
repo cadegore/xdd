@@ -46,21 +46,7 @@ xdd_datapattern_buffer_init(worker_data_t *wdp) {
 	tdp = wdp->wd_tdp;
     dpp = tdp->td_dpp;
 	if (dpp->data_pattern_options & DP_WHOLEFILE_PATTERN) { // Using the whole contents of the file
-		if (tdp->td_dpp->data_pattern_length < ((size_t)tdp->td_xfer_size)) {
-			memset(wdp->wd_task.task_datap,'\0',tdp->td_xfer_size);
-			ucp = (unsigned char *)wdp->wd_task.task_datap;
-			if (dpp->data_pattern_options & DP_REPLICATE_PATTERN) { // Replicate the pattern throughout the buffer
-				remaining_length = tdp->td_xfer_size;
-				while (remaining_length) {
-					if (dpp->data_pattern_length < remaining_length)
-						pattern_length = dpp->data_pattern_length;
-					else pattern_length = remaining_length;
-					memcpy(ucp,dpp->data_pattern,pattern_length);
-					remaining_length -= pattern_length;
-					ucp += pattern_length;
-				}
-			}
-		} else if (tdp->td_dpp->data_pattern_length % tdp->td_xfer_size) {
+		if (tdp->td_dpp->data_pattern_length % tdp->td_xfer_size) {
 			/* 
 			 * We will be assign data using each worker_data_t's task_byte_offset during target passes,
 			 * so we just need to check if transfer size is evenly divisable by the
