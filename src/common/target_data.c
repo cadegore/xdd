@@ -121,6 +121,73 @@ xdd_init_new_target_data(target_data_t *tdp, int32_t n) {
 } /* end of xdd_init_new_target_data() */
 
 /*----------------------------------------------------------------------------*/
+/* xdd_set_bs_reqsize_numreqs_from_loadfile() - This function reads a target's
+ * seek load file and sets the block size, request size (override the values
+ * from command line) and numreqs if td_numreqs and td_bytes are not provided.
+ */
+static int32_t
+xdd_set_bs_reqsize_numreqs_from_loadfile(target_data_t *tdp) {
+	FILE	*loadfp;	/* Load File Point */
+	char	line[LINE_LENGTH]; /* one line of characters */
+	struct seekhdr	*sp;
+
+	sp = &tdp->td_seekhdr;
+	/* Open the load file */
+	loadfp = fopen(sp->seek_loadfile, "r");
+	if (loadfp == NULL) {
+		fprintf(xgp->errout, "%s: ERROR: BLock size not found in the first line of %s\n",
+				xgp->progname, sp->seek_loadfile);
+		fclose(loadfp);
+		return(-1);
+	}
+
+	/* Read the first line */
+	if (fgets(line, sizeof(line), loadfp) != NULL) {
+		char *blocksize_str = strstr(line, "Block size=");
+		char *reqsize_str = strstr(line, "Request size=");
+
+		if (blocksize_str != NULL) {
+			sscanf(blocksize_str, "Block size=%d", &(tdp->td_block_size));
+		} else {
+			fprintf(xgp->errout, "%s: ERROR: Block size is not found in the first line of %s\n",
+					xgp->progname, sp->seek_loadfile);
+			fclose(loadfp);
+			return(-1);
+		}
+
+		if (reqsize_str != NULL) {
+			sscanf(reqsize_str, "Request size=%d", &(tdp->td_reqsize));
+		} else {
+			fprintf(xgp->errout, "%s: ERROR: Request size is not found in the first line of %s\n",
+					xgp->progname, sp->seek_loadfile);
+			fclose(loadfp);
+			return(-1);
+		}
+
+		/* check if td_numreqs or td_bytes is set */
+		if (!tdp->td_numreqs && !tdp->td_bytes) {
+			char *numreqs_str = strstr(line, "Numreqs=");
+			if (numreqs_str != NULL) {
+				sscanf(numreqs_str, "Numreqs=%ld", &(tdp->td_numreqs));
+			} else {
+				fprintf(xgp->errout, "%s: ERROR: Numreqs is not found in the first line of %s\n",
+						xgp->progname, sp->seek_loadfile);
+				fclose(loadfp);
+				return(-1);
+			}
+		}
+	} else {
+		fprintf(xgp->errout, "%s: ERROR: Failed to read the first line of %s\n",
+				xgp->progname, sp->seek_loadfile);
+		fclose(loadfp);
+		return(-1);
+	}
+	/* close the load file */
+	fclose(loadfp);
+	return(0);
+} // End of xdd_set_bs_reqsize_numreqs_from_loadfile()
+
+/*----------------------------------------------------------------------------*/
 /* xdd_build_target_data_substructure_calculate_xfer_info() - Will calculate the number of data
  * transfers to perform as well as the total number of bytes for the specified
  * target.
@@ -295,6 +362,13 @@ xdd_build_target_data_substructure(xdd_plan_t* planp) {
 		if (tdp->td_target_options & TO_ENDTOEND) {
 			xdd_build_target_data_substructure_e2e(planp, tdp);
 		}
+
+		// if a load file is given, it will override the blocksize and reqsize from the command line
+		// it will also check if numreqs is specified, if not, it will set numreqs from the load file
+		if (tdp->td_seekhdr.seek_loadfile) {
+			xdd_set_bs_reqsize_numreqs_from_loadfile(tdp);
+		}
+					
 		// Calcualte the data transfer information - number of ops, bytes, starting offset, ...etc.
 		xdd_calculate_xfer_info(tdp);
 

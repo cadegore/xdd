@@ -3509,7 +3509,10 @@ xddfunc_seek(xdd_plan_t *planp, int32_t argc, char *argv[], uint32_t flags)
 		args_index += args;  /* skip past the "target <taget number>" */
 	}
 	/* At this point "args_index" is an index to the seek "option" argument */
-	if (strcmp(argv[args_index], "save") == 0) { /* save the seek information in a file */
+	if (argv[args_index] == NULL) {
+		fprintf(stderr, "%s: ERROR: No seek option specified. Please give a valid seek option.\n", xgp->progname);
+		return(-1);
+	} else if (strcmp(argv[args_index], "save") == 0) { /* save the seek information in a file */
 		if (target_number >= 0) {  /* set option for specific target */
 			tdp = xdd_get_target_datap(planp, target_number, argv[0]);
 			if (tdp == NULL) return(-1);
